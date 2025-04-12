@@ -6,9 +6,13 @@ import 'package:azimutree/views/pages/scan_label_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
 import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
+import 'package:azimutree/data/global_camera.dart';
 
-void main() {
-  runApp(const MainApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  globalCameras = await availableCameras();
+  runApp(MainApp());
 }
 
 class MainApp extends StatefulWidget {
