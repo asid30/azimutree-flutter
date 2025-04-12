@@ -1,3 +1,4 @@
+import 'package:azimutree/data/notifiers.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -12,8 +13,6 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-  String currentTheme = "light";
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -42,14 +41,19 @@ class _MainAppState extends State<MainApp> {
         appBar: AppBar(
           title: Text("Home"),
           actions: [
-            Text("Light Theme"),
-            IconButton(
-              onPressed: () {
-                setState(() {
-                  currentTheme = currentTheme == "light" ? "dark" : "light";
-                });
+            Text(isLightModeNotifier.value ? "Light Theme" : "Dark Theme"),
+            ValueListenableBuilder(
+              valueListenable: isLightModeNotifier,
+              builder: (context, isLightMode, child) {
+                return IconButton(
+                  onPressed: () {
+                    setState(() {
+                      isLightModeNotifier.value = !isLightMode;
+                    });
+                  },
+                  icon: Icon(isLightMode ? Icons.light_mode : Icons.dark_mode),
+                );
               },
-              icon: Icon(Icons.light_mode),
             ),
           ],
         ),
@@ -102,7 +106,11 @@ class _MainAppState extends State<MainApp> {
         body: Stack(
           children: [
             Image(
-              image: AssetImage("assets/images/$currentTheme-bg-notitle.png"),
+              image: AssetImage(
+                isLightModeNotifier.value
+                    ? "assets/images/light-bg-notitle.png"
+                    : "assets/images/dark-bg-notitle.png",
+              ),
               fit: BoxFit.cover,
               height: double.infinity,
               width: double.infinity,
@@ -110,7 +118,11 @@ class _MainAppState extends State<MainApp> {
             Center(
               heightFactor: 3,
               child: Image(
-                image: AssetImage("assets/images/$currentTheme-title.png"),
+                image: AssetImage(
+                  isLightModeNotifier.value
+                      ? "assets/images/light-title.png"
+                      : "assets/images/dark-title.png",
+                ),
                 fit: BoxFit.cover,
                 width: 250,
               ),
