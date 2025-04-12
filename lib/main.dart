@@ -4,6 +4,7 @@ import 'package:azimutree/views/pages/location_map_page.dart';
 import 'package:azimutree/views/pages/manage_data_page.dart';
 import 'package:azimutree/views/pages/scan_label_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
+import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -78,58 +79,7 @@ class _MainAppState extends State<MainApp> {
             ),
           ],
         ),
-        drawer: Drawer(
-          child: ListView(
-            padding: EdgeInsets.zero,
-            children: [
-              DrawerHeader(
-                decoration: BoxDecoration(color: Color(0xFF1F4226)),
-                child: Text(
-                  'Menu',
-                  style: TextStyle(color: Colors.white, fontSize: 24),
-                ),
-              ),
-              ListTile(
-                leading: Icon(Icons.home),
-                title: Text('Home'),
-                onTap: () {},
-              ),
-              Divider(),
-              ListTile(
-                leading: Icon(Icons.photo_camera),
-                title: Text('Scan Kode Label'),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: Icon(Icons.storage),
-                title: Text('Kelola Data Sampel'),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: Icon(Icons.map),
-                title: Text('Peta Lokasi Cluster Plot'),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: Icon(Icons.book),
-                title: Text('Panduan Aplikasi'),
-                onTap: () {},
-              ),
-              Divider(),
-              ListTile(
-                leading: Icon(Icons.settings),
-                title: Text('Settings'),
-                onTap: () {},
-              ),
-              ListTile(
-                leading: Icon(Icons.info),
-                title: Text('About'),
-                onTap: () {},
-              ),
-              Divider(),
-            ],
-          ),
-        ),
+        drawer: SidebarWidget(),
         body: Stack(
           children: [
             //* Background App
