@@ -54,6 +54,17 @@ class SidebarWidget extends StatelessWidget {
               ),
               Divider(),
               ListTile(
+                leading: Icon(Icons.developer_mode),
+                title: Text('Test OCR Google ML Kit'),
+                onTap: () => _selectPage(context, "test_ocr_page1"),
+              ),
+              ListTile(
+                leading: Icon(Icons.developer_mode),
+                title: Text('Test OCR Google Vision API'),
+                onTap: () => _selectPage(context, "test_ocr_page2"),
+              ),
+              Divider(),
+              ListTile(
                 leading: Icon(Icons.settings),
                 title: Text('Settings'),
                 onTap:
