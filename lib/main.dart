@@ -3,6 +3,7 @@ import 'package:azimutree/views/pages/home_page.dart';
 import 'package:azimutree/views/pages/location_map_page.dart';
 import 'package:azimutree/views/pages/manage_data_page.dart';
 import 'package:azimutree/views/pages/scan_label_page.dart';
+import 'package:azimutree/views/pages/test_imgupload_page.dart';
 import 'package:azimutree/views/pages/test_ocr1_page.dart';
 import 'package:azimutree/views/pages/test_ocr2_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
@@ -34,6 +35,7 @@ class _MainAppState extends State<MainApp> {
     "tutorial_page": TutorialPage(),
     "test_ocr_page1": TestOcrGoogleMlKitPage(),
     "test_ocr_page2": TestOcrGoogleVisionApiPage(),
+    "test_imgupload_page": TestImageUploadPage(),
   };
   //* Title of Pages
   final Map<String?, String?> titleOfPages = {
@@ -44,6 +46,7 @@ class _MainAppState extends State<MainApp> {
     "tutorial_page": "Panduan Aplikasi",
     "test_ocr_page1": "Test OCR Google ML Kit",
     "test_ocr_page2": "Test OCR Google Vision API",
+    "test_imgupload_page": "Test Upload Gambar",
   };
 
   @override

@@ -55,6 +55,11 @@ class SidebarWidget extends StatelessWidget {
               Divider(),
               ListTile(
                 leading: Icon(Icons.developer_mode),
+                title: Text('Test Upload Gambar'),
+                onTap: () => _selectPage(context, "test_imgupload_page"),
+              ),
+              ListTile(
+                leading: Icon(Icons.developer_mode),
                 title: Text('Test OCR Google ML Kit'),
                 onTap: () => _selectPage(context, "test_ocr_page1"),
               ),

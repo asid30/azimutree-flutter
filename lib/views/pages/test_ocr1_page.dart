@@ -14,19 +14,22 @@ class TestOcrGoogleMlKitPage extends StatefulWidget {
 
 class _TestOcrGoogleMlKitPageState extends State<TestOcrGoogleMlKitPage> {
   String extractedText = "Memproses...";
+  String defaultImagePath = "assets/images/sample.png";
   List<TextElement> textElements = [];
   String imagePath = '';
 
   @override
   void initState() {
     super.initState();
-    _processImageFromAsset();
+    _loadAndProcessImage(defaultImagePath);
   }
 
-  Future<void> _processImageFromAsset() async {
-    final ByteData imageData = await rootBundle.load(
-      'assets/images/sample.png',
-    );
+  Future<void> _loadAndProcessImage(String imagePath) async {
+    final ByteData imageData = await rootBundle.load(imagePath);
+    await _processImageFromAsset(imageData);
+  }
+
+  Future<void> _processImageFromAsset(ByteData imageData) async {
     final Directory tempDir = await getTemporaryDirectory();
     final String tempPath = join(tempDir.path, 'sample.jpg');
 
