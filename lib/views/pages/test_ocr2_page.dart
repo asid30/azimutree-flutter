@@ -163,6 +163,27 @@ class _TestOcrGoogleVisionApiPageState
                   padding: const EdgeInsets.all(16.0),
                   child: Text(extractedText),
                 ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    // Implement your upload functionality here
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text("Upload functionality not implemented."),
+                      ),
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Color(0xFF1F4226),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.upload, color: Colors.white),
+                      Text("Upload", style: TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
               ],
             );
           },
