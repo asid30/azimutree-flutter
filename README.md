@@ -13,7 +13,7 @@
   <h2>Fitur Utama</h2>
   <ul>
     <li><strong>Pemindaian Kode Pohon & Plot</strong><br>
-      Menggunakan kamera ponsel dan teknologi OCR (Tesseract / Google ML Kit / Google Vision API) untuk membaca label ID pohon secara real-time.</li>
+      Menggunakan kamera ponsel dan teknologi OCR (Google ML Kit / Google Vision API) untuk membaca label ID pohon secara real-time.</li>
     <li><strong>Mapping Lokasi Pohon</strong><br>
       Menampilkan posisi pohon dalam satu klaster menggunakan data azimut dan jarak dari titik pusat klaster.</li>
     <li><strong>Pencocokan Data Pohon</strong><br>
