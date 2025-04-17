@@ -3,31 +3,6 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>README - Azimutree</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      max-width: 800px;
-      margin: 2rem auto;
-      padding: 0 1rem;
-    }
-    h1, h2 {
-      color: #2c3e50;
-    }
-    code {
-      background-color: #f4f4f4;
-      padding: 2px 4px;
-      border-radius: 4px;
-      font-size: 90%;
-    }
-    pre {
-      background: #f4f4f4;
-      padding: 1rem;
-      border-radius: 5px;
-      overflow-x: auto;
-    }
-  </style>
 </head>
 <body>
 
