@@ -49,7 +49,7 @@
   <h2>Catatan</h2>
   <ul>
     <li>Beberapa fitur OCR memerlukan koneksi internet dan kunci API (jika menggunakan Google Vision API).</li>
-    <li>Versi offline akan dikembangkan sepenuhnya menggunakan Tesseract dan OpenCV.</li>
+    <li>Versi offline akan dikembangkan sepenuhnya menggunakan Google ML Kit.</li>
   </ul>
 
 </body>
