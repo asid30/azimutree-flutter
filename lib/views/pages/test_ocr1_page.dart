@@ -1,9 +1,7 @@
-import 'package:flutter/material.dart';
 import 'dart:io';
+import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:flutter/services.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart';
 
 class TestOcrGoogleMlKitPage extends StatefulWidget {
   const TestOcrGoogleMlKitPage({super.key});
@@ -13,30 +11,42 @@ class TestOcrGoogleMlKitPage extends StatefulWidget {
 }
 
 class _TestOcrGoogleMlKitPageState extends State<TestOcrGoogleMlKitPage> {
+  File? _image;
   String extractedText = "Memproses...";
   List<TextElement> textElements = [];
   String imagePath = '';
+  Size imageSize = Size.zero;
 
-  @override
-  void initState() {
-    super.initState();
-    _processImageFromAsset();
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      await _processImageFromAsset(pickedFile);
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    }
   }
 
-  Future<void> _processImageFromAsset() async {
-    final ByteData imageData = await rootBundle.load(
-      'assets/images/sample.png',
-    );
-    final Directory tempDir = await getTemporaryDirectory();
-    final String tempPath = join(tempDir.path, 'sample.jpg');
+  Future<void> _cameraImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.camera);
 
-    File imageFile = await File(
-      tempPath,
-    ).writeAsBytes(imageData.buffer.asUint8List());
+    if (pickedFile != null) {
+      await _processImageFromAsset(pickedFile);
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    }
+  }
 
-    final inputImage = InputImage.fromFile(imageFile);
+  Future<void> _processImageFromAsset(XFile imageData) async {
+    final inputImage = InputImage.fromFilePath(imageData.path);
     final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
     final recognizedText = await textRecognizer.processImage(inputImage);
+    final file = File(imageData.path);
+    final decodedImage = await decodeImageFromList(file.readAsBytesSync());
     await textRecognizer.close();
 
     List<TextElement> elements = [];
@@ -49,92 +59,150 @@ class _TestOcrGoogleMlKitPageState extends State<TestOcrGoogleMlKitPage> {
     setState(() {
       extractedText = recognizedText.text;
       textElements = elements;
-      imagePath = imageFile.path;
+      imagePath = imageData.path;
+      imageSize = Size(
+        decodedImage.width.toDouble(),
+        decodedImage.height.toDouble(),
+      );
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    if (imagePath.isEmpty) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    return FutureBuilder<Size>(
-      future: _getImageSize(File(imagePath)),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          (_image != null)
+              ? Stack(
+                children: [
+                  Image.file(
+                    File(imagePath),
+                    width: MediaQuery.of(context).size.width,
+                    fit: BoxFit.fitWidth,
+                  ),
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final displayedWidth = constraints.maxWidth;
+                      final aspectRatio =
+                          imageSize.width != 0
+                              ? imageSize.height / imageSize.width
+                              : 1;
+                      final displayedHeight = displayedWidth * aspectRatio;
 
-        final originalSize = snapshot.data!;
-        final screenWidth = MediaQuery.of(context).size.width;
-        final scale = screenWidth / originalSize.width;
-        final displayHeight = originalSize.height * scale;
+                      return SizedBox(
+                        width: displayedWidth,
+                        height: displayedHeight,
+                        child: CustomPaint(
+                          painter: TextBoundingBoxPainter(
+                            elements: textElements,
+                            originalImageSize: imageSize,
+                            displayedImageSize: Size(
+                              displayedWidth,
+                              displayedHeight,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              )
+              : Container(
+                color: Colors.white,
+                height: 200,
+                alignment: Alignment.center,
+                child: const Text(
+                  "Belum ada gambar dipilih",
+                  style: TextStyle(color: Colors.black),
+                ),
+              ),
 
-        return SingleChildScrollView(
-          child: Column(
+          SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
-              SizedBox(
-                width: screenWidth,
-                height: displayHeight,
-                child: Stack(
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _pickImage();
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF1F4226),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Image.file(
-                      File(imagePath),
-                      width: screenWidth,
-                      fit: BoxFit.fitWidth,
-                    ),
-                    Positioned.fill(
-                      child: CustomPaint(
-                        painter: TextBoundingBoxPainter(textElements, scale),
-                      ),
-                    ),
+                    Icon(Icons.upload, color: Colors.white),
+                    Text(" Upload", style: TextStyle(color: Colors.white)),
                   ],
                 ),
               ),
-              const SizedBox(height: 20),
-              const Text(
-                "Hasil OCR:",
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              Container(
-                color: Colors.white,
-                padding: const EdgeInsets.all(16.0),
-                child: Text(extractedText),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _cameraImage();
+                  });
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF1F4226),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.camera_alt, color: Colors.white),
+                    Text(" Camera", style: TextStyle(color: Colors.white)),
+                  ],
+                ),
               ),
             ],
           ),
-        );
-      },
+          const SizedBox(height: 20),
+          const Text(
+            "Hasil OCR:",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.all(16.0),
+            child: Text(extractedText),
+          ),
+          SizedBox(height: 20),
+        ],
+      ),
     );
-  }
-
-  Future<Size> _getImageSize(File imageFile) async {
-    final decodedImage = await decodeImageFromList(imageFile.readAsBytesSync());
-    return Size(decodedImage.width.toDouble(), decodedImage.height.toDouble());
   }
 }
 
 class TextBoundingBoxPainter extends CustomPainter {
   final List<TextElement> elements;
-  final double scale;
+  final Size originalImageSize;
+  final Size displayedImageSize;
 
-  TextBoundingBoxPainter(this.elements, this.scale);
+  TextBoundingBoxPainter({
+    required this.elements,
+    required this.originalImageSize,
+    required this.displayedImageSize,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint =
         Paint()
-          ..color = Colors.greenAccent
+          ..color = Colors.redAccent
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 2;
+          ..strokeWidth = 2.0;
+
+    double scaleX = displayedImageSize.width / originalImageSize.width;
+    double scaleY = displayedImageSize.height / originalImageSize.height;
 
     for (final element in elements) {
       final rect = element.boundingBox;
       final scaledRect = Rect.fromLTRB(
-        rect.left * scale,
-        rect.top * scale,
-        rect.right * scale,
-        rect.bottom * scale,
+        rect.left * scaleX,
+        rect.top * scaleY,
+        rect.right * scaleX,
+        rect.bottom * scaleY,
       );
       canvas.drawRect(scaledRect, paint);
     }
