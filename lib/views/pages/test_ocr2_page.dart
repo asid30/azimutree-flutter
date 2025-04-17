@@ -1,10 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:path/path.dart';
-import 'package:path_provider/path_provider.dart';
 
 class TestOcrGoogleVisionApiPage extends StatefulWidget {
   const TestOcrGoogleVisionApiPage({super.key});
@@ -16,199 +14,235 @@ class TestOcrGoogleVisionApiPage extends StatefulWidget {
 
 class _TestOcrGoogleVisionApiPageState
     extends State<TestOcrGoogleVisionApiPage> {
-  String extractedText = "Memproses...";
-  File? imageFile;
-  List<Rect> boundingBoxes = [];
-  Size? originalImageSize;
+  File? _image;
+  String extractedText = 'Memproses...';
+  List<Map<String, dynamic>> boundingBoxes = [];
+  Size imageSize = Size.zero;
 
-  @override
-  void initState() {
-    super.initState();
-    _processImageFromAsset();
-  }
+  final String apiKey = 'AIzaSyCjuokYxx6LJCB07Xr1knS2w_743PAU3C8';
 
-  Future<void> _processImageFromAsset() async {
-    try {
-      final ByteData imageData = await rootBundle.load(
-        'assets/images/sample.png',
-      );
-      final Directory tempDir = await getTemporaryDirectory();
-      final String tempPath = join(tempDir.path, 'sample.png');
+  Future<void> _pickImage(ImageSource source) async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: source);
 
-      imageFile = await File(
-        tempPath,
-      ).writeAsBytes(imageData.buffer.asUint8List());
-
-      // Decode size asli gambar
-      final decodedImage = await decodeImageFromList(
-        imageFile!.readAsBytesSync(),
-      );
-      final Size imageSize = Size(
-        decodedImage.width.toDouble(),
-        decodedImage.height.toDouble(),
-      );
-
-      final result = await recognizeTextWithGoogleVision(imageFile!);
-
+    if (pickedFile != null) {
+      final file = File(pickedFile.path);
+      final decodedImage = await decodeImageFromList(file.readAsBytesSync());
       setState(() {
-        extractedText = result['text'];
-        boundingBoxes = result['boxes'];
-        originalImageSize = imageSize;
+        _image = file;
+        imageSize = Size(
+          decodedImage.width.toDouble(),
+          decodedImage.height.toDouble(),
+        );
       });
-    } catch (e) {
-      setState(() {
-        extractedText = "Terjadi kesalahan: $e";
-      });
+
+      await _processImageWithGoogleVision(file);
     }
   }
 
-  Future<Map<String, dynamic>> recognizeTextWithGoogleVision(
-    File imageFile,
-  ) async {
-    const String apiKey =
-        'AIzaSyCjuokYxx6LJCB07Xr1knS2w_743PAU3C8'; // Ganti dengan API Key kamu
-
+  Future<void> _processImageWithGoogleVision(File imageFile) async {
     final bytes = await imageFile.readAsBytes();
     final base64Image = base64Encode(bytes);
 
-    final url = 'https://vision.googleapis.com/v1/images:annotate?key=$apiKey';
+    final url = Uri.parse(
+      'https://vision.googleapis.com/v1/images:annotate?key=$apiKey',
+    );
 
-    final body = jsonEncode({
-      "requests": [
+    final requestPayload = {
+      'requests': [
         {
-          "image": {"content": base64Image},
-          "features": [
-            {"type": "TEXT_DETECTION"},
+          'image': {'content': base64Image},
+          'features': [
+            {'type': 'TEXT_DETECTION'},
           ],
         },
       ],
-    });
+    };
 
     final response = await http.post(
-      Uri.parse(url),
-      headers: {"Content-Type": "application/json"},
-      body: body,
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode(requestPayload),
     );
 
     if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
-      final fullText =
-          data['responses'][0]['fullTextAnnotation']?['text'] ??
-          'Tidak ada teks terdeteksi.';
-      final List<dynamic> blocks =
-          data['responses'][0]['fullTextAnnotation']?['pages']?[0]['blocks'] ??
-          [];
+      final result = jsonDecode(response.body);
+      final annotations = result['responses'][0]['textAnnotations'];
 
-      final boxes = <Rect>[];
+      if (annotations != null && annotations.isNotEmpty) {
+        final text = annotations[0]['description'];
+        final boxes =
+            annotations.sublist(1).map<Map<String, dynamic>>((annotation) {
+              final vertices = annotation['boundingPoly']['vertices'];
+              return {'text': annotation['description'], 'vertices': vertices};
+            }).toList();
 
-      for (var block in blocks) {
-        for (var paragraph in block['paragraphs']) {
-          for (var word in paragraph['words']) {
-            final vertices = word['boundingBox']['vertices'];
-            final left = vertices[0]['x']?.toDouble() ?? 0.0;
-            final top = vertices[0]['y']?.toDouble() ?? 0.0;
-            final right = vertices[2]['x']?.toDouble() ?? 0.0;
-            final bottom = vertices[2]['y']?.toDouble() ?? 0.0;
-            boxes.add(Rect.fromLTRB(left, top, right, bottom));
-          }
-        }
+        setState(() {
+          extractedText = text;
+          boundingBoxes = boxes;
+        });
+      } else {
+        setState(() {
+          extractedText = 'Tidak ada teks terdeteksi.';
+          boundingBoxes = [];
+        });
       }
-
-      return {"text": fullText, "boxes": boxes};
     } else {
-      throw Exception('Gagal mengenali teks: ${response.body}');
+      print('Error: ${response.body}');
+      setState(() {
+        extractedText = 'Gagal mengambil hasil dari Google Vision API.';
+      });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return imageFile == null || originalImageSize == null
-        ? const Center(child: CircularProgressIndicator())
-        : LayoutBuilder(
-          builder: (context, constraints) {
-            final renderWidth = constraints.maxWidth;
-            final scale = renderWidth / originalImageSize!.width;
-
-            final scaledBoxes =
-                boundingBoxes
-                    .map(
-                      (box) => Rect.fromLTRB(
-                        box.left * scale,
-                        box.top * scale,
-                        box.right * scale,
-                        box.bottom * scale,
-                      ),
-                    )
-                    .toList();
-
-            return Column(
-              children: [
-                Stack(
-                  children: [
-                    Image.file(imageFile!, width: renderWidth),
-                    Positioned.fill(
-                      child: CustomPaint(
-                        painter: BoundingBoxPainter(scaledBoxes),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  "Hasil OCR:",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(extractedText),
-                ),
-                SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    // Implement your upload functionality here
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text("Upload functionality not implemented."),
-                      ),
-                    );
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Color(0xFF1F4226),
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          (_image != null)
+              ? Stack(
+                children: [
+                  Image.file(
+                    _image!,
+                    width: MediaQuery.of(context).size.width,
+                    fit: BoxFit.fitWidth,
                   ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Icon(Icons.upload, color: Colors.white),
-                      Text("Upload", style: TextStyle(color: Colors.white)),
-                    ],
+                  LayoutBuilder(
+                    builder: (context, constraints) {
+                      final displayedWidth = constraints.maxWidth;
+                      final aspectRatio =
+                          imageSize.width != 0
+                              ? imageSize.height / imageSize.width
+                              : 1;
+                      final displayedHeight = displayedWidth * aspectRatio;
+
+                      return SizedBox(
+                        width: displayedWidth,
+                        height: displayedHeight,
+                        child: CustomPaint(
+                          painter: VisionBoundingBoxPainter(
+                            boundingBoxes: boundingBoxes,
+                            originalImageSize: imageSize,
+                            displayedImageSize: Size(
+                              displayedWidth,
+                              displayedHeight,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
                   ),
+                ],
+              )
+              : Container(
+                color: Colors.white,
+                height: 200,
+                alignment: Alignment.center,
+                child: const Text(
+                  "Belum ada gambar dipilih",
+                  style: TextStyle(color: Colors.black),
                 ),
-              ],
-            );
-          },
-        );
+              ),
+          const SizedBox(height: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ElevatedButton.icon(
+                onPressed: () => _pickImage(ImageSource.gallery),
+                icon: const Icon(Icons.upload, color: Colors.white),
+                label: const Text(
+                  "Upload",
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1F4226),
+                ),
+              ),
+              ElevatedButton.icon(
+                onPressed: () => _pickImage(ImageSource.camera),
+                icon: const Icon(Icons.camera_alt, color: Colors.white),
+                label: const Text(
+                  "Camera",
+                  style: TextStyle(color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1F4226),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+          const Text(
+            "Hasil OCR (Google Vision):",
+            style: TextStyle(fontWeight: FontWeight.bold),
+          ),
+          Container(
+            color: Colors.white,
+            padding: const EdgeInsets.all(16.0),
+            child: Text(extractedText),
+          ),
+        ],
+      ),
+    );
   }
 }
 
-class BoundingBoxPainter extends CustomPainter {
-  final List<Rect> boxes;
+class VisionBoundingBoxPainter extends CustomPainter {
+  final List<Map<String, dynamic>> boundingBoxes;
+  final Size originalImageSize;
+  final Size displayedImageSize;
 
-  BoundingBoxPainter(this.boxes);
+  VisionBoundingBoxPainter({
+    required this.boundingBoxes,
+    required this.originalImageSize,
+    required this.displayedImageSize,
+  });
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint =
         Paint()
-          ..color = Colors.red
-          ..strokeWidth = 2
-          ..style = PaintingStyle.stroke;
+          ..color = Colors.blueAccent
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.0;
 
-    for (final box in boxes) {
-      canvas.drawRect(box, paint);
+    double scaleX = displayedImageSize.width / originalImageSize.width;
+    double scaleY = displayedImageSize.height / originalImageSize.height;
+
+    for (final box in boundingBoxes) {
+      final vertices = box['vertices'] as List<dynamic>;
+      if (vertices.length >= 4) {
+        final p1 = Offset(
+          (vertices[0]['x'] ?? 0) * scaleX,
+          (vertices[0]['y'] ?? 0) * scaleY,
+        );
+        final p2 = Offset(
+          (vertices[1]['x'] ?? 0) * scaleX,
+          (vertices[1]['y'] ?? 0) * scaleY,
+        );
+        final p3 = Offset(
+          (vertices[2]['x'] ?? 0) * scaleX,
+          (vertices[2]['y'] ?? 0) * scaleY,
+        );
+        final p4 = Offset(
+          (vertices[3]['x'] ?? 0) * scaleX,
+          (vertices[3]['y'] ?? 0) * scaleY,
+        );
+
+        final path =
+            Path()
+              ..moveTo(p1.dx, p1.dy)
+              ..lineTo(p2.dx, p2.dy)
+              ..lineTo(p3.dx, p3.dy)
+              ..lineTo(p4.dx, p4.dy)
+              ..close();
+
+        canvas.drawPath(path, paint);
+      }
     }
   }
 
   @override
-  bool shouldRepaint(CustomPainter oldDelegate) => true;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
