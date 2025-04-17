@@ -26,7 +26,6 @@
   <ul>
     <li><strong>Flutter</strong> (Frontend App Development)</li>
     <li><strong>Google ML Kit / Google Vision API</strong> (OCR)</li>
-    <li><strong>Tesseract OCR</strong> (Alternatif OCR)</li>
     <li><strong>OpenCV</strong> (Pra-pemrosesan gambar)</li>
     <li><strong>Hive</strong> (Local NoSQL database untuk penyimpanan data offline)</li>
     <li><strong>GeoLocation & Kompas</strong> (untuk orientasi arah dan posisi)</li>
