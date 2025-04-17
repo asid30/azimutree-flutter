@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-
   <h1>Azimutree - Forest Health Monitoring Scanner</h1>
 
   <p><strong>Azimutree</strong> adalah aplikasi Android yang dikembangkan untuk membantu proses pemantauan kesehatan hutan menggunakan metode <strong>Forest Health Monitoring (FHM)</strong>. Aplikasi ini dirancang untuk mendukung kegiatan penelitian lapangan dengan fitur pemindaian dan pemetaan digital yang efisien dan akurat.</p>
@@ -52,9 +51,6 @@
     <li>Beberapa fitur OCR memerlukan koneksi internet dan kunci API (jika menggunakan Google Vision API).</li>
     <li>Versi offline akan dikembangkan sepenuhnya menggunakan Tesseract dan OpenCV.</li>
   </ul>
-
-  <h2>Kontribusi</h2>
-  <p>Kontribusi sangat terbuka! Silakan buka <em>issue</em> atau kirim <em>pull request</em> jika ingin berkontribusi dalam pengembangan aplikasi ini.</p>
 
 </body>
 </html>
