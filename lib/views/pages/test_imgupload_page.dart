@@ -10,8 +10,6 @@ class TestImageUploadPage extends StatefulWidget {
 }
 
 class _TestImageUploadPageState extends State<TestImageUploadPage> {
-  String imagePath = "assets/images/sample.png";
-
   File? _image;
 
   Future<void> _pickImage() async {
