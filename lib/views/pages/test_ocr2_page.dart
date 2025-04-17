@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
+import 'package:azimutree/data/api_key.dart';
 
 class TestOcrGoogleVisionApiPage extends StatefulWidget {
   const TestOcrGoogleVisionApiPage({super.key});
@@ -19,7 +20,7 @@ class _TestOcrGoogleVisionApiPageState
   List<Map<String, dynamic>> boundingBoxes = [];
   Size imageSize = Size.zero;
 
-  final String apiKey = 'AIzaSyCjuokYxx6LJCB07Xr1knS2w_743PAU3C8';
+  final String apiKey = mySecretApiKey;
 
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
@@ -88,7 +89,6 @@ class _TestOcrGoogleVisionApiPageState
         });
       }
     } else {
-      print('Error: ${response.body}');
       setState(() {
         extractedText = 'Gagal mengambil hasil dari Google Vision API.';
       });
