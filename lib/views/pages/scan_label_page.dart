@@ -1,9 +1,10 @@
 import 'dart:io';
-import 'package:azimutree/data/notifiers.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:azimutree/data/global_camera.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
+import 'package:azimutree/data/notifiers.dart';
+import 'package:azimutree/data/global_camera.dart';
+import 'package:azimutree/services/ocr1_service.dart';
 
 class ScanLabelPage extends StatefulWidget {
   const ScanLabelPage({super.key});
@@ -13,6 +14,7 @@ class ScanLabelPage extends StatefulWidget {
 }
 
 class _ScanLabelPageState extends State<ScanLabelPage> {
+  late final OcrServiceGoogleMLKit _ocrServiceGoogleMLKit;
   late CameraController _controller;
   late Future<void> _initializeControllerFuture;
   XFile? _image;
@@ -21,29 +23,15 @@ class _ScanLabelPageState extends State<ScanLabelPage> {
   String imagePath = '';
   Size imageSize = Size.zero;
 
-  Future<void> _processImageFromAsset(XFile imageData) async {
-    final inputImage = InputImage.fromFilePath(imageData.path);
-    final textRecognizer = TextRecognizer(script: TextRecognitionScript.latin);
-    final recognizedText = await textRecognizer.processImage(inputImage);
+  Future<void> _processImage(XFile imageData) async {
     final file = File(imageData.path);
-    final decodedImage = await decodeImageFromList(file.readAsBytesSync());
-    await textRecognizer.close();
-
-    List<TextElement> elements = [];
-    for (var block in recognizedText.blocks) {
-      for (var line in block.lines) {
-        elements.addAll(line.elements);
-      }
-    }
+    final result = await _ocrServiceGoogleMLKit.processImage(file);
 
     setState(() {
-      extractedText = recognizedText.text;
-      textElements = elements;
-      imagePath = imageData.path;
-      imageSize = Size(
-        decodedImage.width.toDouble(),
-        decodedImage.height.toDouble(),
-      );
+      _image = imageData;
+      extractedText = result.text;
+      textElements = result.elements;
+      imageSize = result.imageSize;
     });
   }
 
@@ -55,10 +43,12 @@ class _ScanLabelPageState extends State<ScanLabelPage> {
       ResolutionPreset.medium,
     );
     _initializeControllerFuture = _controller.initialize();
+    _ocrServiceGoogleMLKit = OcrServiceGoogleMLKit();
   }
 
   @override
   void dispose() {
+    _ocrServiceGoogleMLKit.dispose();
     _controller.dispose();
     super.dispose();
   }
@@ -108,7 +98,34 @@ class _ScanLabelPageState extends State<ScanLabelPage> {
                     ],
                   )
                 else
-                  CameraPreview(_controller),
+                  Stack(
+                    children: [
+                      CameraPreview(_controller),
+                      Container(
+                        padding: EdgeInsets.all(20),
+                        child: ValueListenableBuilder(
+                          valueListenable: selectedPageNotifier,
+                          builder: (context, selectedPage, child) {
+                            return ElevatedButton.icon(
+                              onPressed: () {
+                                selectedPageNotifier.value = "home";
+                              },
+                              style: ElevatedButton.styleFrom(
+                                foregroundColor: Colors.white,
+                                backgroundColor: const Color(0xFF1F4226),
+                                minimumSize: const Size(50, 50),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              icon: const Icon(Icons.skip_previous),
+                              label: const Text("Back"),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
                 SizedBox(height: 20),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -136,7 +153,7 @@ class _ScanLabelPageState extends State<ScanLabelPage> {
                         try {
                           await _initializeControllerFuture;
                           final image = await _controller.takePicture();
-                          await _processImageFromAsset(image);
+                          await _processImage(image);
                           setState(() {
                             _image = image;
                           });
@@ -172,26 +189,6 @@ class _ScanLabelPageState extends State<ScanLabelPage> {
                   child: Text(extractedText),
                 ),
                 SizedBox(height: 20),
-                ValueListenableBuilder(
-                  valueListenable: selectedPageNotifier,
-                  builder: (context, selectedPage, child) {
-                    return ElevatedButton.icon(
-                      onPressed: () {
-                        selectedPageNotifier.value = "home";
-                      },
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Colors.white,
-                        backgroundColor: const Color(0xFF1F4226),
-                        minimumSize: const Size(50, 50),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      icon: const Icon(Icons.skip_previous),
-                      label: const Text("Back"),
-                    );
-                  },
-                ),
               ],
             ),
           );

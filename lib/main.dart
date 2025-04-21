@@ -7,9 +7,9 @@ import 'package:azimutree/views/pages/test_ocr1_page.dart';
 import 'package:azimutree/views/pages/test_ocr2_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
 import 'package:azimutree/views/widgets/sidebar_widget.dart';
+import 'package:azimutree/data/global_camera.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:azimutree/data/global_camera.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
