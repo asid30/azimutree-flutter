@@ -1,6 +1,6 @@
 name: azimutree
 description: "A new Flutter project."
-publish_to: 'none'
+publish_to: "none"
 version: 0.1.0
 
 environment:
@@ -9,6 +9,10 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  camera: ^0.10.5+9 # camera plugin
+  google_mlkit_text_recognition: ^0.11.0 # ML Kit for text recognition
+  http: ^0.13.5 # http services
+  image_picker: ^1.1.2 # Image picker
 
 dev_dependencies:
   flutter_test:
@@ -17,3 +21,5 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/images/
