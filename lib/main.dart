@@ -3,12 +3,18 @@ import 'package:azimutree/views/pages/home_page.dart';
 import 'package:azimutree/views/pages/location_map_page.dart';
 import 'package:azimutree/views/pages/manage_data_page.dart';
 import 'package:azimutree/views/pages/scan_label_page.dart';
+import 'package:azimutree/views/pages/test_ocr1_page.dart';
+import 'package:azimutree/views/pages/test_ocr2_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
 import 'package:azimutree/views/widgets/sidebar_widget.dart';
+import 'package:azimutree/data/global_camera.dart';
 import 'package:flutter/material.dart';
+import 'package:camera/camera.dart';
 
-void main() {
-  runApp(const MainApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  globalCameras = await availableCameras();
+  runApp(MainApp());
 }
 
 class MainApp extends StatefulWidget {
@@ -26,6 +32,8 @@ class _MainAppState extends State<MainApp> {
     "manage_data_page": ManageDataPage(),
     "location_map_page": LocationMapPage(),
     "tutorial_page": TutorialPage(),
+    "test_ocr_page1": TestOcrGoogleMlKitPage(),
+    "test_ocr_page2": TestOcrGoogleVisionApiPage(),
   };
   //* Title of Pages
   final Map<String?, String?> titleOfPages = {
@@ -34,6 +42,8 @@ class _MainAppState extends State<MainApp> {
     "manage_data_page": "Kelola Data Sampel",
     "location_map_page": "Peta Lokasi Cluster Plot",
     "tutorial_page": "Panduan Aplikasi",
+    "test_ocr_page1": "Test OCR Google ML Kit",
+    "test_ocr_page2": "Test OCR Google Vision API",
   };
 
   @override
@@ -97,8 +107,14 @@ class _MainAppState extends State<MainApp> {
             ValueListenableBuilder(
               valueListenable: selectedPageNotifier,
               builder: (context, selectedPage, child) {
-                return pages[selectedPage] ??
-                    Center(child: Text("Page not found"));
+                return PopScope(
+                  canPop:
+                      selectedPage ==
+                      "home", // hanya bisa pop (keluar) kalau di home
+                  child:
+                      pages[selectedPage] ??
+                      Center(child: Text("Page not found")),
+                );
               },
             ),
           ],
