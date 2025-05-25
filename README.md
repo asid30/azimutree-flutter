@@ -36,7 +36,7 @@
   <h2>Instalasi</h2>
   <ol>
     <li>Clone repositori:
-      <pre><code>git clone https://github.com/username/azimutree.git</code></pre>
+      <pre><code>git clone https://github.com/asid30/azimutree-flutter.git</code></pre>
     </li>
     <li>Install dependencies:
       <pre><code>flutter pub get</code></pre>
