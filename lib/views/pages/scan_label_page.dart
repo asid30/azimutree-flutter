@@ -9,6 +9,7 @@ import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart
 import 'package:azimutree/data/notifiers.dart';
 import 'package:azimutree/data/global_camera.dart';
 import 'package:azimutree/services/ocr1_service.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ScanLabelPage extends StatefulWidget {
   const ScanLabelPage({super.key});
@@ -37,6 +38,15 @@ class _ScanLabelPageState extends State<ScanLabelPage> {
       textElements = result.elements;
       imageSize = result.imageSize;
     });
+  }
+
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      await _processImage(pickedFile);
+    }
   }
 
   @override
@@ -97,6 +107,17 @@ class _ScanLabelPageState extends State<ScanLabelPage> {
                 SingleChildScrollView(
                   child: Column(
                     children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          BackButton(
+                            onPressed: () {
+                              Navigator.popAndPushNamed(context, "home");
+                            },
+                          ),
+                          const Text("Kembali", style: TextStyle(fontSize: 18)),
+                        ],
+                      ),
                       if (_image != null)
                         Stack(
                           children: [
@@ -131,32 +152,31 @@ class _ScanLabelPageState extends State<ScanLabelPage> {
                                 );
                               },
                             ),
-                            BackButton(
-                              onPressed: () {
-                                Navigator.popAndPushNamed(context, "home");
-                              },
-                            ),
                           ],
                         )
                       else
-                        Stack(
-                          children: [
-                            CameraPreview(_controller),
-                            BackButton(
-                              onPressed: () {
-                                Navigator.popAndPushNamed(context, "home");
-                              },
-                            ),
-                            Container(padding: EdgeInsets.all(20)),
-                          ],
-                        ),
+                        Stack(children: [CameraPreview(_controller)]),
                       SizedBox(height: 20),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           ElevatedButton(
                             onPressed: () async {
-                              // Pilih gambar dari galeri
+                              try {
+                                _pickImage();
+                              } catch (e) {
+                                if (kDebugMode) {
+                                  debugPrint("Error Message: $e");
+                                }
+                                if (context.mounted) {
+                                  showDialog(
+                                    context: context,
+                                    builder:
+                                        (context) =>
+                                            AlertErrorWidget(errorMessage: e),
+                                  );
+                                }
+                              }
                             },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Color(0xFF1F4226),
