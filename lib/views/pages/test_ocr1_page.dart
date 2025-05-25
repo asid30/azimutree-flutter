@@ -1,4 +1,7 @@
 import 'dart:io';
+import 'package:azimutree/data/notifiers.dart';
+import 'package:azimutree/views/widgets/appbar_widget.dart';
+import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
@@ -69,105 +72,143 @@ class _TestOcrGoogleMlKitPageState extends State<TestOcrGoogleMlKitPage> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
+    return Scaffold(
+      appBar: AppbarWidget(title: "Test OCR Google ML Kit"),
+      drawer: SidebarWidget(),
+      body: Stack(
         children: [
-          (_image != null)
-              ? Stack(
-                children: [
-                  Image.file(
-                    File(imagePath),
-                    width: MediaQuery.of(context).size.width,
-                    fit: BoxFit.fitWidth,
+          //* Background App
+          ValueListenableBuilder(
+            valueListenable: isLightModeNotifier,
+            builder: (context, isLightMode, child) {
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 800),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                child: Image(
+                  key: ValueKey<bool>(isLightMode),
+                  image: AssetImage(
+                    isLightMode
+                        ? "assets/images/light-bg-notitle.png"
+                        : "assets/images/dark-bg-notitle.png",
                   ),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final displayedWidth = constraints.maxWidth;
-                      final aspectRatio =
-                          imageSize.width != 0
-                              ? imageSize.height / imageSize.width
-                              : 1;
-                      final displayedHeight = displayedWidth * aspectRatio;
-
-                      return SizedBox(
-                        width: displayedWidth,
-                        height: displayedHeight,
-                        child: CustomPaint(
-                          painter: TextBoundingBoxPainter(
-                            elements: textElements,
-                            originalImageSize: imageSize,
-                            displayedImageSize: Size(
-                              displayedWidth,
-                              displayedHeight,
-                            ),
-                          ),
+                  fit: BoxFit.cover,
+                  height: double.infinity,
+                  width: double.infinity,
+                ),
+              );
+            },
+          ),
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                (_image != null)
+                    ? Stack(
+                      children: [
+                        Image.file(
+                          File(imagePath),
+                          width: MediaQuery.of(context).size.width,
+                          fit: BoxFit.fitWidth,
                         ),
-                      );
-                    },
-                  ),
-                ],
-              )
-              : Container(
-                color: Colors.white,
-                height: 200,
-                alignment: Alignment.center,
-                child: const Text(
-                  "Belum ada gambar dipilih",
-                  style: TextStyle(color: Colors.black),
-                ),
-              ),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final displayedWidth = constraints.maxWidth;
+                            final aspectRatio =
+                                imageSize.width != 0
+                                    ? imageSize.height / imageSize.width
+                                    : 1;
+                            final displayedHeight =
+                                displayedWidth * aspectRatio;
 
-          SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _pickImage();
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF1F4226),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
+                            return SizedBox(
+                              width: displayedWidth,
+                              height: displayedHeight,
+                              child: CustomPaint(
+                                painter: TextBoundingBoxPainter(
+                                  elements: textElements,
+                                  originalImageSize: imageSize,
+                                  displayedImageSize: Size(
+                                    displayedWidth,
+                                    displayedHeight,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    )
+                    : Container(
+                      color: Colors.white,
+                      height: 200,
+                      alignment: Alignment.center,
+                      child: const Text(
+                        "Belum ada gambar dipilih",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+
+                SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    Icon(Icons.upload, color: Colors.white),
-                    Text(" Upload", style: TextStyle(color: Colors.white)),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _pickImage();
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF1F4226),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.upload, color: Colors.white),
+                          Text(
+                            " Upload",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _cameraImage();
+                        });
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Color(0xFF1F4226),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.camera_alt, color: Colors.white),
+                          Text(
+                            " Camera",
+                            style: TextStyle(color: Colors.white),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  setState(() {
-                    _cameraImage();
-                  });
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Color(0xFF1F4226),
+                const SizedBox(height: 20),
+                const Text(
+                  "Hasil OCR:",
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.camera_alt, color: Colors.white),
-                    Text(" Camera", style: TextStyle(color: Colors.white)),
-                  ],
+                Container(
+                  color: Colors.white,
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(extractedText),
                 ),
-              ),
-            ],
+                SizedBox(height: 20),
+              ],
+            ),
           ),
-          const SizedBox(height: 20),
-          const Text(
-            "Hasil OCR:",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16.0),
-            child: Text(extractedText),
-          ),
-          SizedBox(height: 20),
         ],
       ),
     );

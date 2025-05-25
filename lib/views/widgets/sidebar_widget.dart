@@ -1,5 +1,6 @@
 import 'package:azimutree/data/notifiers.dart';
 import 'package:azimutree/views/widgets/alert_development_widget.dart';
+import 'package:azimutree/views/widgets/alert_warning_widget.dart';
 import 'package:flutter/material.dart';
 
 class SidebarWidget extends StatelessWidget {
@@ -8,6 +9,7 @@ class SidebarWidget extends StatelessWidget {
   void _selectPage(BuildContext context, String page) {
     selectedPageNotifier.value = page;
     Navigator.pop(context);
+    Navigator.popAndPushNamed(context, page);
   }
 
   @override
@@ -33,13 +35,13 @@ class SidebarWidget extends StatelessWidget {
               ),
               Divider(),
               ListTile(
-                leading: Icon(Icons.photo_camera),
+                leading: Icon(Icons.qr_code_scanner),
                 title: Text('Scan Kode Label'),
                 onTap: () => _selectPage(context, "scan_label_page"),
               ),
               ListTile(
                 leading: Icon(Icons.storage),
-                title: Text('Kelola Data Sampel'),
+                title: Text('Kelola Data Cluster Plot'),
                 onTap: () => _selectPage(context, "manage_data_page"),
               ),
               ListTile(
@@ -48,7 +50,7 @@ class SidebarWidget extends StatelessWidget {
                 onTap: () => _selectPage(context, "location_map_page"),
               ),
               ListTile(
-                leading: Icon(Icons.book),
+                leading: Icon(Icons.help),
                 title: Text('Panduan Aplikasi'),
                 onTap: () => _selectPage(context, "tutorial_page"),
               ),
@@ -61,7 +63,15 @@ class SidebarWidget extends StatelessWidget {
               ListTile(
                 leading: Icon(Icons.developer_mode),
                 title: Text('Test OCR Google Vision API'),
-                onTap: () => _selectPage(context, "test_ocr_page2"),
+                // onTap: () => _selectPage(context, "test_ocr_page2"),
+                onTap:
+                    () => showDialog(
+                      context: context,
+                      builder:
+                          (context) => AlertWarningWidget(
+                            warningMessage: "This feature is locked ⛔",
+                          ),
+                    ),
               ),
               Divider(),
               ListTile(
