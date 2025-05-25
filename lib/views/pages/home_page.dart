@@ -1,39 +1,68 @@
 import 'package:azimutree/data/notifiers.dart';
+import 'package:azimutree/views/widgets/appbar_widget.dart';
 import 'package:azimutree/views/widgets/menu_button_widget.dart';
+import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:flutter/material.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
 
   @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Center(
-          heightFactor: 3,
-          child: ValueListenableBuilder(
+    return Scaffold(
+      appBar: AppbarWidget(title: "Home"),
+      drawer: SidebarWidget(),
+      body: Stack(
+        alignment: Alignment.topCenter,
+        children: [
+          //* Background App
+          ValueListenableBuilder(
             valueListenable: isLightModeNotifier,
             builder: (context, isLightMode, child) {
-              return Image(
-                image: AssetImage(
-                  isLightMode
-                      ? "assets/images/light-title.png"
-                      : "assets/images/dark-title.png",
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 800),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                child: Image(
+                  key: ValueKey<bool>(isLightMode),
+                  image: AssetImage(
+                    isLightMode
+                        ? "assets/images/light-bg-notitle.png"
+                        : "assets/images/dark-bg-notitle.png",
+                  ),
+                  fit: BoxFit.cover,
+                  height: double.infinity,
+                  width: double.infinity,
                 ),
-                fit: BoxFit.cover,
-                width: 250,
               );
             },
           ),
-        ),
-        ValueListenableBuilder(
-          valueListenable: selectedPageNotifier,
-          builder: (context, selectedPage, child) {
-            return Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
+          Column(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              ValueListenableBuilder(
+                valueListenable: isLightModeNotifier,
+                builder: (context, isLightMode, child) {
+                  return Image(
+                    image: AssetImage(
+                      isLightMode
+                          ? "assets/images/light-title.png"
+                          : "assets/images/dark-title.png",
+                    ),
+                    fit: BoxFit.cover,
+                    width: 250,
+                  );
+                },
+              ),
+              Column(
                 children: [
-                  SizedBox(height: 220),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                     mainAxisSize: MainAxisSize.max,
@@ -42,14 +71,17 @@ class HomePage extends StatelessWidget {
                         label: "Scan\nKode Label",
                         icon: Icons.photo_camera,
                         onPressed: () {
-                          selectedPageNotifier.value = "scan_label_page";
+                          Navigator.popAndPushNamed(context, "scan_label_page");
                         },
                       ),
                       MenuButtonWidget(
-                        label: "Kelola\nData Sampel",
+                        label: "Kelola Data\nCluster Plot",
                         icon: Icons.storage,
                         onPressed: () {
-                          selectedPageNotifier.value = "manage_data_page";
+                          Navigator.popAndPushNamed(
+                            context,
+                            "manage_data_page",
+                          );
                         },
                       ),
                     ],
@@ -63,24 +95,27 @@ class HomePage extends StatelessWidget {
                         label: "Peta Lokasi\nCluster Plot",
                         icon: Icons.map,
                         onPressed: () {
-                          selectedPageNotifier.value = "location_map_page";
+                          Navigator.popAndPushNamed(
+                            context,
+                            "location_map_page",
+                          );
                         },
                       ),
                       MenuButtonWidget(
                         label: "Panduan\nAplikasi",
                         icon: Icons.book,
                         onPressed: () {
-                          selectedPageNotifier.value = "tutorial_page";
+                          Navigator.popAndPushNamed(context, "tutorial_page");
                         },
                       ),
                     ],
                   ),
                 ],
               ),
-            );
-          },
-        ),
-      ],
+            ],
+          ),
+        ],
+      ),
     );
   }
 }

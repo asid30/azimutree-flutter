@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 
-class AlertDevelopmentWidget extends StatelessWidget {
-  const AlertDevelopmentWidget({super.key});
+class AlertErrorWidget extends StatelessWidget {
+  final Object errorMessage;
+  const AlertErrorWidget({super.key, required this.errorMessage});
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      backgroundColor: Colors.white,
-      title: Text("Sorry!"),
+      backgroundColor: const Color.fromARGB(255, 241, 111, 101),
+      title: Text("Error!"),
       content: Text(
-        "This feature is not available yet 😔",
+        "Error Message: $errorMessage",
         style: TextStyle(color: Colors.black),
       ),
       actions: [
