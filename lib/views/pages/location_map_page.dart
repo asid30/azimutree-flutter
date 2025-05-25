@@ -1,4 +1,6 @@
 import 'package:azimutree/data/notifiers.dart';
+import 'package:azimutree/views/widgets/appbar_widget.dart';
+import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:flutter/material.dart';
 
 class LocationMapPage extends StatelessWidget {
@@ -6,33 +8,46 @@ class LocationMapPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+    return Scaffold(
+      appBar: AppbarWidget(title: "Peta Lokasi Cluster Plot"),
+      drawer: SidebarWidget(),
+      body: Stack(
         children: [
-          Text("Location Map Page"),
+          //* Background App
           ValueListenableBuilder(
-            valueListenable: selectedPageNotifier,
-            builder: (context, selectedPage, child) {
-              return ElevatedButton(
-                onPressed: () {
-                  selectedPageNotifier.value = "home";
+            valueListenable: isLightModeNotifier,
+            builder: (context, isLightMode, child) {
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 800),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(opacity: animation, child: child);
                 },
-                style: ElevatedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  backgroundColor: Color(0xFF1F4226),
-                  minimumSize: Size(50, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+                child: Image(
+                  key: ValueKey<bool>(isLightMode),
+                  image: AssetImage(
+                    isLightMode
+                        ? "assets/images/light-bg-notitle.png"
+                        : "assets/images/dark-bg-notitle.png",
                   ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [Icon(Icons.skip_previous), Text("Back")],
+                  fit: BoxFit.cover,
+                  height: double.infinity,
+                  width: double.infinity,
                 ),
               );
             },
+          ),
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text("Peta Lokasi Cluster Plot"),
+                BackButton(
+                  onPressed: () {
+                    Navigator.popAndPushNamed(context, "home");
+                  },
+                ),
+              ],
+            ),
           ),
         ],
       ),

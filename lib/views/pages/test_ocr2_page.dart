@@ -1,5 +1,8 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:azimutree/data/notifiers.dart';
+import 'package:azimutree/views/widgets/appbar_widget.dart';
+import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
@@ -97,90 +100,122 @@ class _TestOcrGoogleVisionApiPageState
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Column(
+    return Scaffold(
+      appBar: AppbarWidget(title: "Test OCR Google Vision API"),
+      drawer: SidebarWidget(),
+      body: Stack(
         children: [
-          (_image != null)
-              ? Stack(
-                children: [
-                  Image.file(
-                    _image!,
-                    width: MediaQuery.of(context).size.width,
-                    fit: BoxFit.fitWidth,
+          //* Background App
+          ValueListenableBuilder(
+            valueListenable: isLightModeNotifier,
+            builder: (context, isLightMode, child) {
+              return AnimatedSwitcher(
+                duration: const Duration(milliseconds: 800),
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(opacity: animation, child: child);
+                },
+                child: Image(
+                  key: ValueKey<bool>(isLightMode),
+                  image: AssetImage(
+                    isLightMode
+                        ? "assets/images/light-bg-notitle.png"
+                        : "assets/images/dark-bg-notitle.png",
                   ),
-                  LayoutBuilder(
-                    builder: (context, constraints) {
-                      final displayedWidth = constraints.maxWidth;
-                      final aspectRatio =
-                          imageSize.width != 0
-                              ? imageSize.height / imageSize.width
-                              : 1;
-                      final displayedHeight = displayedWidth * aspectRatio;
-
-                      return SizedBox(
-                        width: displayedWidth,
-                        height: displayedHeight,
-                        child: CustomPaint(
-                          painter: VisionBoundingBoxPainter(
-                            boundingBoxes: boundingBoxes,
-                            originalImageSize: imageSize,
-                            displayedImageSize: Size(
-                              displayedWidth,
-                              displayedHeight,
-                            ),
-                          ),
+                  fit: BoxFit.cover,
+                  height: double.infinity,
+                  width: double.infinity,
+                ),
+              );
+            },
+          ),
+          SingleChildScrollView(
+            child: Column(
+              children: [
+                (_image != null)
+                    ? Stack(
+                      children: [
+                        Image.file(
+                          _image!,
+                          width: MediaQuery.of(context).size.width,
+                          fit: BoxFit.fitWidth,
                         ),
-                      );
-                    },
-                  ),
-                ],
-              )
-              : Container(
-                color: Colors.white,
-                height: 200,
-                alignment: Alignment.center,
-                child: const Text(
-                  "Belum ada gambar dipilih",
-                  style: TextStyle(color: Colors.black),
+                        LayoutBuilder(
+                          builder: (context, constraints) {
+                            final displayedWidth = constraints.maxWidth;
+                            final aspectRatio =
+                                imageSize.width != 0
+                                    ? imageSize.height / imageSize.width
+                                    : 1;
+                            final displayedHeight =
+                                displayedWidth * aspectRatio;
+
+                            return SizedBox(
+                              width: displayedWidth,
+                              height: displayedHeight,
+                              child: CustomPaint(
+                                painter: VisionBoundingBoxPainter(
+                                  boundingBoxes: boundingBoxes,
+                                  originalImageSize: imageSize,
+                                  displayedImageSize: Size(
+                                    displayedWidth,
+                                    displayedHeight,
+                                  ),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    )
+                    : Container(
+                      color: Colors.white,
+                      height: 200,
+                      alignment: Alignment.center,
+                      child: const Text(
+                        "Belum ada gambar dipilih",
+                        style: TextStyle(color: Colors.black),
+                      ),
+                    ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    ElevatedButton.icon(
+                      onPressed: () => _pickImage(ImageSource.gallery),
+                      icon: const Icon(Icons.upload, color: Colors.white),
+                      label: const Text(
+                        "Upload",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1F4226),
+                      ),
+                    ),
+                    ElevatedButton.icon(
+                      onPressed: () => _pickImage(ImageSource.camera),
+                      icon: const Icon(Icons.camera_alt, color: Colors.white),
+                      label: const Text(
+                        "Camera",
+                        style: TextStyle(color: Colors.white),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF1F4226),
+                      ),
+                    ),
+                  ],
                 ),
-              ),
-          const SizedBox(height: 20),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              ElevatedButton.icon(
-                onPressed: () => _pickImage(ImageSource.gallery),
-                icon: const Icon(Icons.upload, color: Colors.white),
-                label: const Text(
-                  "Upload",
-                  style: TextStyle(color: Colors.white),
+                const SizedBox(height: 20),
+                const Text(
+                  "Hasil OCR (Google Vision):",
+                  style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1F4226),
+                Container(
+                  color: Colors.white,
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(extractedText),
                 ),
-              ),
-              ElevatedButton.icon(
-                onPressed: () => _pickImage(ImageSource.camera),
-                icon: const Icon(Icons.camera_alt, color: Colors.white),
-                label: const Text(
-                  "Camera",
-                  style: TextStyle(color: Colors.white),
-                ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF1F4226),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          const Text(
-            "Hasil OCR (Google Vision):",
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          Container(
-            color: Colors.white,
-            padding: const EdgeInsets.all(16.0),
-            child: Text(extractedText),
+              ],
+            ),
           ),
         ],
       ),

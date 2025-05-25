@@ -1,4 +1,3 @@
-import 'package:azimutree/data/notifiers.dart';
 import 'package:azimutree/views/pages/home_page.dart';
 import 'package:azimutree/views/pages/location_map_page.dart';
 import 'package:azimutree/views/pages/manage_data_page.dart';
@@ -6,7 +5,6 @@ import 'package:azimutree/views/pages/scan_label_page.dart';
 import 'package:azimutree/views/pages/test_ocr1_page.dart';
 import 'package:azimutree/views/pages/test_ocr2_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
-import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:azimutree/data/global_camera.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
@@ -25,26 +23,16 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-  //* Pages
-  final Map<String?, Widget?> pages = {
-    "home": HomePage(), // Default Page
-    "scan_label_page": ScanLabelPage(),
-    "manage_data_page": ManageDataPage(),
-    "location_map_page": LocationMapPage(),
-    "tutorial_page": TutorialPage(),
-    "test_ocr_page1": TestOcrGoogleMlKitPage(),
-    "test_ocr_page2": TestOcrGoogleVisionApiPage(),
-  };
   //* Title of Pages
-  final Map<String?, String?> titleOfPages = {
-    "home": "Home", // Default title Page
-    "scan_label_page": "Scan Kode Label",
-    "manage_data_page": "Kelola Data Sampel",
-    "location_map_page": "Peta Lokasi Cluster Plot",
-    "tutorial_page": "Panduan Aplikasi",
-    "test_ocr_page1": "Test OCR Google ML Kit",
-    "test_ocr_page2": "Test OCR Google Vision API",
-  };
+  // final Map<String?, String?> titleOfPages = {
+  //   "home": "Home", // Default title Page
+  //   "scan_label_page": "Scan Kode Label",
+  //   "manage_data_page": "Kelola Data Cluster Plot",
+  //   "location_map_page": "Peta Lokasi Cluster Plot",
+  //   "tutorial_page": "Panduan Aplikasi",
+  //   "test_ocr_page1": "Test OCR Google ML Kit",
+  //   "test_ocr_page2": "Test OCR Google Vision API",
+  // };
 
   @override
   Widget build(BuildContext context) {
@@ -59,67 +47,74 @@ class _MainAppState extends State<MainApp> {
         ),
         scaffoldBackgroundColor: Colors.white,
       ),
-      home: Scaffold(
-        appBar: AppBar(
-          title: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: ValueListenableBuilder(
-              valueListenable: selectedPageNotifier,
-              builder: (context, value, child) {
-                return Text(
-                  titleOfPages[selectedPageNotifier.value] ?? "Error",
-                );
-              },
-            ),
-          ),
-          actions: [
-            Text(isLightModeNotifier.value ? "Light Theme" : "Dark Theme"),
-            ValueListenableBuilder(
-              valueListenable: isLightModeNotifier,
-              builder: (context, isLightMode, child) {
-                return IconButton(
-                  onPressed: () {
-                    setState(() {
-                      isLightModeNotifier.value = !isLightMode;
-                    });
-                  },
-                  icon: Icon(isLightMode ? Icons.light_mode : Icons.dark_mode),
-                );
-              },
-            ),
-          ],
-        ),
-        drawer: SidebarWidget(),
-        body: Stack(
-          children: [
-            //* Background App
-            Image(
-              image: AssetImage(
-                isLightModeNotifier.value
-                    ? "assets/images/light-bg-notitle.png"
-                    : "assets/images/dark-bg-notitle.png",
-              ),
-              fit: BoxFit.cover,
-              height: double.infinity,
-              width: double.infinity,
-            ),
-            //* Pages App
-            ValueListenableBuilder(
-              valueListenable: selectedPageNotifier,
-              builder: (context, selectedPage, child) {
-                return PopScope(
-                  canPop:
-                      selectedPage ==
-                      "home", // hanya bisa pop (keluar) kalau di home
-                  child:
-                      pages[selectedPage] ??
-                      Center(child: Text("Page not found")),
-                );
-              },
-            ),
-          ],
-        ),
-      ),
+      onGenerateRoute: (settings) {
+        // Ini akan dipanggil setiap kali Navigator.pushNamed dipanggil
+        switch (settings.name) {
+          case 'home':
+            return _buildFadeTransitionPageRoute(const HomePage(), settings);
+          case 'scan_label_page':
+            return _buildFadeTransitionPageRoute(
+              const ScanLabelPage(),
+              settings,
+            );
+          case 'manage_data_page':
+            return _buildFadeTransitionPageRoute(
+              const ManageDataPage(),
+              settings,
+            );
+          case 'location_map_page':
+            return _buildFadeTransitionPageRoute(
+              const LocationMapPage(),
+              settings,
+            );
+          case 'tutorial_page':
+            return _buildFadeTransitionPageRoute(
+              const TutorialPage(),
+              settings,
+            );
+          case 'test_ocr_page1':
+            return _buildFadeTransitionPageRoute(
+              const TestOcrGoogleMlKitPage(),
+              settings,
+            );
+          case 'test_ocr_page2':
+            return _buildFadeTransitionPageRoute(
+              const TestOcrGoogleVisionApiPage(),
+              settings,
+            );
+          default:
+            // Jika rute tidak ditemukan, kembali ke halaman utama
+            // Animasi default
+            return _buildPageRoute(const HomePage(), settings);
+        }
+      },
+      home: HomePage(),
     );
   }
+}
+
+// Helper function untuk PageRouteBuilder default
+PageRoute<dynamic> _buildPageRoute(Widget page, RouteSettings settings) {
+  return MaterialPageRoute(builder: (context) => page, settings: settings);
+}
+
+// --- Contoh Animasi Kustom ---
+
+// Animasi Fade In/Out
+PageRoute<dynamic> _buildFadeTransitionPageRoute(
+  Widget page,
+  RouteSettings settings,
+) {
+  return PageRouteBuilder(
+    settings:
+        settings, // Penting untuk meneruskan settings agar pushNamed bekerja
+    pageBuilder: (context, animation, secondaryAnimation) => page,
+    transitionsBuilder: (context, animation, secondaryAnimation, child) {
+      return FadeTransition(
+        opacity: animation, // Menggunakan animation untuk mengontrol opacity
+        child: child,
+      );
+    },
+    transitionDuration: const Duration(milliseconds: 300), // Durasi transisi
+  );
 }
