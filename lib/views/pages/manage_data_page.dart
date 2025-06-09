@@ -302,159 +302,171 @@ class _ManageDataPageState extends State<ManageDataPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: const AppbarWidget(title: "Kelola Data Cluster Plot"),
-      drawer: const SidebarWidget(),
-      body: Stack(
-        children: [
-          //* Background App
-          ValueListenableBuilder(
-            valueListenable: isLightModeNotifier,
-            builder: (context, isLightMode, child) {
-              return AnimatedSwitcher(
-                duration: const Duration(milliseconds: 800),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-                child: Image(
-                  key: ValueKey<bool>(isLightMode),
-                  image: AssetImage(
-                    isLightMode
-                        ? "assets/images/light-bg-notitle.png"
-                        : "assets/images/dark-bg-notitle.png",
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          return;
+        }
+        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
+      },
+      child: Scaffold(
+        appBar: const AppbarWidget(title: "Kelola Data Cluster Plot"),
+        drawer: const SidebarWidget(),
+        body: Stack(
+          children: [
+            //* Background App
+            ValueListenableBuilder(
+              valueListenable: isLightModeNotifier,
+              builder: (context, isLightMode, child) {
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 800),
+                  transitionBuilder: (
+                    Widget child,
+                    Animation<double> animation,
+                  ) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                  child: Image(
+                    key: ValueKey<bool>(isLightMode),
+                    image: AssetImage(
+                      isLightMode
+                          ? "assets/images/light-bg-notitle.png"
+                          : "assets/images/dark-bg-notitle.png",
+                    ),
+                    fit: BoxFit.cover,
+                    height: double.infinity,
+                    width: double.infinity,
                   ),
-                  fit: BoxFit.cover,
-                  height: double.infinity,
-                  width: double.infinity,
-                ),
-              );
-            },
-          ),
-          //* Konten Utama
-          SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Data Klaster:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                Card(
-                  margin: const EdgeInsets.symmetric(vertical: 8.0),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Kode Klaster: ${dummyCluster.kodeCluster}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Text('Pengukur: ${dummyCluster.namaPengukur ?? '-'}'),
-                        Text(
-                          'Tanggal Pengukuran: ${dummyCluster.tanggalPengukuran != null ? DateFormat('dd-MM-yyyy').format(dummyCluster.tanggalPengukuran!) : '-'}',
-                        ),
-                        Text(
-                          'Jumlah Plot: ${_dummyPlots.length}',
-                        ), // Jumlah plot dinamis
-                      ],
+                );
+              },
+            ),
+            //* Konten Utama
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Data Klaster:',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+                  Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8.0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Kode Klaster: ${dummyCluster.kodeCluster}',
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          Text('Pengukur: ${dummyCluster.namaPengukur ?? '-'}'),
+                          Text(
+                            'Tanggal Pengukuran: ${dummyCluster.tanggalPengukuran != null ? DateFormat('dd-MM-yyyy').format(dummyCluster.tanggalPengukuran!) : '-'}',
+                          ),
+                          Text(
+                            'Jumlah Plot: ${_dummyPlots.length}',
+                          ), // Jumlah plot dinamis
+                        ],
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Data Plot:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                ),
-                // Gunakan ListView.builder untuk menampilkan semua plot
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: _dummyPlots.length,
-                  itemBuilder: (context, plotIndex) {
-                    final plot = _dummyPlots[plotIndex];
-                    final pohonListForPlot = _dummyPohonMap[plot.id!] ?? [];
-                    return Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Nomor Plot: ${plot.nomorPlot}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Text('Latitude: ${plot.latitude}'),
-                            Text('Longitude: ${plot.longitude}'),
-                            Text('Altitude: ${plot.altitude ?? '-'}'),
-                            const SizedBox(height: 10),
-                            Text(
-                              'Pohon di Plot ini (${pohonListForPlot.length} pohon):',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.w600,
-                                fontSize: 16,
-                              ),
-                            ),
-                            // Nested ListView.builder untuk pohon-pohon di dalam plot ini
-                            ListView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: pohonListForPlot.length,
-                              itemBuilder: (context, pohonIndex) {
-                                final pohon = pohonListForPlot[pohonIndex];
-                                return Padding(
-                                  padding: const EdgeInsets.only(
-                                    left: 16.0,
-                                    top: 4.0,
-                                    bottom: 4.0,
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'No. Pohon: ${pohon.nomorPohonDiPlot}',
-                                        style: const TextStyle(
-                                          fontWeight: FontWeight.w500,
-                                        ),
-                                      ),
-                                      Text(
-                                        'Jenis: ${pohon.jenisPohon ?? '-'} (${pohon.namaIlmiah ?? '-'})',
-                                      ),
-                                      Text('Azimuth: ${pohon.azimut}°'),
-                                      Text(
-                                        'Jarak Pusat: ${pohon.jarakPusatM} m',
-                                      ),
-                                      Text(
-                                        'Koordinat: ${pohon.latitude?.toStringAsFixed(6) ?? '-'} Lat, ${pohon.longitude?.toStringAsFixed(6) ?? '-'} Lon, ${pohon.altitude?.toStringAsFixed(2) ?? '-'} Alt',
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 20),
-                Text(
-                  'Total Pohon di Semua Plot: ${_getTotalPohonCount()}', // Jumlah total pohon
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
+                  const SizedBox(height: 20),
+                  const Text(
+                    'Data Plot:',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                   ),
-                ),
-              ],
+                  // Gunakan ListView.builder untuk menampilkan semua plot
+                  ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: _dummyPlots.length,
+                    itemBuilder: (context, plotIndex) {
+                      final plot = _dummyPlots[plotIndex];
+                      final pohonListForPlot = _dummyPohonMap[plot.id!] ?? [];
+                      return Card(
+                        margin: const EdgeInsets.symmetric(vertical: 8.0),
+                        child: Padding(
+                          padding: const EdgeInsets.all(12.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Nomor Plot: ${plot.nomorPlot}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Text('Latitude: ${plot.latitude}'),
+                              Text('Longitude: ${plot.longitude}'),
+                              Text('Altitude: ${plot.altitude ?? '-'}'),
+                              const SizedBox(height: 10),
+                              Text(
+                                'Pohon di Plot ini (${pohonListForPlot.length} pohon):',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 16,
+                                ),
+                              ),
+                              // Nested ListView.builder untuk pohon-pohon di dalam plot ini
+                              ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: pohonListForPlot.length,
+                                itemBuilder: (context, pohonIndex) {
+                                  final pohon = pohonListForPlot[pohonIndex];
+                                  return Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: 16.0,
+                                      top: 4.0,
+                                      bottom: 4.0,
+                                    ),
+                                    child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'No. Pohon: ${pohon.nomorPohonDiPlot}',
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                        Text(
+                                          'Jenis: ${pohon.jenisPohon ?? '-'} (${pohon.namaIlmiah ?? '-'})',
+                                        ),
+                                        Text('Azimuth: ${pohon.azimut}°'),
+                                        Text(
+                                          'Jarak Pusat: ${pohon.jarakPusatM} m',
+                                        ),
+                                        Text(
+                                          'Koordinat: ${pohon.latitude?.toStringAsFixed(6) ?? '-'} Lat, ${pohon.longitude?.toStringAsFixed(6) ?? '-'} Lon, ${pohon.altitude?.toStringAsFixed(2) ?? '-'} Alt',
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 20),
+                  Text(
+                    'Total Pohon di Semua Plot: ${_getTotalPohonCount()}', // Jumlah total pohon
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

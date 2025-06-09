@@ -72,144 +72,156 @@ class _TestOcrGoogleMlKitPageState extends State<TestOcrGoogleMlKitPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppbarWidget(title: "Test OCR Google ML Kit"),
-      drawer: SidebarWidget(),
-      body: Stack(
-        children: [
-          //* Background App
-          ValueListenableBuilder(
-            valueListenable: isLightModeNotifier,
-            builder: (context, isLightMode, child) {
-              return AnimatedSwitcher(
-                duration: const Duration(milliseconds: 800),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-                child: Image(
-                  key: ValueKey<bool>(isLightMode),
-                  image: AssetImage(
-                    isLightMode
-                        ? "assets/images/light-bg-notitle.png"
-                        : "assets/images/dark-bg-notitle.png",
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          return;
+        }
+        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
+      },
+      child: Scaffold(
+        appBar: AppbarWidget(title: "Test OCR Google ML Kit"),
+        drawer: SidebarWidget(),
+        body: Stack(
+          children: [
+            //* Background App
+            ValueListenableBuilder(
+              valueListenable: isLightModeNotifier,
+              builder: (context, isLightMode, child) {
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 800),
+                  transitionBuilder: (
+                    Widget child,
+                    Animation<double> animation,
+                  ) {
+                    return FadeTransition(opacity: animation, child: child);
+                  },
+                  child: Image(
+                    key: ValueKey<bool>(isLightMode),
+                    image: AssetImage(
+                      isLightMode
+                          ? "assets/images/light-bg-notitle.png"
+                          : "assets/images/dark-bg-notitle.png",
+                    ),
+                    fit: BoxFit.cover,
+                    height: double.infinity,
+                    width: double.infinity,
                   ),
-                  fit: BoxFit.cover,
-                  height: double.infinity,
-                  width: double.infinity,
-                ),
-              );
-            },
-          ),
-          SingleChildScrollView(
-            child: Column(
-              children: [
-                (_image != null)
-                    ? Stack(
-                      children: [
-                        Image.file(
-                          File(imagePath),
-                          width: MediaQuery.of(context).size.width,
-                          fit: BoxFit.fitWidth,
-                        ),
-                        LayoutBuilder(
-                          builder: (context, constraints) {
-                            final displayedWidth = constraints.maxWidth;
-                            final aspectRatio =
-                                imageSize.width != 0
-                                    ? imageSize.height / imageSize.width
-                                    : 1;
-                            final displayedHeight =
-                                displayedWidth * aspectRatio;
+                );
+              },
+            ),
+            SingleChildScrollView(
+              child: Column(
+                children: [
+                  (_image != null)
+                      ? Stack(
+                        children: [
+                          Image.file(
+                            File(imagePath),
+                            width: MediaQuery.of(context).size.width,
+                            fit: BoxFit.fitWidth,
+                          ),
+                          LayoutBuilder(
+                            builder: (context, constraints) {
+                              final displayedWidth = constraints.maxWidth;
+                              final aspectRatio =
+                                  imageSize.width != 0
+                                      ? imageSize.height / imageSize.width
+                                      : 1;
+                              final displayedHeight =
+                                  displayedWidth * aspectRatio;
 
-                            return SizedBox(
-                              width: displayedWidth,
-                              height: displayedHeight,
-                              child: CustomPaint(
-                                painter: TextBoundingBoxPainter(
-                                  elements: textElements,
-                                  originalImageSize: imageSize,
-                                  displayedImageSize: Size(
-                                    displayedWidth,
-                                    displayedHeight,
+                              return SizedBox(
+                                width: displayedWidth,
+                                height: displayedHeight,
+                                child: CustomPaint(
+                                  painter: TextBoundingBoxPainter(
+                                    elements: textElements,
+                                    originalImageSize: imageSize,
+                                    displayedImageSize: Size(
+                                      displayedWidth,
+                                      displayedHeight,
+                                    ),
                                   ),
                                 ),
-                              ),
-                            );
-                          },
+                              );
+                            },
+                          ),
+                        ],
+                      )
+                      : Container(
+                        color: Colors.white,
+                        height: 200,
+                        alignment: Alignment.center,
+                        child: const Text(
+                          "Belum ada gambar dipilih",
+                          style: TextStyle(color: Colors.black),
                         ),
-                      ],
-                    )
-                    : Container(
-                      color: Colors.white,
-                      height: 200,
-                      alignment: Alignment.center,
-                      child: const Text(
-                        "Belum ada gambar dipilih",
-                        style: TextStyle(color: Colors.black),
                       ),
-                    ),
 
-                SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _pickImage();
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF1F4226),
+                  SizedBox(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _pickImage();
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF1F4226),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.upload, color: Colors.white),
+                            Text(
+                              " Upload",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
                       ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.upload, color: Colors.white),
-                          Text(
-                            " Upload",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ],
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(() {
+                            _cameraImage();
+                          });
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Color(0xFF1F4226),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.camera_alt, color: Colors.white),
+                            Text(
+                              " Camera",
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _cameraImage();
-                        });
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Color(0xFF1F4226),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.camera_alt, color: Colors.white),
-                          Text(
-                            " Camera",
-                            style: TextStyle(color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  "Hasil OCR:",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                Container(
-                  color: Colors.white,
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(extractedText),
-                ),
-                SizedBox(height: 20),
-              ],
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  const Text(
+                    "Hasil OCR:",
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Container(
+                    color: Colors.white,
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(extractedText),
+                  ),
+                  SizedBox(height: 20),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
