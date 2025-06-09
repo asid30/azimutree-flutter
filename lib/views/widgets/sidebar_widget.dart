@@ -1,4 +1,4 @@
-import 'package:azimutree/data/notifiers.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/views/widgets/alert_development_widget.dart';
 import 'package:azimutree/views/widgets/alert_warning_widget.dart';
 import 'package:flutter/material.dart';

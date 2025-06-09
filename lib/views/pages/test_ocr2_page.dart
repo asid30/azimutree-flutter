@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:azimutree/data/notifiers.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/views/widgets/appbar_widget.dart';
 import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:azimutree/data/api_key.dart';
+import 'package:azimutree/data/global_variables/api_key.dart';
 
 class TestOcrGoogleVisionApiPage extends StatefulWidget {
   const TestOcrGoogleVisionApiPage({super.key});

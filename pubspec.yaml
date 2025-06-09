@@ -13,6 +13,12 @@ dependencies:
   google_mlkit_text_recognition: ^0.11.0 # ML Kit for text recognition
   http: ^0.13.5 # http services
   image_picker: ^1.1.2 # Image picker
+  intl: ^0.20.2 # Internationalization support
+  file_picker: ^10.1.9 # Untuk memilih file dari perangkat
+  path_provider: ^2.1.5 # Untuk mendapatkan direktori penyimpanan
+  path: ^1.9.1 # Untuk manipulasi path
+  sqflite: ^2.4.2 # SQLite database
+  excel: ^4.0.6 # Excel file handling
 
 dev_dependencies:
   flutter_test:

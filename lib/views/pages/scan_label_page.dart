@@ -6,8 +6,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:azimutree/data/notifiers.dart';
-import 'package:azimutree/data/global_camera.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:azimutree/data/global_variables/global_camera.dart';
 import 'package:azimutree/services/ocr1_service.dart';
 import 'package:image_picker/image_picker.dart';
 

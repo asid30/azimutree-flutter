@@ -1,4 +1,4 @@
-import 'package:azimutree/data/notifiers.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
 
 class AppbarWidget extends StatelessWidget implements PreferredSizeWidget {
