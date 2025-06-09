@@ -10,7 +10,14 @@ class AppbarWidget extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: FittedBox(fit: BoxFit.scaleDown, child: Text(title)),
       actions: [
-        Text(isLightModeNotifier.value ? "Light Theme" : "Dark Theme"),
+        ValueListenableBuilder(
+          valueListenable: isLightModeNotifier,
+          builder: (context, isLightMode, child) {
+            return Text(
+              isLightModeNotifier.value ? "Light Theme" : "Dark Theme",
+            );
+          },
+        ),
         ValueListenableBuilder(
           valueListenable: isLightModeNotifier,
           builder: (context, isLightMode, child) {
