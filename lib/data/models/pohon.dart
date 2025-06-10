@@ -1,14 +1,14 @@
 class Pohon {
   int? id;
-  int plotId;
+  int plotId; // Foreign key ke Plot
   int nomorPohonDiPlot;
   String? jenisPohon;
   String? namaIlmiah;
-  double azimut; // Wajib
-  double jarakPusatM; // Wajib
-  double? latitude; // Opsional, akan dihitung
-  double? longitude; // Opsional, akan dihitung
-  double? altitude; // Opsional, akan dihitung
+  double azimut; // dalam derajat
+  double jarakPusatM; // dalam meter
+  double? latitude; // Dihitung
+  double? longitude; // Dihitung
+  double? altitude; // Diwarisi dari Plot
 
   Pohon({
     this.id,
@@ -23,35 +23,35 @@ class Pohon {
     this.altitude,
   });
 
-  factory Pohon.fromMap(Map<String, dynamic> map) {
-    return Pohon(
-      id: map['id'],
-      plotId: map['plot_id'],
-      nomorPohonDiPlot: map['nomor_pohon_di_plot'],
-      jenisPohon: map['jenis_pohon'],
-      namaIlmiah: map['nama_ilmiah'],
-      azimut: map['azimut']?.toDouble() ?? 0.0, // Wajib, set default jika null
-      jarakPusatM:
-          map['jarak_pusat_m']?.toDouble() ??
-          0.0, // Wajib, set default jika null
-      latitude: map['latitude']?.toDouble(),
-      longitude: map['longitude']?.toDouble(),
-      altitude: map['altitude']?.toDouble(),
-    );
-  }
-
+  // Mengkonversi Pohon menjadi Map untuk disimpan di database
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'plot_id': plotId,
-      'nomor_pohon_di_plot': nomorPohonDiPlot,
-      'jenis_pohon': jenisPohon,
-      'nama_ilmiah': namaIlmiah,
+      'plotId': plotId,
+      'nomorPohonDiPlot': nomorPohonDiPlot,
+      'jenisPohon': jenisPohon,
+      'namaIlmiah': namaIlmiah,
       'azimut': azimut,
-      'jarak_pusat_m': jarakPusatM,
+      'jarakPusatM': jarakPusatM,
       'latitude': latitude,
       'longitude': longitude,
       'altitude': altitude,
     };
+  }
+
+  // Membuat objek Pohon dari Map yang diambil dari database
+  factory Pohon.fromMap(Map<String, dynamic> map) {
+    return Pohon(
+      id: map['id'],
+      plotId: map['plotId'],
+      nomorPohonDiPlot: map['nomorPohonDiPlot'],
+      jenisPohon: map['jenisPohon'],
+      namaIlmiah: map['namaIlmiah'],
+      azimut: map['azimut'],
+      jarakPusatM: map['jarakPusatM'],
+      latitude: map['latitude'],
+      longitude: map['longitude'],
+      altitude: map['altitude'],
+    );
   }
 }
