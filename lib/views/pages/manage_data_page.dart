@@ -65,7 +65,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
     //* Load plots and pohons for the selected cluster
     _plots = []; // Reset plots
     _pohonMap = {}; // Reset pohon map
-    _totalPohonCount = 0; // Reset total pohon count
+    _totalPohonCount = 0; // Reset sum pohon count
     // If a cluster is selected, load its plots and pohons
     if (_selectedCluster != null && _selectedCluster!.id != null) {
       _plots = await _dbHelper.plotDao.getPlotsByClusterId(

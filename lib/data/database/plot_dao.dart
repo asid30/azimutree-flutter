@@ -41,6 +41,14 @@ class PlotDao {
     return null;
   }
 
+  // Get All Plots
+  Future<List<Plot>> getAllPlots() async {
+    final List<Map<String, dynamic>> maps = await _db.query('plots');
+    return List.generate(maps.length, (i) {
+      return Plot.fromMap(maps[i]);
+    });
+  }
+
   // Delete Plot and all associated trees
   Future<int> deletePlot(int id) async {
     return await _db.delete('plots', where: 'id = ?', whereArgs: [id]);
