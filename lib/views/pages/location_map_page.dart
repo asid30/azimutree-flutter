@@ -3,6 +3,10 @@ import 'package:azimutree/views/widgets/appbar_widget.dart';
 import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:flutter/material.dart';
 
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:url_launcher/url_launcher.dart';
+
 class LocationMapPage extends StatelessWidget {
   const LocationMapPage({super.key});
 
@@ -47,17 +51,46 @@ class LocationMapPage extends StatelessWidget {
                 );
               },
             ),
-            Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text("Peta Lokasi Cluster Plot"),
-                  BackButton(
-                    onPressed: () {
-                      Navigator.popAndPushNamed(context, "home");
-                    },
+            //* Main Content
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: SizedBox(
+                width: double.infinity,
+                height: 500,
+                child: FlutterMap(
+                  options: MapOptions(
+                    initialCenter: LatLng(
+                      -5.055531,
+                      105.249231,
+                    ), // Center the map over Bandar Lampung
+                    initialZoom: 9.2,
                   ),
-                ],
+                  children: [
+                    TileLayer(
+                      // Bring your own tiles
+                      urlTemplate:
+                          'https://tile.openstreetmap.org/{z}/{x}/{y}.png', // For demonstration only
+                      userAgentPackageName:
+                          'com.heavysnack.azimutree', // Add your app identifier
+                      // And many more recommended properties!
+                    ),
+                    RichAttributionWidget(
+                      // Include a stylish prebuilt attribution widget that meets all requirments
+                      attributions: [
+                        TextSourceAttribution(
+                          'OpenStreetMap contributors',
+                          onTap:
+                              () => launchUrl(
+                                Uri.parse(
+                                  'https://openstreetmap.org/copyright',
+                                ),
+                              ), // (external)
+                        ),
+                        // Also add images...
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
