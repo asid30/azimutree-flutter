@@ -380,278 +380,338 @@ class _ManageDataPageState extends State<ManageDataPage> {
             // If no clusters are found, show a "No Data Found" message
             // If clusters are found, show the main content with dropdown and data display
             if (_isLoading)
-              const Center(child: CircularProgressIndicator())
+              Stack(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      BackButton(
+                        onPressed: () {
+                          Navigator.popAndPushNamed(context, "home");
+                        },
+                      ),
+                      const Text("Kembali", style: TextStyle(fontSize: 18)),
+                    ],
+                  ),
+                  Center(child: CircularProgressIndicator()),
+                ],
+              )
             else if (_allClusters.isEmpty)
               _buildNoDataFound()
             else
               // Main content when clusters are available
               SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0),
-                      // Dropdown to select a cluster
-                      child: DropdownButtonFormField<int>(
-                        value: _selectedClusterId,
-                        decoration: InputDecoration(
-                          labelText: 'Pilih Cluster',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(8.0),
-                          ),
-                          filled: true,
-                          fillColor: Theme.of(context).cardColor,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        BackButton(
+                          onPressed: () {
+                            Navigator.popAndPushNamed(context, "home");
+                          },
                         ),
-                        // Dropdown items generated from the list of clusters
-                        // Each item displays the cluster code and the name of the measurer
-                        items:
-                            _allClusters.map((cluster) {
-                              return DropdownMenuItem<int>(
-                                value: cluster.id,
-                                child: Text(
-                                  '${cluster.kodeCluster} - ${cluster.namaPengukur}',
-                                  style: TextStyle(
-                                    color:
-                                        Theme.of(
-                                          context,
-                                        ).textTheme.bodyLarge?.color,
-                                  ),
+                        const Text("Kembali", style: TextStyle(fontSize: 18)),
+                      ],
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            // Dropdown to select a cluster
+                            child: DropdownButtonFormField<int>(
+                              value: _selectedClusterId,
+                              decoration: InputDecoration(
+                                labelText: 'Pilih Cluster',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8.0),
                                 ),
-                              );
-                            }).toList(),
-                        // On change, update the selected cluster ID and reload data
-                        // This will trigger the loading of plots and trees for the selected cluster
-                        onChanged: (int? newValue) {
-                          if (newValue != null) {
-                            setState(() {
-                              _selectedClusterId = newValue;
-                            });
-                            _loadDataFromDatabase();
-                          }
-                        },
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    //* Display the selected cluster's details
-                    const Text(
-                      'Data Klaster yang dipilih:',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Card(
-                      margin: const EdgeInsets.symmetric(vertical: 8.0),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12.0),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Kode Klaster: ${_selectedCluster!.kodeCluster}',
-                              style: const TextStyle(
-                                fontWeight: FontWeight.bold,
+                                filled: true,
+                                fillColor: Theme.of(context).cardColor,
+                              ),
+                              // Dropdown items generated from the list of clusters
+                              // Each item displays the cluster code and the name of the measurer
+                              items:
+                                  _allClusters.map((cluster) {
+                                    return DropdownMenuItem<int>(
+                                      value: cluster.id,
+                                      child: Text(
+                                        '${cluster.kodeCluster} - ${cluster.namaPengukur}',
+                                        style: TextStyle(
+                                          color:
+                                              Theme.of(
+                                                context,
+                                              ).textTheme.bodyLarge?.color,
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                              // On change, update the selected cluster ID and reload data
+                              // This will trigger the loading of plots and trees for the selected cluster
+                              onChanged: (int? newValue) {
+                                if (newValue != null) {
+                                  setState(() {
+                                    _selectedClusterId = newValue;
+                                  });
+                                  _loadDataFromDatabase();
+                                }
+                              },
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          //* Display the selected cluster's details
+                          Card(
+                            margin: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Padding(
+                              padding: const EdgeInsets.all(12.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Data Klaster yang dipilih:',
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Kode Klaster: ${_selectedCluster!.kodeCluster}',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Pengukur: ${_selectedCluster!.namaPengukur ?? '-'}',
+                                  ),
+                                  Text(
+                                    'Tanggal Pengukuran: ${_selectedCluster!.tanggalPengukuran != null ? DateFormat('dd-MM-yyyy').format(_selectedCluster!.tanggalPengukuran!) : '-'}',
+                                  ),
+                                  Text('Jumlah Plot: ${_plots.length}'),
+                                  Text(
+                                    'Total Pohon di Semua Plot: $_totalPohonCount',
+                                  ),
+                                ],
                               ),
                             ),
-                            Text(
-                              'Pengukur: ${_selectedCluster!.namaPengukur ?? '-'}',
-                            ),
-                            Text(
-                              'Tanggal Pengukuran: ${_selectedCluster!.tanggalPengukuran != null ? DateFormat('dd-MM-yyyy').format(_selectedCluster!.tanggalPengukuran!) : '-'}',
-                            ),
-                            Text('Jumlah Plot: ${_plots.length}'),
-                            Text(
-                              'Total Pohon di Semua Plot: $_totalPohonCount',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    //* Display the plots and trees in the selected cluster
-                    // If there are no plots, show a message indicating that there are no plots in this cluster
-                    // If there are plots, display them in a list with details
-                    // Each plot shows its number, coordinates, and the trees within it
-                    // Each tree shows its number, species, azimuth, distance from center, and coordinates
-                    const Text(
-                      'Data Plot:',
-                      style: TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    _plots.isEmpty
-                        ? const Card(
-                          margin: EdgeInsets.symmetric(vertical: 8.0),
-                          child: Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Text(
-                              'Tidak ada data plot di cluster ini. Silakan tambahkan plot baru.',
-                              style: TextStyle(color: Colors.black),
-                              textAlign: TextAlign.center,
-                            ),
                           ),
-                        )
-                        : ListView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          itemCount: _plots.length,
-                          itemBuilder: (context, plotIndex) {
-                            final plot = _plots[plotIndex];
-                            final pohonListForPlot = _pohonMap[plot.id!] ?? [];
-                            return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 8.0),
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          'Nomor Plot: ${plot.nomorPlot}',
-                                          style: const TextStyle(
-                                            fontWeight: FontWeight.bold,
-                                          ),
+                          const SizedBox(height: 20),
+
+                          //* Display the plots and trees in the selected cluster
+                          // If there are no plots, show a message indicating that there are no plots in this cluster
+                          // If there are plots, display them in a list with details
+                          // Each plot shows its number, coordinates, and the trees within it
+                          // Each tree shows its number, species, azimuth, distance from center, and coordinates
+                          _plots.isEmpty
+                              ? const Card(
+                                margin: EdgeInsets.symmetric(vertical: 8.0),
+                                child: Padding(
+                                  padding: EdgeInsets.all(16.0),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        'Data Plot:',
+                                        style: TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
                                         ),
-                                        Row(
-                                          children: [
-                                            // Icon buttons for adding a tree to the plot and deleting the plot
-                                            IconButton(
-                                              icon: const Icon(
-                                                Icons.add_circle,
-                                                color: Colors.blue,
-                                              ),
-                                              tooltip: 'Tambah Pohon Random',
-                                              onPressed: () {
-                                                _addRandomPohonToSpecificPlot(
-                                                  plot.id!,
-                                                );
-                                              },
-                                            ),
-                                            // Icon button to delete the plot
-                                            IconButton(
-                                              icon: const Icon(
-                                                Icons.delete_forever,
-                                                color: Colors.red,
-                                              ),
-                                              tooltip: 'Hapus Plot',
-                                              onPressed: () {
-                                                _deletePlot(
-                                                  plot.id!,
-                                                  plot.nomorPlot,
-                                                );
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      ],
-                                    ),
-                                    Text(
-                                      'Latitude: ${plot.latitude.toStringAsFixed(6)}',
-                                    ),
-                                    Text(
-                                      'Longitude: ${plot.longitude.toStringAsFixed(6)}',
-                                    ),
-                                    Text(
-                                      'Altitude: ${plot.altitude?.toStringAsFixed(2) ?? '-'}',
-                                    ),
-                                    const SizedBox(height: 10),
-                                    Text(
-                                      'Pohon di Plot ini (${pohonListForPlot.length} pohon):',
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 16,
                                       ),
+                                      Text(
+                                        'Tidak ada data plot di cluster ini. Silakan tambahkan plot baru.',
+                                        style: TextStyle(color: Colors.black),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              )
+                              : ListView.builder(
+                                shrinkWrap: true,
+                                physics: const NeverScrollableScrollPhysics(),
+                                itemCount: _plots.length,
+                                itemBuilder: (context, plotIndex) {
+                                  final plot = _plots[plotIndex];
+                                  final pohonListForPlot =
+                                      _pohonMap[plot.id!] ?? [];
+                                  return Card(
+                                    margin: const EdgeInsets.symmetric(
+                                      vertical: 8.0,
                                     ),
-                                    pohonListForPlot.isEmpty
-                                        ? const Padding(
-                                          padding: EdgeInsets.only(left: 16.0),
-                                          child: Text(
-                                            'Tidak ada pohon di plot ini.',
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(12.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'Data Plot:',
                                             style: TextStyle(
-                                              color: Colors.grey,
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                        )
-                                        : ListView.builder(
-                                          shrinkWrap: true,
-                                          physics:
-                                              const NeverScrollableScrollPhysics(),
-                                          itemCount: pohonListForPlot.length,
-                                          itemBuilder: (context, pohonIndex) {
-                                            final pohon =
-                                                pohonListForPlot[pohonIndex];
-                                            return Padding(
-                                              padding: const EdgeInsets.only(
-                                                left: 16.0,
-                                                top: 4.0,
-                                                bottom: 4.0,
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(
+                                                'Nomor Plot: ${plot.nomorPlot}',
+                                                style: const TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
                                               ),
-                                              child: Row(
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.start,
+                                              Row(
                                                 children: [
-                                                  Expanded(
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                          'No. Pohon: ${pohon.nomorPohonDiPlot}',
-                                                          style:
-                                                              const TextStyle(
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500,
-                                                              ),
-                                                        ),
-                                                        Text(
-                                                          'Jenis: ${pohon.jenisPohon ?? '-'} (${pohon.namaIlmiah ?? '-'})',
-                                                        ),
-                                                        Text(
-                                                          'Azimuth: ${pohon.azimut.toStringAsFixed(1)}°',
-                                                        ),
-                                                        Text(
-                                                          'Jarak Pusat: ${pohon.jarakPusatM} m',
-                                                        ),
-                                                        Text(
-                                                          'Koordinat: ${pohon.latitude?.toStringAsFixed(6) ?? '-'} Lat, ${pohon.longitude?.toStringAsFixed(6) ?? '-'} Lon, ${pohon.altitude?.toStringAsFixed(2) ?? '-'} Alt',
-                                                        ),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                  // Icon button to delete the tree
+                                                  // Icon buttons for adding a tree to the plot and deleting the plot
                                                   IconButton(
                                                     icon: const Icon(
-                                                      Icons.close,
+                                                      Icons.add_circle,
+                                                      color: Colors.blue,
+                                                    ),
+                                                    tooltip:
+                                                        'Tambah Pohon Random',
+                                                    onPressed: () {
+                                                      _addRandomPohonToSpecificPlot(
+                                                        plot.id!,
+                                                      );
+                                                    },
+                                                  ),
+                                                  // Icon button to delete the plot
+                                                  IconButton(
+                                                    icon: const Icon(
+                                                      Icons.delete_forever,
                                                       color: Colors.red,
                                                     ),
-                                                    tooltip: 'Hapus Pohon',
+                                                    tooltip: 'Hapus Plot',
                                                     onPressed: () {
-                                                      _deletePohon(
-                                                        pohon.id!,
-                                                        pohon.nomorPohonDiPlot,
+                                                      _deletePlot(
+                                                        plot.id!,
                                                         plot.nomorPlot,
                                                       );
                                                     },
                                                   ),
                                                 ],
                                               ),
-                                            );
-                                          },
-                                        ),
-                                  ],
-                                ),
+                                            ],
+                                          ),
+                                          Text(
+                                            'Latitude: ${plot.latitude.toStringAsFixed(6)}',
+                                          ),
+                                          Text(
+                                            'Longitude: ${plot.longitude.toStringAsFixed(6)}',
+                                          ),
+                                          Text(
+                                            'Altitude: ${plot.altitude?.toStringAsFixed(2) ?? '-'}',
+                                          ),
+                                          const SizedBox(height: 10),
+                                          Text(
+                                            'Pohon di Plot ini (${pohonListForPlot.length} pohon):',
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                              fontSize: 16,
+                                            ),
+                                          ),
+                                          pohonListForPlot.isEmpty
+                                              ? const Padding(
+                                                padding: EdgeInsets.only(
+                                                  left: 16.0,
+                                                ),
+                                                child: Text(
+                                                  'Tidak ada pohon di plot ini.',
+                                                  style: TextStyle(
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
+                                              )
+                                              : ListView.builder(
+                                                shrinkWrap: true,
+                                                physics:
+                                                    const NeverScrollableScrollPhysics(),
+                                                itemCount:
+                                                    pohonListForPlot.length,
+                                                itemBuilder: (
+                                                  context,
+                                                  pohonIndex,
+                                                ) {
+                                                  final pohon =
+                                                      pohonListForPlot[pohonIndex];
+                                                  return Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                          left: 16.0,
+                                                          top: 4.0,
+                                                          bottom: 4.0,
+                                                        ),
+                                                    child: Row(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Expanded(
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Text(
+                                                                'No. Pohon: ${pohon.nomorPohonDiPlot}',
+                                                                style: const TextStyle(
+                                                                  fontWeight:
+                                                                      FontWeight
+                                                                          .w500,
+                                                                ),
+                                                              ),
+                                                              Text(
+                                                                'Jenis: ${pohon.jenisPohon ?? '-'} (${pohon.namaIlmiah ?? '-'})',
+                                                              ),
+                                                              Text(
+                                                                'Azimuth: ${pohon.azimut.toStringAsFixed(1)}°',
+                                                              ),
+                                                              Text(
+                                                                'Jarak Pusat: ${pohon.jarakPusatM} m',
+                                                              ),
+                                                              Text(
+                                                                'Koordinat: ${pohon.latitude?.toStringAsFixed(6) ?? '-'} Lat, ${pohon.longitude?.toStringAsFixed(6) ?? '-'} Lon, ${pohon.altitude?.toStringAsFixed(2) ?? '-'} Alt',
+                                                              ),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                        // Icon button to delete the tree
+                                                        IconButton(
+                                                          icon: const Icon(
+                                                            Icons.close,
+                                                            color: Colors.red,
+                                                          ),
+                                                          tooltip:
+                                                              'Hapus Pohon',
+                                                          onPressed: () {
+                                                            _deletePohon(
+                                                              pohon.id!,
+                                                              pohon
+                                                                  .nomorPohonDiPlot,
+                                                              plot.nomorPlot,
+                                                            );
+                                                          },
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                },
+                                              ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                },
                               ),
-                            );
-                          },
-                        ),
-                    const SizedBox(height: 80),
+                          const SizedBox(height: 80),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -730,46 +790,72 @@ class _ManageDataPageState extends State<ManageDataPage> {
 
   //* Widget to display when no data is found
   Widget _buildNoDataFound() {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(32.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+    return Stack(
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.start,
           children: [
-            const Icon(Icons.folder_off, size: 80, color: Colors.white70),
-            const SizedBox(height: 20),
-            Text(
-              'Ups! Sepertinya belum ada data cluster di sini.',
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 10),
-            Text(
-              'Silakan tambahkan cluster baru menggunakan tombol "+" di kanan bawah.',
-              textAlign: TextAlign.center,
-              style: TextStyle(fontSize: 16, color: Colors.white70),
-            ),
-            const SizedBox(height: 30),
-            ElevatedButton.icon(
+            BackButton(
               onPressed: () {
-                _addRandomCluster();
+                Navigator.popAndPushNamed(context, "home");
               },
-              icon: const Icon(Icons.add),
-              label: const Text('Tambah Cluster Pertama Anda (random)'),
-              style: ElevatedButton.styleFrom(
-                foregroundColor: Colors.white,
-                backgroundColor: Colors.blue,
-                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                textStyle: TextStyle(fontSize: 16),
-              ),
             ),
+            const Text("Kembali", style: TextStyle(fontSize: 18)),
           ],
         ),
-      ),
+        Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Card(
+                  child: Column(
+                    children: [
+                      const Icon(
+                        Icons.folder_off,
+                        size: 80,
+                        color: Colors.black,
+                      ),
+                      const SizedBox(height: 20),
+                      Text(
+                        'Ups! Sepertinya belum ada data cluster di sini.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'Silakan tambahkan cluster baru menggunakan tombol "+" di kanan bawah.',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 16, color: Colors.black),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    _addRandomCluster();
+                  },
+                  icon: const Icon(Icons.add),
+                  label: const Text('Tambah Cluster Pertama Anda (random)'),
+                  style: ElevatedButton.styleFrom(
+                    foregroundColor: Colors.white,
+                    backgroundColor: Colors.blue,
+                    padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                    textStyle: TextStyle(fontSize: 16),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
