@@ -37,8 +37,7 @@ class ClusterDao {
     return null;
   }
 
-  // Metode lain untuk Cluster (update, delete) dapat ditambahkan di sini
-  // Delete Cluster beserta Plot-nya
+  // Delete Cluster and all associated plots and trees
   Future<int> deleteCluster(int id) async {
     return await _db.delete('clusters', where: 'id = ?', whereArgs: [id]);
   }

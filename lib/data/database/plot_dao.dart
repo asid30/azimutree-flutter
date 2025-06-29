@@ -41,10 +41,8 @@ class PlotDao {
     return null;
   }
 
-  // Delete Plot (akan menghapus pohon-pohon di dalamnya karena ON DELETE CASCADE)
+  // Delete Plot and all associated trees
   Future<int> deletePlot(int id) async {
     return await _db.delete('plots', where: 'id = ?', whereArgs: [id]);
   }
-
-  // Metode lain untuk Plot (update) dapat ditambahkan di sini
 }

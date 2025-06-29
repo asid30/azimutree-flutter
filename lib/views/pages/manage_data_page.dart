@@ -1,15 +1,14 @@
+//* Manages data for clusters, plots, and trees in the Azimutree app
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/views/widgets/appbar_widget.dart';
 import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:flutter/material.dart';
-
-// Import DatabaseHelper yang baru
-import 'package:azimutree/data/database/database_helper.dart'; // Perhatikan perubahan path
+import 'package:azimutree/data/database/database_helper.dart';
 import 'package:azimutree/data/models/cluster.dart';
 import 'package:azimutree/data/models/plot.dart';
 import 'package:azimutree/data/models/pohon.dart';
 import 'package:azimutree/services/random_data_generator.dart';
-import 'package:azimutree/services/location_utils.dart'; // Import LocationUtils yang baru
+import 'package:azimutree/services/location_utils.dart';
 import 'package:intl/intl.dart';
 
 class ManageDataPage extends StatefulWidget {
@@ -23,14 +22,12 @@ class _ManageDataPageState extends State<ManageDataPage> {
   Cluster? _selectedCluster;
   List<Cluster> _allClusters = [];
   int? _selectedClusterId;
-
   List<Plot> _plots = [];
   Map<int, List<Pohon>> _pohonMap = {};
   int _totalPohonCount = 0;
-
   bool _isLoading = true;
 
-  // Mendapatkan instance DatabaseHelper
+  //* Get instance DatabaseHelper
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
 
   @override
@@ -39,16 +36,19 @@ class _ManageDataPageState extends State<ManageDataPage> {
     _loadDataFromDatabase();
   }
 
+  //* Database Loading Function
   Future<void> _loadDataFromDatabase() async {
     setState(() {
       _isLoading = true;
     });
 
-    // Pastikan database terinisialisasi dan DAO siap
+    // Make sure the database is initialized and DAOs are ready
     await _dbHelper.database;
 
+    // Load all clusters from the database
     _allClusters = await _dbHelper.clusterDao.getAllClusters();
 
+    // If no clusters exist, reset selected cluster
     if (_allClusters.isEmpty) {
       _selectedClusterId = null;
       _selectedCluster = null;
@@ -62,50 +62,58 @@ class _ManageDataPageState extends State<ManageDataPage> {
       );
     }
 
-    _plots = [];
-    _pohonMap = {};
-    _totalPohonCount = 0;
-
+    //* Load plots and pohons for the selected cluster
+    _plots = []; // Reset plots
+    _pohonMap = {}; // Reset pohon map
+    _totalPohonCount = 0; // Reset total pohon count
+    // If a cluster is selected, load its plots and pohons
     if (_selectedCluster != null && _selectedCluster!.id != null) {
       _plots = await _dbHelper.plotDao.getPlotsByClusterId(
         _selectedCluster!.id!,
       );
       for (var plot in _plots) {
         if (plot.id != null) {
-          final pohons = await _dbHelper.pohonDao.getPohonsByPlotId(plot.id!);
+          final pohons = await _dbHelper.pohonDao.getAllPohonsByPlotId(
+            plot.id!,
+          );
           _pohonMap[plot.id!] = pohons;
           _totalPohonCount += pohons.length;
         }
       }
     }
-
     setState(() {
       _isLoading = false;
     });
   }
 
-  // --- Fungsi Penambahan Data Random ---
-
+  //! Functions to add random data for testing purposes
+  //Todo: Update these functions to use a real data
+  //* Adds a random cluster
   Future<void> _addRandomCluster() async {
+    // Generate a new random cluster
     final newCluster = Cluster(
       kodeCluster: RandomDataGenerator.generateRandomKodeCluster(),
       namaPengukur: RandomDataGenerator.generateRandomNamaPengukur(),
       tanggalPengukuran: DateTime.now(),
     );
-
+    // Insert the new cluster into the database
     final int newClusterId = await _dbHelper.clusterDao.insertCluster(
       newCluster,
     );
+    // Notify the user of success
     _showSnackbar(
       'Cluster baru "${newCluster.kodeCluster}" berhasil ditambahkan!',
       Colors.green,
     );
-
+    // Update the selected cluster and reload data
     _selectedClusterId = newClusterId;
     await _loadDataFromDatabase();
   }
 
+  //* Adds a random plot to the currently selected cluster
   Future<void> _addRandomPlot() async {
+    // Check if a cluster is selected
+    // If no cluster is selected, show an error message
     if (_selectedCluster == null || _selectedCluster!.id == null) {
       _showSnackbar(
         'Tidak ada Cluster aktif untuk menambahkan Plot. Silakan pilih atau tambahkan cluster.',
@@ -113,7 +121,8 @@ class _ManageDataPageState extends State<ManageDataPage> {
       );
       return;
     }
-
+    // Generate a new random plot
+    // The plot will be associated with the currently selected cluster
     final newPlot = Plot(
       clusterId: _selectedCluster!.id!,
       nomorPlot: _plots.length + 1,
@@ -121,26 +130,30 @@ class _ManageDataPageState extends State<ManageDataPage> {
       longitude: RandomDataGenerator.generateRandomLongitude(),
       altitude: RandomDataGenerator.generateRandomAltitude(),
     );
-
+    // Insert the new plot into the database
     await _dbHelper.plotDao.insertPlot(newPlot);
+    // Notify the user of success
     _showSnackbar(
       'Plot random berhasil ditambahkan ke cluster ${_selectedCluster!.kodeCluster}!',
       Colors.green,
     );
+    // Reload data to reflect the new plot
     await _loadDataFromDatabase();
   }
 
+  //* Adds a random pohon to a specific plot
   Future<void> _addRandomPohonToSpecificPlot(int plotId) async {
-    // Menggunakan plotDao untuk mendapatkan plot
+    // Check if the plot exists
+    // If the plot is not found, show an error message
     final plot = await _dbHelper.plotDao.getPlotById(plotId);
     if (plot == null) {
       _showSnackbar('Plot tidak ditemukan.', Colors.red);
       return;
     }
-
+    // Generate a new random pohon
+    // The pohon will be associated with the specified plot
     final currentPohonsInPlot = _pohonMap[plotId] ?? [];
     final nextNomorPohon = currentPohonsInPlot.length + 1;
-
     final jenisPohon = RandomDataGenerator.generateRandomJenisPohon();
     final newPohon = Pohon(
       plotId: plotId,
@@ -150,8 +163,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
       azimut: RandomDataGenerator.generateRandomAzimuth(),
       jarakPusatM: RandomDataGenerator.generateRandomJarakPusatM(),
     );
-
-    // Menggunakan LocationUtils untuk perhitungan koordinat
+    // Use the LocationUtils (*/lib/services/location_utils.dart) to calculate the coordinates based on azimuth and distance
     final Map<String, double> coords = LocationUtils.calculatePohonCoordinates(
       plot.latitude,
       plot.longitude,
@@ -161,63 +173,99 @@ class _ManageDataPageState extends State<ManageDataPage> {
     newPohon.latitude = coords['latitude'];
     newPohon.longitude = coords['longitude'];
     newPohon.altitude = plot.altitude;
-
+    // Insert the new pohon into the database
     await _dbHelper.pohonDao.insertPohon(newPohon);
+    // Notify the user of success
     _showSnackbar(
       'Pohon random berhasil ditambahkan ke Plot ${plot.nomorPlot}!',
       Colors.green,
     );
+    // Reload data to reflect the new pohon
     await _loadDataFromDatabase();
   }
 
-  // --- Fungsi Penghapusan Data ---
-
+  //! Delete functions for clusters, plots, and trees
+  //* Deletes a cluster and all its associated plots and trees
   Future<void> _deleteCluster(int clusterId) async {
-    final confirm = await _showConfirmDialog(
+    // Check if the cluster exists
+    final cluster = await _dbHelper.clusterDao.getClusterById(clusterId);
+    if (cluster == null) {
+      _showSnackbar('Cluster tidak ditemukan.', Colors.red);
+      return;
+    }
+    // Show confirmation dialog before deleting
+    // If the user confirms, delete the cluster and all its plots and trees
+    final confirm = await _showConfirmDeletionDialog(
       'Hapus Cluster',
       'Apakah Anda yakin ingin menghapus Cluster ini? Ini juga akan menghapus semua Plot dan Pohon di dalamnya.',
     );
     if (confirm) {
+      // Delete the cluster using the DAO
+      // This will also delete all associated plots and trees due to ON DELETE CASCADE
       await _dbHelper.clusterDao.deleteCluster(clusterId);
+      // Notify the user of success
       _showSnackbar('Cluster berhasil dihapus.', Colors.green);
+      // Reset selected cluster and reload data
       await _loadDataFromDatabase();
     }
   }
 
+  //* Deletes a plot and all its associated trees
   Future<void> _deletePlot(int plotId, int plotNumber) async {
-    final confirm = await _showConfirmDialog(
+    // Check if the plot exists
+    final plot = await _dbHelper.plotDao.getPlotById(plotId);
+    if (plot == null) {
+      _showSnackbar('Plot tidak ditemukan.', Colors.red);
+      return;
+    }
+    // Show confirmation dialog before deleting
+    // If the user confirms, delete the plot and all its trees
+    final confirm = await _showConfirmDeletionDialog(
       'Hapus Plot',
       'Apakah Anda yakin ingin menghapus Plot $plotNumber? Ini juga akan menghapus semua pohon di dalamnya.',
     );
     if (confirm) {
+      // Delete the plot using the DAO
+      // This will also delete all associated trees due to ON DELETE CASCADE
       await _dbHelper.plotDao.deletePlot(plotId);
+      // Notify the user of success
       _showSnackbar('Plot $plotNumber berhasil dihapus.', Colors.green);
+      // Reload data to reflect the deletion
       await _loadDataFromDatabase();
     }
   }
 
-  Future<void> _deletePohon(
-    int pohonId,
-    int pohonNumber,
-    int plotNumber,
-  ) async {
-    final confirm = await _showConfirmDialog(
+  //* Deletes a specific tree from a plot
+  Future<void> _deletePohon(int pohonId, int pohonNumber, int plotId) async {
+    // Check if the tree exists
+    final pohon = await _dbHelper.pohonDao.getPohonById(pohonId);
+    if (pohon == null) {
+      _showSnackbar('Pohon tidak ditemukan.', Colors.red);
+      return;
+    }
+    // Show confirmation dialog before deleting
+    // If the user confirms, delete the tree from the plot
+    final confirm = await _showConfirmDeletionDialog(
       'Hapus Pohon',
-      'Apakah Anda yakin ingin menghapus Pohon $pohonNumber dari Plot $plotNumber?',
+      'Apakah Anda yakin ingin menghapus Pohon $pohonNumber dari Plot $plotId?',
     );
     if (confirm) {
+      // Delete the tree using the DAO
       await _dbHelper.pohonDao.deletePohon(pohonId);
+      // Notify the user of success
       _showSnackbar(
-        'Pohon $pohonNumber dari Plot $plotNumber berhasil dihapus.',
+        'Pohon $pohonNumber dari Plot $plotId berhasil dihapus.',
         Colors.green,
       );
+      // Reload data to reflect the deletion
       await _loadDataFromDatabase();
     }
   }
 
-  // --- Fungsi Reset Data (Tambahan) ---
+  //! Function to reset all data in the database (development purposes only)
+  //* Resets all data including clusters, plots, and trees
   Future<void> _resetAllData() async {
-    final confirm = await _showConfirmDialog(
+    final confirm = await _showConfirmDeletionDialog(
       'Reset Semua Data',
       'INI AKAN MENGHAPUS SEMUA CLUSTER, PLOT, DAN POHON DARI DATABASE! Lanjutkan?',
     );
@@ -228,8 +276,8 @@ class _ManageDataPageState extends State<ManageDataPage> {
     }
   }
 
-  // --- Helper UI ---
-
+  //! Snackbar and Dialog Functions
+  //* Function to show a snackbar with a message
   void _showSnackbar(String message, Color color) {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
@@ -240,7 +288,9 @@ class _ManageDataPageState extends State<ManageDataPage> {
     );
   }
 
-  Future<bool> _showConfirmDialog(String title, String content) async {
+  //! Function to show a confirmation dialog
+  //* Returns true if the user confirms, false otherwise
+  Future<bool> _showConfirmDeletionDialog(String title, String content) async {
     return await showDialog<bool>(
           context: context,
           builder: (BuildContext context) {
@@ -249,10 +299,12 @@ class _ManageDataPageState extends State<ManageDataPage> {
               content: Text(content),
               actions: <Widget>[
                 TextButton(
+                  // If the user cancels, return false
                   onPressed: () => Navigator.of(context).pop(false),
                   child: const Text('Batal'),
                 ),
                 TextButton(
+                  // If the user confirms, return true
                   onPressed: () => Navigator.of(context).pop(true),
                   child: const Text(
                     'Hapus',
@@ -266,25 +318,36 @@ class _ManageDataPageState extends State<ManageDataPage> {
         false;
   }
 
+  //! UI Functions
+  //* Main build method for the ManageDataPage
   @override
   Widget build(BuildContext context) {
+    // For preventing pop when the user taps back button
+    // This is to ensure that the user cannot accidentally close the app
+    // Instead, they will be redirected to the home page.
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) {
           return;
         }
+        // If the user tries to pop, redirect them to the home page
         Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
       },
+      // Main Scaffold for the ManageDataPage
       child: Scaffold(
         appBar: const AppbarWidget(title: "Kelola Data Cluster Plot"),
         drawer: const SidebarWidget(),
         body: Stack(
           children: [
             //* Background App
+            // Animated background image based on light/dark mode
+            // Uses ValueListenableBuilder to listen to changes in the isLightModeNotifier
+            // and update the background image accordingly
             ValueListenableBuilder(
               valueListenable: isLightModeNotifier,
               builder: (context, isLightMode, child) {
+                // AnimatedSwitcher to smoothly transition between light and dark background images
                 return AnimatedSwitcher(
                   duration: const Duration(milliseconds: 800),
                   transitionBuilder: (
@@ -296,23 +359,32 @@ class _ManageDataPageState extends State<ManageDataPage> {
                   child: Image(
                     key: ValueKey<bool>(isLightMode),
                     image: AssetImage(
+                      // Use the appropriate background image based on the light/dark mode
                       isLightMode
                           ? "assets/images/light-bg-notitle.png"
                           : "assets/images/dark-bg-notitle.png",
                     ),
-                    fit: BoxFit.cover,
-                    height: double.infinity,
-                    width: double.infinity,
+                    fit: BoxFit.cover, // Cover the entire screen
+                    height:
+                        double
+                            .infinity, // Ensure the image covers the full height
+                    width:
+                        double
+                            .infinity, // Ensure the image covers the full width
                   ),
                 );
               },
             ),
-            //* Konten Utama
+            //* Main Content
+            // If loading, show a CircularProgressIndicator
+            // If no clusters are found, show a "No Data Found" message
+            // If clusters are found, show the main content with dropdown and data display
             if (_isLoading)
               const Center(child: CircularProgressIndicator())
             else if (_allClusters.isEmpty)
               _buildNoDataFound()
             else
+              // Main content when clusters are available
               SingleChildScrollView(
                 padding: const EdgeInsets.all(16.0),
                 child: Column(
@@ -320,6 +392,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                   children: [
                     Padding(
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      // Dropdown to select a cluster
                       child: DropdownButtonFormField<int>(
                         value: _selectedClusterId,
                         decoration: InputDecoration(
@@ -330,6 +403,8 @@ class _ManageDataPageState extends State<ManageDataPage> {
                           filled: true,
                           fillColor: Theme.of(context).cardColor,
                         ),
+                        // Dropdown items generated from the list of clusters
+                        // Each item displays the cluster code and the name of the measurer
                         items:
                             _allClusters.map((cluster) {
                               return DropdownMenuItem<int>(
@@ -345,6 +420,8 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                 ),
                               );
                             }).toList(),
+                        // On change, update the selected cluster ID and reload data
+                        // This will trigger the loading of plots and trees for the selected cluster
                         onChanged: (int? newValue) {
                           if (newValue != null) {
                             setState(() {
@@ -356,6 +433,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                       ),
                     ),
                     const SizedBox(height: 10),
+                    //* Display the selected cluster's details
                     const Text(
                       'Data Klaster yang dipilih:',
                       style: TextStyle(
@@ -391,6 +469,11 @@ class _ManageDataPageState extends State<ManageDataPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
+                    //* Display the plots and trees in the selected cluster
+                    // If there are no plots, show a message indicating that there are no plots in this cluster
+                    // If there are plots, display them in a list with details
+                    // Each plot shows its number, coordinates, and the trees within it
+                    // Each tree shows its number, species, azimuth, distance from center, and coordinates
                     const Text(
                       'Data Plot:',
                       style: TextStyle(
@@ -436,6 +519,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                         ),
                                         Row(
                                           children: [
+                                            // Icon buttons for adding a tree to the plot and deleting the plot
                                             IconButton(
                                               icon: const Icon(
                                                 Icons.add_circle,
@@ -448,6 +532,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                                 );
                                               },
                                             ),
+                                            // Icon button to delete the plot
                                             IconButton(
                                               icon: const Icon(
                                                 Icons.delete_forever,
@@ -540,6 +625,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                                       ],
                                                     ),
                                                   ),
+                                                  // Icon button to delete the tree
                                                   IconButton(
                                                     icon: const Icon(
                                                       Icons.close,
@@ -571,6 +657,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
               ),
           ],
         ),
+        // Floating action button to manage data
         floatingActionButton: FloatingActionButton(
           onPressed: () {
             showModalBottomSheet(
@@ -603,7 +690,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                           }
                         },
                       ),
-                      const Divider(), // Garis pemisah untuk tombol hapus
+                      const Divider(),
                       ListTile(
                         leading: const Icon(Icons.delete_forever),
                         title: const Text('Hapus Cluster saat ini'),
@@ -619,13 +706,13 @@ class _ManageDataPageState extends State<ManageDataPage> {
                           }
                         },
                       ),
-                      const Divider(), // Garis pemisah untuk tombol reset
+                      const Divider(),
                       ListTile(
                         leading: const Icon(Icons.warning, color: Colors.red),
                         title: const Text('RESET SEMUA DATA (DEVELOPMENT)'),
                         onTap: () {
-                          Navigator.pop(context); // Tutup bottom sheet
-                          _resetAllData(); // Panggil fungsi reset data
+                          Navigator.pop(context);
+                          _resetAllData();
                         },
                       ),
                     ],
@@ -641,6 +728,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
     );
   }
 
+  //* Widget to display when no data is found
   Widget _buildNoDataFound() {
     return Center(
       child: Padding(
