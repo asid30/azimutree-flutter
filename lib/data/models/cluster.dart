@@ -11,19 +11,17 @@ class Cluster {
     this.tanggalPengukuran,
   });
 
-  // Mengkonversi Cluster menjadi Map untuk disimpan di database
+  // Converting Cluster to Map for database storage
   Map<String, dynamic> toMap() {
     return {
       'id': id,
       'kodeCluster': kodeCluster,
       'namaPengukur': namaPengukur,
-      'tanggalPengukuran':
-          tanggalPengukuran
-              ?.millisecondsSinceEpoch, // Simpan DateTime sebagai Unix timestamp
+      'tanggalPengukuran': tanggalPengukuran?.millisecondsSinceEpoch,
     };
   }
 
-  // Membuat objek Cluster dari Map yang diambil dari database
+  // Factory constructor to create Cluster from Map
   factory Cluster.fromMap(Map<String, dynamic> map) {
     return Cluster(
       id: map['id'],

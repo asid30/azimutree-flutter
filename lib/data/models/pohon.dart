@@ -4,11 +4,11 @@ class Pohon {
   int nomorPohonDiPlot;
   String? jenisPohon;
   String? namaIlmiah;
-  double azimut; // dalam derajat
-  double jarakPusatM; // dalam meter
-  double? latitude; // Dihitung
-  double? longitude; // Dihitung
-  double? altitude; // Diwarisi dari Plot
+  double azimut;
+  double jarakPusatM;
+  double? latitude;
+  double? longitude;
+  double? altitude;
 
   Pohon({
     this.id,
@@ -23,7 +23,7 @@ class Pohon {
     this.altitude,
   });
 
-  // Mengkonversi Pohon menjadi Map untuk disimpan di database
+  // Converting Pohon to Map for database storage
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -39,7 +39,7 @@ class Pohon {
     };
   }
 
-  // Membuat objek Pohon dari Map yang diambil dari database
+  // Factory constructor to create Pohon from Map
   factory Pohon.fromMap(Map<String, dynamic> map) {
     return Pohon(
       id: map['id'],

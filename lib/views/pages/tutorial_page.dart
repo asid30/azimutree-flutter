@@ -47,8 +47,7 @@ class TutorialPage extends StatelessWidget {
                 );
               },
             ),
-            //* Konten Panduan
-            // Bungkus konten panduan dengan ValueListenableBuilder untuk warna teks dinamis
+            //* Content
             ValueListenableBuilder(
               valueListenable: isLightModeNotifier,
               builder: (context, isLightMode, child) {
@@ -74,7 +73,7 @@ class TutorialPage extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 24,
                               fontWeight: FontWeight.bold,
-                              color: textColor, // Warna teks dinamis
+                              color: textColor,
                             ),
                           ),
                           const SizedBox(height: 15),
@@ -82,14 +81,14 @@ class TutorialPage extends StatelessWidget {
                             'Panduan ini akan membantu Anda memahami cara menggunakan aplikasi Azimutree untuk mengelola data klaster, plot, dan pohon.',
                             style: TextStyle(
                               fontSize: 16,
-                              color: secondaryTextColor, // Warna teks dinamis
+                              color: secondaryTextColor,
                             ),
                           ),
                           Divider(
                             height: 30,
                             thickness: 1,
                             color: dividerColor,
-                          ), // Warna divider dinamis
+                          ),
 
                           _buildSection(
                             context,
@@ -174,27 +173,22 @@ class TutorialPage extends StatelessWidget {
     );
   }
 
-  // Helper method untuk membuat bagian panduan
+  // Helper method to build tutorial section
   Widget _buildSection(
     BuildContext context, {
     required String title,
     required String content,
     required IconData icon,
-    required Color textColor, // Tambahkan parameter warna teks
-    required Color
-    secondaryTextColor, // Tambahkan parameter warna teks sekunder
-    required Color iconColor, // Tambahkan parameter warna ikon
+    required Color textColor,
+    required Color secondaryTextColor,
+    required Color iconColor,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            Icon(
-              icon,
-              color: iconColor,
-              size: 28,
-            ), // Gunakan warna ikon dinamis
+            Icon(icon, color: iconColor, size: 28),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
@@ -202,7 +196,7 @@ class TutorialPage extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
-                  color: textColor, // Gunakan warna teks dinamis
+                  color: textColor,
                 ),
               ),
             ),
@@ -211,10 +205,7 @@ class TutorialPage extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           content,
-          style: TextStyle(
-            fontSize: 15,
-            color: secondaryTextColor, // Gunakan warna teks sekunder dinamis
-          ),
+          style: TextStyle(fontSize: 15, color: secondaryTextColor),
         ),
       ],
     );

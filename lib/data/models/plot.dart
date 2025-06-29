@@ -15,7 +15,7 @@ class Plot {
     this.altitude,
   });
 
-  // Mengkonversi Plot menjadi Map untuk disimpan di database
+  // Converting Plot to Map for database storage
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -27,7 +27,7 @@ class Plot {
     };
   }
 
-  // Membuat objek Plot dari Map yang diambil dari database
+  // Factory constructor untuk membuat Plot dari Map
   factory Plot.fromMap(Map<String, dynamic> map) {
     return Plot(
       id: map['id'],
