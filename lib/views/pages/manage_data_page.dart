@@ -172,6 +172,18 @@ class _ManageDataPageState extends State<ManageDataPage> {
 
   // --- Fungsi Penghapusan Data ---
 
+  Future<void> _deleteCluster(int clusterId) async {
+    final confirm = await _showConfirmDialog(
+      'Hapus Cluster',
+      'Apakah Anda yakin ingin menghapus Cluster ini? Ini juga akan menghapus semua Plot dan Pohon di dalamnya.',
+    );
+    if (confirm) {
+      await _dbHelper.clusterDao.deleteCluster(clusterId);
+      _showSnackbar('Cluster berhasil dihapus.', Colors.green);
+      await _loadDataFromDatabase();
+    }
+  }
+
   Future<void> _deletePlot(int plotId, int plotNumber) async {
     final confirm = await _showConfirmDialog(
       'Hapus Plot',
@@ -591,6 +603,22 @@ class _ManageDataPageState extends State<ManageDataPage> {
                           }
                         },
                       ),
+                      const Divider(), // Garis pemisah untuk tombol hapus
+                      ListTile(
+                        leading: const Icon(Icons.delete_forever),
+                        title: const Text('Hapus Cluster saat ini'),
+                        onTap: () {
+                          Navigator.pop(context);
+                          if (_selectedClusterId != null) {
+                            _deleteCluster(_selectedClusterId!);
+                          } else {
+                            _showSnackbar(
+                              'Tidak ada cluster terpilih. Tambahkan cluster baru terlebih dahulu.',
+                              Colors.red,
+                            );
+                          }
+                        },
+                      ),
                       const Divider(), // Garis pemisah untuk tombol reset
                       ListTile(
                         leading: const Icon(Icons.warning, color: Colors.red),
@@ -643,7 +671,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                 _addRandomCluster();
               },
               icon: const Icon(Icons.add),
-              label: const Text('Tambah Cluster Pertama Anda'),
+              label: const Text('Tambah Cluster Pertama Anda (random)'),
               style: ElevatedButton.styleFrom(
                 foregroundColor: Colors.white,
                 backgroundColor: Colors.blue,

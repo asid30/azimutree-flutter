@@ -47,7 +47,7 @@
 
   <h2>Catatan</h2>
   <ul>
-    <li>Aplikasi ini dikembangkan untuk perangkat mobile saja</li>
+    <li>Aplikasi ini dikembangkan untuk perangkat mobile.</li>
   </ul>
 
 </body>
