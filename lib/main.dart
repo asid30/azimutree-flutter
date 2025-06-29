@@ -5,7 +5,7 @@ import 'package:azimutree/views/pages/scan_label_page.dart';
 import 'package:azimutree/views/pages/test_ocr1_page.dart';
 import 'package:azimutree/views/pages/test_ocr2_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
-import 'package:azimutree/data/global_camera.dart';
+import 'package:azimutree/data/global_variables/global_camera.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 
@@ -23,17 +23,6 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-  //* Title of Pages
-  // final Map<String?, String?> titleOfPages = {
-  //   "home": "Home", // Default title Page
-  //   "scan_label_page": "Scan Kode Label",
-  //   "manage_data_page": "Kelola Data Cluster Plot",
-  //   "location_map_page": "Peta Lokasi Cluster Plot",
-  //   "tutorial_page": "Panduan Aplikasi",
-  //   "test_ocr_page1": "Test OCR Google ML Kit",
-  //   "test_ocr_page2": "Test OCR Google Vision API",
-  // };
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -93,14 +82,14 @@ class _MainAppState extends State<MainApp> {
   }
 }
 
+//* Helper
+
 // Helper function untuk PageRouteBuilder default
 PageRoute<dynamic> _buildPageRoute(Widget page, RouteSettings settings) {
   return MaterialPageRoute(builder: (context) => page, settings: settings);
 }
 
-// --- Contoh Animasi Kustom ---
-
-// Animasi Fade In/Out
+// Helper function untuk PageRouteBuilder Animasi Fade In/Out
 PageRoute<dynamic> _buildFadeTransitionPageRoute(
   Widget page,
   RouteSettings settings,

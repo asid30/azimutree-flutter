@@ -5,7 +5,7 @@
 <uses-feature android:name="android.hardware.camera" android:required="true"/>
 
     <application
-        android:label="azimutree"
+        android:label="com.heavysnack.azimutree"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

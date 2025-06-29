@@ -1,5 +1,5 @@
 name: azimutree
-description: "A new Flutter project."
+description: "Forest Health Monitoring Mapper"
 publish_to: "none"
 version: 0.1.0
 
@@ -11,8 +11,18 @@ dependencies:
     sdk: flutter
   camera: ^0.10.5+9 # camera plugin
   google_mlkit_text_recognition: ^0.11.0 # ML Kit for text recognition
-  http: ^0.13.5 # http services
+  http: ^1.4.0 # http services
   image_picker: ^1.1.2 # Image picker
+  intl: ^0.20.2 # Internationalization support
+  file_picker: ^10.1.9 # File picker for selecting files
+  path_provider: ^2.1.5 # Path provider for accessing device storage
+  path: ^1.9.1 # Path manipulation
+  sqflite: ^2.4.2 # SQLite database
+  excel: ^4.0.6 # Excel file handling
+  logger: ^2.5.0 # Logging utility
+  flutter_map: ^8.1.1 # Flutter map widget
+  latlong2: ^0.9.1 # For handling latitude and longitude
+  url_launcher: ^6.3.1 # URL launcher for opening links
 
 dev_dependencies:
   flutter_test:
