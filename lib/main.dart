@@ -37,7 +37,6 @@ class _MainAppState extends State<MainApp> {
         scaffoldBackgroundColor: Colors.white,
       ),
       onGenerateRoute: (settings) {
-        // Ini akan dipanggil setiap kali Navigator.pushNamed dipanggil
         switch (settings.name) {
           case 'home':
             return _buildFadeTransitionPageRoute(const HomePage(), settings);
@@ -72,8 +71,6 @@ class _MainAppState extends State<MainApp> {
               settings,
             );
           default:
-            // Jika rute tidak ditemukan, kembali ke halaman utama
-            // Animasi default
             return _buildPageRoute(const HomePage(), settings);
         }
       },
@@ -83,27 +80,21 @@ class _MainAppState extends State<MainApp> {
 }
 
 //* Helper
-
-// Helper function untuk PageRouteBuilder default
 PageRoute<dynamic> _buildPageRoute(Widget page, RouteSettings settings) {
   return MaterialPageRoute(builder: (context) => page, settings: settings);
 }
 
-// Helper function untuk PageRouteBuilder Animasi Fade In/Out
+// Helper function for PageRouteBuilder Animation (Fade In/Out)
 PageRoute<dynamic> _buildFadeTransitionPageRoute(
   Widget page,
   RouteSettings settings,
 ) {
   return PageRouteBuilder(
-    settings:
-        settings, // Penting untuk meneruskan settings agar pushNamed bekerja
+    settings: settings,
     pageBuilder: (context, animation, secondaryAnimation) => page,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return FadeTransition(
-        opacity: animation, // Menggunakan animation untuk mengontrol opacity
-        child: child,
-      );
+      return FadeTransition(opacity: animation, child: child);
     },
-    transitionDuration: const Duration(milliseconds: 300), // Durasi transisi
+    transitionDuration: const Duration(milliseconds: 300), // Duration
   );
 }

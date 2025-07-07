@@ -156,7 +156,7 @@ class TutorialPage extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 18,
                               fontWeight: FontWeight.bold,
-                              color: textColor, // Warna teks dinamis
+                              color: textColor,
                             ),
                           ),
                           const SizedBox(height: 50),
@@ -173,7 +173,7 @@ class TutorialPage extends StatelessWidget {
     );
   }
 
-  // Helper method to build tutorial section
+  //* Helper
   Widget _buildSection(
     BuildContext context, {
     required String title,
