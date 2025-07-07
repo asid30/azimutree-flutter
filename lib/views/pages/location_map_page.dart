@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:azimutree/data/database/database_helper.dart';
 
 class LocationMapPage extends StatefulWidget {
   const LocationMapPage({super.key});
@@ -15,6 +16,52 @@ class LocationMapPage extends StatefulWidget {
 }
 
 class _LocationMapPageState extends State<LocationMapPage> {
+  List<Marker> allMarkers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    loadMarkers();
+  }
+
+  Future<void> loadMarkers() async {
+    final markers = await getMarkers();
+    setState(() {
+      allMarkers = markers;
+    });
+  }
+
+  Future<List<Marker>> getMarkers() async {
+    final plots = await DatabaseHelper.instance.plotDao.getAllPlots();
+    final pohons = await DatabaseHelper.instance.pohonDao.getAllPohons();
+
+    List<Marker> markers = [];
+
+    // Tambahkan marker untuk setiap plot
+    for (var plot in plots) {
+      markers.add(
+        Marker(
+          point: LatLng(plot.latitude, plot.longitude),
+          child: const Icon(Icons.location_on, color: Colors.blue, size: 28),
+        ),
+      );
+    }
+
+    // Tambahkan marker untuk setiap pohon (jika punya lat & long)
+    for (var pohon in pohons) {
+      if (pohon.latitude != null && pohon.longitude != null) {
+        markers.add(
+          Marker(
+            point: LatLng(pohon.latitude!, pohon.longitude!),
+            child: const Icon(Icons.forest, color: Colors.green, size: 24),
+          ),
+        );
+      }
+    }
+
+    return markers;
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -59,41 +106,23 @@ class _LocationMapPageState extends State<LocationMapPage> {
             //* Main Content
             FlutterMap(
               options: MapOptions(
-                initialCenter: LatLng(
-                  -5.055531,
-                  105.249231,
-                ), // Center the map over Bandar Lampung
+                initialCenter: LatLng(-5.055531, 105.249231),
                 initialZoom: 9.2,
               ),
               children: [
                 TileLayer(
-                  // Bring your own tiles
-                  urlTemplate:
-                      'https://tile.openstreetmap.org/{z}/{x}/{y}.png', // For demonstration only
-                  userAgentPackageName:
-                      'com.heavysnack.azimutree', // Add your app identifier
+                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  userAgentPackageName: 'com.heavysnack.azimutree',
                 ),
-                MarkerLayer(
-                  markers: [
-                    Marker(
-                      point: LatLng(-5.5, 105.12),
-                      child: Icon(
-                        Icons.location_on_sharp,
-                        color: Colors.red,
-                        size: 30.0,
-                      ),
-                    ),
-                  ],
-                ),
+                MarkerLayer(markers: allMarkers),
                 RichAttributionWidget(
-                  // Include a stylish prebuilt attribution widget that meets all requirments
                   attributions: [
                     TextSourceAttribution(
                       'OpenStreetMap contributors',
                       onTap:
                           () => launchUrl(
                             Uri.parse('https://openstreetmap.org/copyright'),
-                          ), // (external)
+                          ),
                     ),
                   ],
                 ),

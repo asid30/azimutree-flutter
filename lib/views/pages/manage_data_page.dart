@@ -26,6 +26,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
   Map<int, List<Pohon>> _pohonMap = {};
   int _totalPohonCount = 0;
   bool _isLoading = true;
+  late ScrollController _scrollController;
 
   //* Get instance DatabaseHelper
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -34,6 +35,13 @@ class _ManageDataPageState extends State<ManageDataPage> {
   void initState() {
     super.initState();
     _loadDataFromDatabase();
+    _scrollController = ScrollController();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   //* Database Loading Function

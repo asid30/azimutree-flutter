@@ -3,16 +3,18 @@ import 'dart:math';
 class RandomDataGenerator {
   static final Random _random = Random();
 
-  //* Generates a random longitude in the Lampung region (-6 to -5 degrees)
+  //* Generates a random latitude in the Lampung region (-5.55687 to -5.39351 degrees)
   static double generateRandomLatitude() {
-    return -5.55687 +
-        (_random.nextDouble() * -5.39351); // Example range: -6.0 to -5.0
+    double minLat = -5.55687;
+    double maxLat = -5.39351;
+    return minLat + _random.nextDouble() * (maxLat - minLat);
   }
 
-  //* Generates a random longitude in the Lampung region (105 to 106 degrees)
+  //* Generates a random longitude in the Lampung region (105.0434 to 105.2295 degrees)
   static double generateRandomLongitude() {
-    return 105.0434 +
-        (_random.nextDouble() * 105.2295); // Example range: 105.0 to 106.0
+    double minLng = 105.0434;
+    double maxLng = 105.2295;
+    return minLng + _random.nextDouble() * (maxLng - minLng);
   }
 
   //* Generates a random altitude in meters (10m to 100m)
