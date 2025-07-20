@@ -565,7 +565,6 @@ class _LocationMapPageState extends State<LocationMapPage> {
     // Konversi derajat ke meter persegi (approx, untuk area kecil)
     // 1 derajat lat ~ 111.32 km, 1 derajat lon ~ 111.32*cos(lat) km
     // Untuk hasil lebih akurat gunakan library geodesic, ini cukup untuk visualisasi
-    final lat = points[0].latitude * (3.141592653589793 / 180.0);
     final meterPerDegree = 111320.0;
     area = area * meterPerDegree * meterPerDegree;
     return area / 10000.0; // m2 ke hektar
