@@ -32,8 +32,8 @@ class DatabaseSeeder {
     final Plot dummyPlot1 = Plot(
       clusterId: clusterId,
       nomorPlot: 1,
-      latitude: -5.452654, // Contoh koordinat Lampung
-      longitude: 105.266710, // Contoh koordinat Lampung
+      latitude: -5.49351, // Contoh koordinat Lampung
+      longitude: 105.1434, // Contoh koordinat Lampung
       altitude: 50.0,
     );
     final int plot1Id = await db.insert('plots', dummyPlot1.toMap());
@@ -42,8 +42,8 @@ class DatabaseSeeder {
     final Plot dummyPlot2 = Plot(
       clusterId: clusterId,
       nomorPlot: 2,
-      latitude: -5.453000, // Koordinat berbeda untuk Plot 2
-      longitude: 105.267000, // Koordinat berbeda untuk Plot 2
+      latitude: -5.40351, // Koordinat berbeda untuk Plot 2
+      longitude: 105.1434, // Koordinat berbeda untuk Plot 2
       altitude: 52.0,
     );
     final int plot2Id = await db.insert('plots', dummyPlot2.toMap());

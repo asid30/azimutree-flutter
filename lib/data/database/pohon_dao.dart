@@ -41,6 +41,14 @@ class PohonDao {
     return null;
   }
 
+  // Get All Pohons
+  Future<List<Pohon>> getAllPohons() async {
+    final List<Map<String, dynamic>> maps = await _db.query('pohons');
+    return List.generate(maps.length, (i) {
+      return Pohon.fromMap(maps[i]);
+    });
+  }
+
   // Delete Pohon
   Future<int> deletePohon(int id) async {
     return await _db.delete('pohons', where: 'id = ?', whereArgs: [id]);
