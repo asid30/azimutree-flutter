@@ -9,6 +9,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:azimutree/data/database/database_helper.dart';
 import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 import 'package:flutter_map_marker_cluster/flutter_map_marker_cluster.dart';
+import 'dart:math';
 
 class LocationMapPage extends StatefulWidget {
   const LocationMapPage({super.key});
@@ -24,16 +25,25 @@ class _LocationMapPageState extends State<LocationMapPage> {
   final MapController _mapController = MapController();
   List<Marker> allMarkers = [];
 
+  // Tools state
   bool isMeasuring = false;
-  List<LatLng> measurePoints = [];
-
   bool isAddingPoint = false;
-  List<LatLng> userPoints = [];
-
   bool isMeasuringArea = false;
-  List<LatLng> areaPoints = [];
+  bool isMeasuringAngle = false;
 
   bool showLabels = true;
+  bool showTools = false;
+  bool showToolsLayer = true;
+
+  // Tools data
+  List<LatLng> measurePoints = [];
+  List<LatLng> userPoints = [];
+  List<LatLng> areaPoints = [];
+  List<LatLng> anglePoints = [];
+
+  List<List<LatLng>> finishedRulers = [];
+  List<List<LatLng>> finishedAreas = [];
+  List<List<LatLng>> finishedAngles = [];
 
   @override
   void initState() {
@@ -58,7 +68,7 @@ class _LocationMapPageState extends State<LocationMapPage> {
 
     List<Marker> markers = [];
 
-    // add marker for each plot
+    // Marker plot
     for (var plot in plots) {
       final kodeCluster = clusterMap[plot.clusterId] ?? '-';
       markers.add(
@@ -96,7 +106,7 @@ class _LocationMapPageState extends State<LocationMapPage> {
       );
     }
 
-    // add marker for each tree (if has lat & long)
+    // Marker pohon
     for (var pohon in pohons) {
       if (pohon.latitude != null && pohon.longitude != null) {
         markers.add(
@@ -188,6 +198,96 @@ class _LocationMapPageState extends State<LocationMapPage> {
     return markers;
   }
 
+  void _finishRuler() {
+    if (measurePoints.length > 1) {
+      finishedRulers.add(List.from(measurePoints));
+    }
+    measurePoints.clear();
+  }
+
+  void _finishArea() {
+    if (areaPoints.length > 2) {
+      finishedAreas.add(List.from(areaPoints));
+    }
+    areaPoints.clear();
+  }
+
+  void _finishAngle() {
+    if (anglePoints.length == 3) {
+      finishedAngles.add(List.from(anglePoints));
+    }
+    anglePoints.clear();
+  }
+
+  void _resetAllTools() {
+    measurePoints.clear();
+    areaPoints.clear();
+    anglePoints.clear();
+    finishedRulers.clear();
+    finishedAreas.clear();
+    finishedAngles.clear();
+    userPoints.clear();
+  }
+
+  void _deactivateAllTools() {
+    isMeasuring = false;
+    isMeasuringArea = false;
+    isMeasuringAngle = false;
+    isAddingPoint = false;
+  }
+
+  // Fungsi untuk menghitung luas poligon (hasil dalam hektar)
+  double _calculatePolygonArea(List<LatLng> points) {
+    if (points.length < 3) return 0.0;
+    double area = 0.0;
+    for (int i = 0; i < points.length; i++) {
+      final j = (i + 1) % points.length;
+      area += points[i].longitude * points[j].latitude;
+      area -= points[j].longitude * points[i].latitude;
+    }
+    area = area.abs() / 2.0;
+    final meterPerDegree = 111320.0;
+    area = area * meterPerDegree * meterPerDegree;
+    return area / 10000.0; // m2 ke hektar
+  }
+
+  // Fungsi untuk mendapatkan titik tengah poligon
+  LatLng _getPolygonCenter(List<LatLng> points) {
+    double lat = 0, lng = 0;
+    for (var p in points) {
+      lat += p.latitude;
+      lng += p.longitude;
+    }
+    return LatLng(lat / points.length, lng / points.length);
+  }
+
+  // Fungsi untuk menghitung sudut antara tiga titik (hasil dalam derajat)
+  double _calculateAngle(List<LatLng> points) {
+    if (points.length != 3) return 0.0;
+    final a = points[0];
+    final b = points[1];
+    final c = points[2];
+
+    double abx = a.longitude - b.longitude;
+    double aby = a.latitude - b.latitude;
+    double cbx = c.longitude - b.longitude;
+    double cby = c.latitude - b.latitude;
+
+    double dot = (abx * cbx + aby * cby);
+    double cross = (abx * cby - aby * cbx);
+    double angle = (atan2(cross, dot) * 180 / pi).abs();
+    return angle;
+  }
+
+  double _getTotalDistance(List<LatLng> points) {
+    double total = 0.0;
+    final d = Distance();
+    for (int i = 0; i < points.length - 1; i++) {
+      total += d.as(LengthUnit.Kilometer, points[i], points[i + 1]);
+    }
+    return total;
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -237,22 +337,18 @@ class _LocationMapPageState extends State<LocationMapPage> {
                   flags: InteractiveFlag.all,
                 ),
                 onTap: (tapPosition, latlng) {
-                  if (isMeasuring) {
-                    setState(() {
-                      if (measurePoints.length >= 2) {
-                        measurePoints.clear();
-                      }
+                  setState(() {
+                    if (isMeasuring) {
                       measurePoints.add(latlng);
-                    });
-                  } else if (isMeasuringArea) {
-                    setState(() {
+                    } else if (isMeasuringArea) {
                       areaPoints.add(latlng);
-                    });
-                  } else if (isAddingPoint) {
-                    setState(() {
+                    } else if (isMeasuringAngle) {
+                      if (anglePoints.length >= 3) anglePoints.clear();
+                      anglePoints.add(latlng);
+                    } else if (isAddingPoint) {
                       userPoints.add(latlng);
-                    });
-                  }
+                    }
+                  });
                 },
               ),
               children: [
@@ -261,6 +357,457 @@ class _LocationMapPageState extends State<LocationMapPage> {
                   userAgentPackageName: 'com.heavysnack.azimutree',
                   tileProvider: _tileProvider,
                 ),
+                // TOOLS LAYER
+                if (showToolsLayer) ...[
+                  // Semua penggaris yang sudah jadi
+                  for (final ruler in finishedRulers) ...[
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: ruler,
+                          color: Colors.red,
+                          strokeWidth: 4,
+                        ),
+                      ],
+                    ),
+                  ],
+                  // Penggaris aktif
+                  if (measurePoints.length > 1)
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: measurePoints,
+                          color: Colors.red,
+                          strokeWidth: 4,
+                        ),
+                      ],
+                    ),
+                  // Semua area yang sudah jadi
+                  for (final area in finishedAreas) ...[
+                    PolygonLayer(
+                      polygons: [
+                        Polygon(
+                          points: area,
+                          color: const Color.fromARGB(31, 76, 175, 79),
+                          borderStrokeWidth: 3,
+                          borderColor: Colors.green,
+                        ),
+                      ],
+                    ),
+                  ],
+                  // Area aktif
+                  if (areaPoints.length > 2)
+                    PolygonLayer(
+                      polygons: [
+                        Polygon(
+                          points: areaPoints,
+                          color: const Color.fromARGB(31, 76, 175, 79),
+                          borderStrokeWidth: 3,
+                          borderColor: Colors.green,
+                        ),
+                      ],
+                    ),
+                  // Semua busur yang sudah jadi
+                  for (final angle in finishedAngles) ...[
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: [angle[0], angle[1]],
+                          color: Colors.purple,
+                          strokeWidth: 4,
+                        ),
+                        Polyline(
+                          points: [angle[2], angle[1]],
+                          color: Colors.purple,
+                          strokeWidth: 4,
+                        ),
+                      ],
+                    ),
+                  ],
+                  // Busur aktif
+                  if (anglePoints.length == 3)
+                    PolylineLayer(
+                      polylines: [
+                        Polyline(
+                          points: [anglePoints[0], anglePoints[1]],
+                          color: Colors.purple,
+                          strokeWidth: 4,
+                        ),
+                        Polyline(
+                          points: [anglePoints[2], anglePoints[1]],
+                          color: Colors.purple,
+                          strokeWidth: 4,
+                        ),
+                      ],
+                    ),
+                  // Semua titik tools (ruler, area, angle, pin user)
+                  MarkerLayer(
+                    markers: [
+                      // Titik ruler
+                      ...finishedRulers.expand(
+                        (ruler) => ruler.map(
+                          (p) => Marker(
+                            point: p,
+                            width: 30,
+                            height: 30,
+                            child: const Icon(
+                              Icons.circle,
+                              color: Colors.red,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ),
+                      ...measurePoints.map(
+                        (p) => Marker(
+                          point: p,
+                          width: 30,
+                          height: 30,
+                          child: const Icon(
+                            Icons.circle,
+                            color: Colors.red,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                      // Titik area
+                      ...finishedAreas.expand(
+                        (area) => area.map(
+                          (p) => Marker(
+                            point: p,
+                            width: 28,
+                            height: 28,
+                            child: const Icon(
+                              Icons.circle,
+                              color: Colors.green,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ),
+                      ...areaPoints.map(
+                        (p) => Marker(
+                          point: p,
+                          width: 28,
+                          height: 28,
+                          child: const Icon(
+                            Icons.circle,
+                            color: Colors.green,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                      // Titik busur
+                      ...finishedAngles.expand(
+                        (angle) => angle.map(
+                          (p) => Marker(
+                            point: p,
+                            width: 28,
+                            height: 28,
+                            child: const Icon(
+                              Icons.circle,
+                              color: Colors.purple,
+                              size: 18,
+                            ),
+                          ),
+                        ),
+                      ),
+                      ...anglePoints.map(
+                        (p) => Marker(
+                          point: p,
+                          width: 28,
+                          height: 28,
+                          child: const Icon(
+                            Icons.circle,
+                            color: Colors.purple,
+                            size: 18,
+                          ),
+                        ),
+                      ),
+                      // Pin user
+                      ...userPoints.map(
+                        (p) => Marker(
+                          point: p,
+                          width: 36,
+                          height: 36,
+                          child: const Icon(
+                            Icons.add_location_alt,
+                            color: Colors.deepPurple,
+                            size: 30,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Label tools (jarak, luas, sudut)
+                  // Label ruler
+                  for (final ruler in finishedRulers) ...[
+                    MarkerLayer(
+                      markers: [
+                        for (int i = 0; i < ruler.length - 1; i++)
+                          Marker(
+                            point: LatLng(
+                              (ruler[i].latitude + ruler[i + 1].latitude) / 2,
+                              (ruler[i].longitude + ruler[i + 1].longitude) / 2,
+                            ),
+                            width: 100,
+                            height: 32,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                '${Distance().as(LengthUnit.Kilometer, ruler[i], ruler[i + 1]).toStringAsFixed(2)} km',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (ruler.length > 2)
+                          Marker(
+                            point: LatLng(
+                              ruler
+                                      .map((p) => p.latitude)
+                                      .reduce((a, b) => a + b) /
+                                  ruler.length,
+                              ruler
+                                      .map((p) => p.longitude)
+                                      .reduce((a, b) => a + b) /
+                                  ruler.length,
+                            ),
+                            width: 120,
+                            height: 36,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.yellow[100],
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                'Total: ${_getTotalDistance(ruler).toStringAsFixed(2)} km',
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                  if (measurePoints.length > 1)
+                    MarkerLayer(
+                      markers: [
+                        for (int i = 0; i < measurePoints.length - 1; i++)
+                          Marker(
+                            point: LatLng(
+                              (measurePoints[i].latitude +
+                                      measurePoints[i + 1].latitude) /
+                                  2,
+                              (measurePoints[i].longitude +
+                                      measurePoints[i + 1].longitude) /
+                                  2,
+                            ),
+                            width: 100,
+                            height: 32,
+                            child: Container(
+                              padding: const EdgeInsets.all(4),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                '${Distance().as(LengthUnit.Kilometer, measurePoints[i], measurePoints[i + 1]).toStringAsFixed(2)} km',
+                                style: const TextStyle(
+                                  color: Colors.black,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ),
+                          ),
+                        if (measurePoints.length > 2)
+                          Marker(
+                            point: LatLng(
+                              measurePoints
+                                      .map((p) => p.latitude)
+                                      .reduce((a, b) => a + b) /
+                                  measurePoints.length,
+                              measurePoints
+                                      .map((p) => p.longitude)
+                                      .reduce((a, b) => a + b) /
+                                  measurePoints.length,
+                            ),
+                            width: 120,
+                            height: 36,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.yellow[100],
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black12,
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                'Total: ${_getTotalDistance(measurePoints).toStringAsFixed(2)} km',
+                                style: const TextStyle(
+                                  color: Colors.red,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  // Label area
+                  for (final area in finishedAreas)
+                    if (area.length > 2)
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: _getPolygonCenter(area),
+                            width: 140,
+                            height: 40,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                '${_calculatePolygonArea(area).toStringAsFixed(2)} ha',
+                                style: const TextStyle(
+                                  color: Colors.green,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                  if (areaPoints.length > 2)
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: _getPolygonCenter(areaPoints),
+                          width: 140,
+                          height: 40,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(color: Colors.black26, blurRadius: 4),
+                              ],
+                            ),
+                            child: Text(
+                              '${_calculatePolygonArea(areaPoints).toStringAsFixed(2)} ha',
+                              style: const TextStyle(
+                                color: Colors.green,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  // Label sudut
+                  for (final angle in finishedAngles)
+                    if (angle.length == 3)
+                      MarkerLayer(
+                        markers: [
+                          Marker(
+                            point: angle[1],
+                            width: 120,
+                            height: 40,
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(8),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: Colors.black26,
+                                    blurRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: Text(
+                                'Sudut: ${_calculateAngle(angle).toStringAsFixed(1)}°',
+                                style: const TextStyle(
+                                  color: Colors.purple,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                  if (anglePoints.length == 3)
+                    MarkerLayer(
+                      markers: [
+                        Marker(
+                          point: anglePoints[1],
+                          width: 120,
+                          height: 40,
+                          child: Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8),
+                              boxShadow: [
+                                BoxShadow(color: Colors.black26, blurRadius: 4),
+                              ],
+                            ),
+                            child: Text(
+                              'Sudut: ${_calculateAngle(anglePoints).toStringAsFixed(1)}°',
+                              style: const TextStyle(
+                                color: Colors.purple,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                ],
+                // MARKER CLUSTER & MARKER POHON/PLOT SELALU DI PALING ATAS
                 MarkerClusterLayerWidget(
                   options: MarkerClusterLayerOptions(
                     maxClusterRadius: 45,
@@ -275,7 +822,7 @@ class _LocationMapPageState extends State<LocationMapPage> {
                       return Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
-                          color: Color(0xFF1F4226),
+                          color: const Color(0xFF1F4226),
                         ),
                         child: Center(
                           child: Text(
@@ -287,147 +834,6 @@ class _LocationMapPageState extends State<LocationMapPage> {
                     },
                   ),
                 ),
-                // Garis pengukuran
-                if (measurePoints.length == 2)
-                  PolylineLayer(
-                    polylines: [
-                      Polyline(
-                        points: measurePoints,
-                        color: Colors.red,
-                        strokeWidth: 4,
-                      ),
-                    ],
-                  ),
-                // Marker titik pengukuran
-                MarkerLayer(
-                  markers:
-                      measurePoints
-                          .map(
-                            (point) => Marker(
-                              point: point,
-                              width: 30,
-                              height: 30,
-                              child: const Icon(
-                                Icons.circle,
-                                color: Colors.red,
-                                size: 18,
-                              ),
-                            ),
-                          )
-                          .toList(),
-                ),
-                // Marker titik custom user
-                MarkerLayer(
-                  markers:
-                      userPoints
-                          .map(
-                            (point) => Marker(
-                              point: point,
-                              width: 36,
-                              height: 36,
-                              child: const Icon(
-                                Icons.add_location_alt,
-                                color: Colors.deepPurple,
-                                size: 30,
-                              ),
-                            ),
-                          )
-                          .toList(),
-                ),
-                // Tampilkan jarak jika dua titik
-                if (measurePoints.length == 2)
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: LatLng(
-                          (measurePoints[0].latitude +
-                                  measurePoints[1].latitude) /
-                              2,
-                          (measurePoints[0].longitude +
-                                  measurePoints[1].longitude) /
-                              2,
-                        ),
-                        width: 120,
-                        height: 40,
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(color: Colors.black26, blurRadius: 4),
-                            ],
-                          ),
-                          child: Text(
-                            '${Distance().as(LengthUnit.Kilometer, measurePoints[0], measurePoints[1]).toStringAsFixed(2)} km',
-                            style: const TextStyle(
-                              color: Colors.black,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                // Polygon area measurement
-                if (areaPoints.length > 2)
-                  PolygonLayer(
-                    polygons: [
-                      Polygon(
-                        points: areaPoints,
-                        color: const Color.fromARGB(31, 76, 175, 79),
-                        borderStrokeWidth: 3,
-                        borderColor: Colors.green,
-                      ),
-                    ],
-                  ),
-                // Marker titik area
-                if (isMeasuringArea)
-                  MarkerLayer(
-                    markers:
-                        areaPoints
-                            .map(
-                              (point) => Marker(
-                                point: point,
-                                width: 28,
-                                height: 28,
-                                child: const Icon(
-                                  Icons.circle,
-                                  color: Colors.green,
-                                  size: 18,
-                                ),
-                              ),
-                            )
-                            .toList(),
-                  ),
-                // Tampilkan luas area jika lebih dari 2 titik
-                if (areaPoints.length > 2)
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: _getPolygonCenter(areaPoints),
-                        width: 140,
-                        height: 40,
-                        child: Container(
-                          padding: const EdgeInsets.all(6),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(8),
-                            boxShadow: [
-                              BoxShadow(color: Colors.black26, blurRadius: 4),
-                            ],
-                          ),
-                          child: Text(
-                            '${_calculatePolygonArea(areaPoints).toStringAsFixed(2)} ha',
-                            style: const TextStyle(
-                              color: Colors.green,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
                 RichAttributionWidget(
                   attributions: [
                     TextSourceAttribution(
@@ -441,142 +847,221 @@ class _LocationMapPageState extends State<LocationMapPage> {
                 ),
               ],
             ),
-            // Button kompas
+            // TOOLS BUTTONS COLUMN
             Positioned(
-              bottom: 48,
-              right: 16,
-              child: FloatingActionButton(
-                mini: true,
-                heroTag: 'compass',
-                backgroundColor: Colors.white,
-                onPressed: () {
-                  _mapController.rotate(0);
-                },
-                tooltip: 'Kembalikan ke utara',
-                child: const Icon(Icons.explore, color: Colors.blue),
-              ),
-            ),
-            // Button penggaris
-            Positioned(
-              bottom: 112,
-              right: 16,
-              child: FloatingActionButton(
-                mini: true,
-                heroTag: 'ruler',
-                backgroundColor: isMeasuring ? Colors.red : Colors.white,
-                onPressed: () {
-                  setState(() {
-                    isMeasuring = !isMeasuring;
-                    if (isMeasuring) isAddingPoint = false;
-                    measurePoints.clear();
-                  });
-                },
-                tooltip: 'Ukur jarak',
-                child: Icon(
-                  Icons.straighten,
-                  color: isMeasuring ? Colors.white : Colors.red,
-                ),
-              ),
-            ),
-            // Button tambah titik
-            Positioned(
-              bottom: 176,
-              right: 16,
-              child: FloatingActionButton(
-                mini: true,
-                heroTag: 'add_point',
-                backgroundColor:
-                    isAddingPoint ? Colors.deepPurple : Colors.white,
-                onPressed: () {
-                  setState(() {
-                    isAddingPoint = !isAddingPoint;
-                    if (isAddingPoint) isMeasuring = false;
-                  });
-                },
-                tooltip: 'Tambah titik di peta',
-                child: Icon(
-                  Icons.add_location_alt,
-                  color: isAddingPoint ? Colors.white : Colors.deepPurple,
-                ),
-              ),
-            ),
-            // Button area
-            Positioned(
-              bottom: 240,
-              right: 16,
-              child: FloatingActionButton(
-                mini: true,
-                heroTag: 'area',
-                backgroundColor: isMeasuringArea ? Colors.green : Colors.white,
-                onPressed: () {
-                  setState(() {
-                    isMeasuringArea = !isMeasuringArea;
-                    if (isMeasuringArea) {
-                      isMeasuring = false;
-                      isAddingPoint = false;
-                    }
-                    areaPoints.clear();
-                  });
-                },
-                tooltip: 'Ukur area',
-                child: Icon(
-                  Icons.crop_square,
-                  color: isMeasuringArea ? Colors.white : Colors.green,
-                ),
-              ),
-            ),
-            // Tombol toggle label di pojok kanan atas
-            Positioned(
-              bottom: 304,
-              right: 16,
-              child: FloatingActionButton(
-                mini: true,
-                heroTag: 'toggle_label',
-                backgroundColor: showLabels ? Colors.orange : Colors.grey[300],
-                onPressed: () async {
-                  setState(() {
-                    showLabels = !showLabels;
-                  });
-                  await loadMarkers();
-                },
-                tooltip: showLabels ? 'Sembunyikan Label' : 'Tampilkan Label',
-                child: Icon(
-                  showLabels ? Icons.visibility : Icons.visibility_off,
-                  color: showLabels ? Colors.white : Colors.black54,
-                ),
+              left: 16,
+              bottom: 32,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Kompas
+                  FloatingActionButton(
+                    mini: true,
+                    heroTag: 'compass',
+                    backgroundColor: Colors.white,
+                    onPressed: () {
+                      _mapController.rotate(0);
+                    },
+                    tooltip: 'Kembalikan ke utara',
+                    child: const Icon(Icons.explore, color: Colors.blue),
+                  ),
+                  const SizedBox(height: 16),
+                  // Toggle label
+                  FloatingActionButton(
+                    mini: true,
+                    heroTag: 'toggle_label',
+                    backgroundColor:
+                        showLabels ? Colors.orange : Colors.grey[300],
+                    onPressed: () async {
+                      setState(() {
+                        showLabels = !showLabels;
+                      });
+                      await loadMarkers();
+                    },
+                    tooltip:
+                        showLabels ? 'Sembunyikan Label' : 'Tampilkan Label',
+                    child: Icon(
+                      showLabels ? Icons.visibility : Icons.visibility_off,
+                      color: showLabels ? Colors.white : Colors.black54,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // Tools utama (expand/collapse)
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      FloatingActionButton(
+                        mini: true,
+                        heroTag: 'main_tools',
+                        backgroundColor: Colors.black,
+                        onPressed: () {
+                          setState(() {
+                            showTools = !showTools;
+                          });
+                        },
+                        tooltip: 'Tools',
+                        child: Icon(
+                          showTools ? Icons.close : Icons.build,
+                          color: Colors.white,
+                        ),
+                      ),
+                      if (showTools) ...[
+                        const SizedBox(height: 12),
+                        // Toggle tools layer
+                        FloatingActionButton(
+                          mini: true,
+                          heroTag: 'toggle_tools_layer',
+                          backgroundColor:
+                              showToolsLayer ? Colors.teal : Colors.grey[300],
+                          onPressed: () {
+                            setState(() {
+                              showToolsLayer = !showToolsLayer;
+                            });
+                          },
+                          tooltip:
+                              showToolsLayer
+                                  ? 'Sembunyikan Tools di Peta'
+                                  : 'Tampilkan Tools di Peta',
+                          child: Icon(
+                            showToolsLayer ? Icons.layers : Icons.layers_clear,
+                            color:
+                                showToolsLayer ? Colors.white : Colors.black54,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Penggaris
+                        FloatingActionButton(
+                          mini: true,
+                          heroTag: 'ruler',
+                          backgroundColor:
+                              isMeasuring ? Colors.red : Colors.white,
+                          onPressed: () {
+                            setState(() {
+                              if (!isMeasuring) {
+                                _finishArea();
+                                _finishAngle();
+                                isMeasuringArea = false;
+                                isMeasuringAngle = false;
+                                isAddingPoint = false;
+                              } else {
+                                _finishRuler();
+                              }
+                              isMeasuring = !isMeasuring;
+                            });
+                          },
+                          tooltip: 'Ukur jarak',
+                          child: Icon(
+                            Icons.straighten,
+                            color: isMeasuring ? Colors.white : Colors.red,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Pin
+                        FloatingActionButton(
+                          mini: true,
+                          heroTag: 'add_point',
+                          backgroundColor:
+                              isAddingPoint ? Colors.deepPurple : Colors.white,
+                          onPressed: () {
+                            setState(() {
+                              _finishRuler();
+                              _finishArea();
+                              _finishAngle();
+                              isMeasuring = false;
+                              isMeasuringArea = false;
+                              isMeasuringAngle = false;
+                              isAddingPoint = !isAddingPoint;
+                            });
+                          },
+                          tooltip: 'Tambah titik di peta',
+                          child: Icon(
+                            Icons.add_location_alt,
+                            color:
+                                isAddingPoint
+                                    ? Colors.white
+                                    : Colors.deepPurple,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Area
+                        FloatingActionButton(
+                          mini: true,
+                          heroTag: 'area',
+                          backgroundColor:
+                              isMeasuringArea ? Colors.green : Colors.white,
+                          onPressed: () {
+                            setState(() {
+                              if (!isMeasuringArea) {
+                                _finishRuler();
+                                _finishAngle();
+                                isMeasuring = false;
+                                isMeasuringAngle = false;
+                                isAddingPoint = false;
+                              } else {
+                                _finishArea();
+                              }
+                              isMeasuringArea = !isMeasuringArea;
+                            });
+                          },
+                          tooltip: 'Ukur area',
+                          child: Icon(
+                            Icons.crop_square,
+                            color:
+                                isMeasuringArea ? Colors.white : Colors.green,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Busur sudut
+                        FloatingActionButton(
+                          mini: true,
+                          heroTag: 'angle',
+                          backgroundColor:
+                              isMeasuringAngle ? Colors.purple : Colors.white,
+                          onPressed: () {
+                            setState(() {
+                              if (!isMeasuringAngle) {
+                                _finishRuler();
+                                _finishArea();
+                                isMeasuring = false;
+                                isMeasuringArea = false;
+                                isAddingPoint = false;
+                              } else {
+                                _finishAngle();
+                              }
+                              isMeasuringAngle = !isMeasuringAngle;
+                            });
+                          },
+                          tooltip: 'Ukur sudut (busur)',
+                          child: Icon(
+                            Icons.architecture,
+                            color:
+                                isMeasuringAngle ? Colors.white : Colors.purple,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        // Hapus semua tools
+                        FloatingActionButton(
+                          mini: true,
+                          heroTag: 'clear_tools',
+                          backgroundColor: Colors.black,
+                          onPressed: () {
+                            setState(() {
+                              _resetAllTools();
+                              _deactivateAllTools();
+                            });
+                          },
+                          tooltip: 'Hapus semua tools',
+                          child: const Icon(Icons.delete, color: Colors.white),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
               ),
             ),
           ],
         ),
       ),
     );
-  }
-
-  // Fungsi untuk menghitung luas poligon (hasil dalam hektar)
-  double _calculatePolygonArea(List<LatLng> points) {
-    if (points.length < 3) return 0.0;
-    double area = 0.0;
-    for (int i = 0; i < points.length; i++) {
-      final j = (i + 1) % points.length;
-      area += points[i].longitude * points[j].latitude;
-      area -= points[j].longitude * points[i].latitude;
-    }
-    area = area.abs() / 2.0;
-    // Konversi derajat ke meter persegi (approx, untuk area kecil)
-    // 1 derajat lat ~ 111.32 km, 1 derajat lon ~ 111.32*cos(lat) km
-    // Untuk hasil lebih akurat gunakan library geodesic, ini cukup untuk visualisasi
-    final meterPerDegree = 111320.0;
-    area = area * meterPerDegree * meterPerDegree;
-    return area / 10000.0; // m2 ke hektar
-  }
-
-  // Fungsi untuk mendapatkan titik tengah poligon
-  LatLng _getPolygonCenter(List<LatLng> points) {
-    double lat = 0, lng = 0;
-    for (var p in points) {
-      lat += p.latitude;
-      lng += p.longitude;
-    }
-    return LatLng(lat / points.length, lng / points.length);
   }
 }
