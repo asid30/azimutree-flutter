@@ -8,10 +8,15 @@ import 'package:azimutree/views/pages/tutorial_page.dart';
 import 'package:azimutree/data/global_variables/global_camera.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  globalCameras = await availableCameras();
+  globalCameras = await availableCameras(); // Initialize the cameras
+  await FMTCObjectBoxBackend().initialise(); // Initialize the backend
+  await FMTCStore(
+    'mapStore',
+  ).manage.create(); // store is a container that is capable of storing tiles
   runApp(MainApp());
 }
 

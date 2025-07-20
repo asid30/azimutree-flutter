@@ -27,6 +27,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
   int _totalPohonCount = 0;
   bool _isLoading = true;
   late ScrollController _scrollController;
+  double _lastScrollOffset = 0.0;
 
   //* Get instance DatabaseHelper
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -34,8 +35,8 @@ class _ManageDataPageState extends State<ManageDataPage> {
   @override
   void initState() {
     super.initState();
-    _loadDataFromDatabase();
     _scrollController = ScrollController();
+    _loadDataFromDatabase();
   }
 
   @override
@@ -49,6 +50,10 @@ class _ManageDataPageState extends State<ManageDataPage> {
     setState(() {
       _isLoading = true;
     });
+
+    // Save the last scroll position
+    _lastScrollOffset =
+        _scrollController.hasClients ? _scrollController.offset : 0.0;
 
     // Make sure the database is initialized and DAOs are ready
     await _dbHelper.database;
@@ -91,6 +96,13 @@ class _ManageDataPageState extends State<ManageDataPage> {
     }
     setState(() {
       _isLoading = false;
+    });
+
+    // return to the last scroll position
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_lastScrollOffset);
+      }
     });
   }
 
@@ -409,6 +421,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
             else
               // Main content when clusters are available
               SingleChildScrollView(
+                controller: _scrollController,
                 child: Column(
                   children: [
                     Row(

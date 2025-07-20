@@ -21,6 +21,7 @@ dependencies:
   excel: ^4.0.6 # Excel file handling
   logger: ^2.5.0 # Logging utility
   flutter_map: ^8.1.1 # Flutter map widget
+  flutter_map_tile_caching: ^10.1.1 # Tile caching for maps
   latlong2: ^0.9.1 # For handling latitude and longitude
   url_launcher: ^6.3.1 # URL launcher for opening links
 
