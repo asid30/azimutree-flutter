@@ -26,6 +26,8 @@ class _ManageDataPageState extends State<ManageDataPage> {
   Map<int, List<Pohon>> _pohonMap = {};
   int _totalPohonCount = 0;
   bool _isLoading = true;
+  late ScrollController _scrollController;
+  double _lastScrollOffset = 0.0;
 
   //* Get instance DatabaseHelper
   final DatabaseHelper _dbHelper = DatabaseHelper.instance;
@@ -33,7 +35,14 @@ class _ManageDataPageState extends State<ManageDataPage> {
   @override
   void initState() {
     super.initState();
+    _scrollController = ScrollController();
     _loadDataFromDatabase();
+  }
+
+  @override
+  void dispose() {
+    _scrollController.dispose();
+    super.dispose();
   }
 
   //* Database Loading Function
@@ -41,6 +50,10 @@ class _ManageDataPageState extends State<ManageDataPage> {
     setState(() {
       _isLoading = true;
     });
+
+    // Save the last scroll position
+    _lastScrollOffset =
+        _scrollController.hasClients ? _scrollController.offset : 0.0;
 
     // Make sure the database is initialized and DAOs are ready
     await _dbHelper.database;
@@ -65,7 +78,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
     //* Load plots and pohons for the selected cluster
     _plots = []; // Reset plots
     _pohonMap = {}; // Reset pohon map
-    _totalPohonCount = 0; // Reset total pohon count
+    _totalPohonCount = 0; // Reset sum pohon count
     // If a cluster is selected, load its plots and pohons
     if (_selectedCluster != null && _selectedCluster!.id != null) {
       _plots = await _dbHelper.plotDao.getPlotsByClusterId(
@@ -83,6 +96,13 @@ class _ManageDataPageState extends State<ManageDataPage> {
     }
     setState(() {
       _isLoading = false;
+    });
+
+    // return to the last scroll position
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrollController.hasClients) {
+        _scrollController.jumpTo(_lastScrollOffset);
+      }
     });
   }
 
@@ -401,6 +421,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
             else
               // Main content when clusters are available
               SingleChildScrollView(
+                controller: _scrollController,
                 child: Column(
                   children: [
                     Row(

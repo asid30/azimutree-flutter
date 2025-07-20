@@ -1,41 +1,41 @@
 import 'dart:math' as math;
 
 class LocationUtils {
-  // Konstanta untuk perhitungan koordinat (rata-rata radius bumi)
+  //* Earth's radius in meters
   static const double earthRadiusMeters = 6371000;
 
-  // Fungsi untuk mengkonversi derajat ke radian
+  //* Function to convert degrees to radians
   static double toRadians(double degrees) {
     return degrees * math.pi / 180.0;
   }
 
-  // Fungsi untuk mengkonversi radian ke derajat
+  //* Function to convert radians to degrees
   static double toDegrees(double radians) {
     return radians * 180.0 / math.pi;
   }
 
-  // Fungsi utama untuk menghitung koordinat pohon
+  //* Calculates the coordinates of a tree based on the plot's coordinates, azimuth, and distance
   static Map<String, double> calculatePohonCoordinates(
     double plotLat,
     double plotLon,
-    double azimut, // dalam derajat
-    double distanceMeters, // dalam meter
+    double azimut, // degrees
+    double distanceMeters, // meter
   ) {
-    // Konversi latitude plot dan azimut ke radian
+    // Convert latitude, longitude, and azimuth to radians
     double latRad = toRadians(plotLat);
     double lonRad = toRadians(plotLon);
     double azimutRad = toRadians(azimut);
 
-    // Hitung perubahan angular distance (delta sigma)
+    // Calculate the angular distance in radians
     double angularDistance = distanceMeters / earthRadiusMeters;
 
-    // Hitung latitude baru
+    // Calculate the new latitude
     double newLatRad = math.asin(
       math.sin(latRad) * math.cos(angularDistance) +
           math.cos(latRad) * math.sin(angularDistance) * math.cos(azimutRad),
     );
 
-    // Hitung longitude baru
+    // Calculate the new longitude
     double newLonRad =
         lonRad +
         math.atan2(
