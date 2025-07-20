@@ -14,9 +14,11 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   globalCameras = await availableCameras(); // Initialize the cameras
   await FMTCObjectBoxBackend().initialise(); // Initialize the backend
+  // store is a container that is capable of storing tiles
+  await FMTCStore('outdoorStore').manage.create(); // store for outdoor tiles
   await FMTCStore(
-    'mapStore',
-  ).manage.create(); // store is a container that is capable of storing tiles
+    'satelliteStore',
+  ).manage.create(); // store for satellite tiles
   runApp(MainApp());
 }
 
