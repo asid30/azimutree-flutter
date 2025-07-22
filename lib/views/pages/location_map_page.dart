@@ -1,4 +1,5 @@
 //* visualization & mapping of cluster page
+import 'package:azimutree/data/global_variables/api_key.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/views/widgets/appbar_widget.dart';
 import 'package:azimutree/views/widgets/sidebar_widget.dart';
@@ -19,10 +20,22 @@ class LocationMapPage extends StatefulWidget {
 }
 
 class _LocationMapPageState extends State<LocationMapPage> {
-  final _tileProvider = FMTCTileProvider(
-    stores: const {'mapStore': BrowseStoreStrategy.readUpdateCreate},
+  late FMTCTileProvider _tileProvider;
+  final _outdoorProvider = FMTCTileProvider(
+    stores: {'outdoorStore': BrowseStoreStrategy.readUpdateCreate},
   );
+  final _satelliteProvider = FMTCTileProvider(
+    stores: {'satelliteStore': BrowseStoreStrategy.readUpdateCreate},
+  );
+
   final MapController _mapController = MapController();
+  final String mapboxAccessToken = mapboxAccess;
+
+  final String _outdoorsStyle = 'mapbox/outdoors-v12';
+  final String _satelliteStyle =
+      'mapbox/satellite-streets-v12'; // Ganti dengan style lain jika mau
+  late String _currentStyle;
+
   List<Marker> allMarkers = [];
 
   // Tools state
@@ -48,7 +61,21 @@ class _LocationMapPageState extends State<LocationMapPage> {
   @override
   void initState() {
     super.initState();
+    _currentStyle = _outdoorsStyle;
+    _tileProvider = _outdoorProvider;
     loadMarkers();
+  }
+
+  void _toggleMapStyle() {
+    setState(() {
+      if (_currentStyle == _outdoorsStyle) {
+        _currentStyle = _satelliteStyle;
+        _tileProvider = _satelliteProvider;
+      } else {
+        _currentStyle = _outdoorsStyle;
+        _tileProvider = _outdoorProvider;
+      }
+    });
   }
 
   Future<void> loadMarkers() async {
@@ -353,7 +380,12 @@ class _LocationMapPageState extends State<LocationMapPage> {
               ),
               children: [
                 TileLayer(
-                  urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                  urlTemplate:
+                      'https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}',
+                  additionalOptions: {
+                    'accessToken': mapboxAccessToken,
+                    'id': _currentStyle,
+                  },
                   userAgentPackageName: 'com.heavysnack.azimutree',
                   tileProvider: _tileProvider,
                 ),
@@ -822,7 +854,7 @@ class _LocationMapPageState extends State<LocationMapPage> {
                       return Container(
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(20),
-                          color: const Color(0xFF1F4226),
+                          color: Colors.blue,
                         ),
                         child: Center(
                           child: Text(
@@ -854,6 +886,18 @@ class _LocationMapPageState extends State<LocationMapPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Kompas
+                  FloatingActionButton(
+                    mini: true,
+                    heroTag: 'toggle_mapmode',
+                    backgroundColor: Colors.white,
+                    onPressed: () {
+                      _toggleMapStyle();
+                    },
+                    tooltip: 'Ganti mode peta',
+                    child: const Icon(Icons.map, color: Colors.green),
+                  ),
+                  const SizedBox(height: 16),
                   // Kompas
                   FloatingActionButton(
                     mini: true,
