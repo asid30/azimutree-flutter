@@ -1,6 +1,6 @@
 //* Manages data for clusters, plots, and trees in the Azimutree app
-import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/views/widgets/appbar_widget.dart';
+import 'package:azimutree/views/widgets/background_app_widget.dart';
 import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:azimutree/data/database/database_helper.dart';
@@ -361,40 +361,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
         body: Stack(
           children: [
             //* Background App
-            // Animated background image based on light/dark mode
-            // Uses ValueListenableBuilder to listen to changes in the isLightModeNotifier
-            // and update the background image accordingly
-            ValueListenableBuilder(
-              valueListenable: isLightModeNotifier,
-              builder: (context, isLightMode, child) {
-                // AnimatedSwitcher to smoothly transition between light and dark background images
-                return AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 800),
-                  transitionBuilder: (
-                    Widget child,
-                    Animation<double> animation,
-                  ) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
-                  child: Image(
-                    key: ValueKey<bool>(isLightMode),
-                    image: AssetImage(
-                      // Use the appropriate background image based on the light/dark mode
-                      isLightMode
-                          ? "assets/images/light-bg-notitle.png"
-                          : "assets/images/dark-bg-notitle.png",
-                    ),
-                    fit: BoxFit.cover, // Cover the entire screen
-                    height:
-                        double
-                            .infinity, // Ensure the image covers the full height
-                    width:
-                        double
-                            .infinity, // Ensure the image covers the full width
-                  ),
-                );
-              },
-            ),
+            BackgroundAppWidget(),
             //* Main Content
             // If loading, show a CircularProgressIndicator
             // If no clusters are found, show a "No Data Found" message

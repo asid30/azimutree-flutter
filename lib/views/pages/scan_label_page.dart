@@ -2,12 +2,12 @@
 import 'dart:io';
 import 'package:azimutree/views/widgets/alert_error_widget.dart';
 import 'package:azimutree/views/widgets/appbar_widget.dart';
+import 'package:azimutree/views/widgets/background_app_widget.dart';
 import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/global_variables/global_camera.dart';
 import 'package:azimutree/services/google_ml_kit_service.dart';
 import 'package:image_picker/image_picker.dart';
@@ -92,34 +92,8 @@ class _ScanLabelPageState extends State<ScanLabelPage> {
               body: Stack(
                 children: [
                   //* Background App
-                  ValueListenableBuilder(
-                    valueListenable: isLightModeNotifier,
-                    builder: (context, isLightMode, child) {
-                      return AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 800),
-                        transitionBuilder: (
-                          Widget child,
-                          Animation<double> animation,
-                        ) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: child,
-                          );
-                        },
-                        child: Image(
-                          key: ValueKey<bool>(isLightMode),
-                          image: AssetImage(
-                            isLightMode
-                                ? "assets/images/light-bg-notitle.png"
-                                : "assets/images/dark-bg-notitle.png",
-                          ),
-                          fit: BoxFit.cover,
-                          height: double.infinity,
-                          width: double.infinity,
-                        ),
-                      );
-                    },
-                  ),
+                  BackgroundAppWidget(),
+                  //* Main Content
                   SingleChildScrollView(
                     child: Column(
                       children: [

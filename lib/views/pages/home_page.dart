@@ -1,6 +1,7 @@
 //* Homepages
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/views/widgets/appbar_widget.dart';
+import 'package:azimutree/views/widgets/background_app_widget.dart';
 import 'package:azimutree/views/widgets/menu_button_widget.dart';
 import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:flutter/material.dart';
@@ -22,28 +23,8 @@ class _HomePageState extends State<HomePage> {
         alignment: Alignment.topCenter,
         children: [
           //* Background App
-          ValueListenableBuilder(
-            valueListenable: isLightModeNotifier,
-            builder: (context, isLightMode, child) {
-              return AnimatedSwitcher(
-                duration: const Duration(milliseconds: 800),
-                transitionBuilder: (Widget child, Animation<double> animation) {
-                  return FadeTransition(opacity: animation, child: child);
-                },
-                child: Image(
-                  key: ValueKey<bool>(isLightMode),
-                  image: AssetImage(
-                    isLightMode
-                        ? "assets/images/light-bg-notitle.png"
-                        : "assets/images/dark-bg-notitle.png",
-                  ),
-                  fit: BoxFit.cover,
-                  height: double.infinity,
-                  width: double.infinity,
-                ),
-              );
-            },
-          ),
+          BackgroundAppWidget(),
+          //* Content
           Column(
             mainAxisSize: MainAxisSize.max,
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
