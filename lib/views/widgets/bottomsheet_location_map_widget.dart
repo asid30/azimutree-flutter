@@ -1,4 +1,5 @@
 import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:azimutree/views/widgets/alert_development_widget.dart';
 import 'package:azimutree/views/widgets/searchbar_bottomsheet_widget.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
@@ -36,11 +37,27 @@ class BottomsheetLocationMapWidget extends StatelessWidget {
                   Row(
                     children: [
                       IconButton(
-                        onPressed: () {},
+                        onPressed:
+                            () => showDialog(
+                              context: context,
+                              builder:
+                                  (context) => AlertDevelopmentWidget(
+                                    warningMessage:
+                                        "User Location is under development ⛔",
+                                  ),
+                            ),
                         icon: Icon(Icons.my_location),
                       ),
                       IconButton(
-                        onPressed: () {},
+                        onPressed:
+                            () => showDialog(
+                              context: context,
+                              builder:
+                                  (context) => AlertDevelopmentWidget(
+                                    warningMessage:
+                                        "Compass is under development ⛔",
+                                  ),
+                            ),
                         icon: Transform.rotate(
                           angle:
                               -45 *
