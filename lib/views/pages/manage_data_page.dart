@@ -411,7 +411,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
                             // Dropdown to select a cluster
                             child: DropdownButtonFormField<int>(
-                              value: _selectedClusterId,
+                              initialValue: _selectedClusterId,
                               decoration: InputDecoration(
                                 labelText: 'Pilih Cluster',
                                 border: OutlineInputBorder(
