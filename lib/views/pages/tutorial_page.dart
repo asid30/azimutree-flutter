@@ -31,10 +31,24 @@ class TutorialPage extends StatelessWidget {
             //* Content
             SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.fromLTRB(8, 4, 8, 0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 0,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        BackButton(
+                          onPressed: () {
+                            Navigator.popAndPushNamed(context, "home");
+                          },
+                        ),
+                        const Text("Kembali", style: TextStyle(fontSize: 18)),
+                      ],
+                    ),
                     Text(
                       'Selamat Datang di Aplikasi Azimutree!',
                       style: TextStyle(

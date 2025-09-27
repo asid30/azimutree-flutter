@@ -9,6 +9,7 @@ class Pohon {
   double? latitude;
   double? longitude;
   double? altitude;
+  String? keterangan;
 
   Pohon({
     this.id,
@@ -21,6 +22,7 @@ class Pohon {
     this.latitude,
     this.longitude,
     this.altitude,
+    this.keterangan,
   });
 
   // Converting Pohon to Map for database storage
@@ -36,6 +38,7 @@ class Pohon {
       'latitude': latitude,
       'longitude': longitude,
       'altitude': altitude,
+      'keterangan': keterangan,
     };
   }
 
@@ -52,6 +55,7 @@ class Pohon {
       latitude: map['latitude'],
       longitude: map['longitude'],
       altitude: map['altitude'],
+      keterangan: map['keterangan'],
     );
   }
 }

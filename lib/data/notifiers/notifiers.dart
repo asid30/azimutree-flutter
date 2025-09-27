@@ -9,3 +9,4 @@ ValueNotifier<List<Map<String, dynamic>>> resultSearchLocationNotifier =
     ValueNotifier([]);
 ValueNotifier<bool> isSearchingNotifier = ValueNotifier(false);
 ValueNotifier<Position?> selectedLocationNotifier = ValueNotifier(null);
+ValueNotifier<String?> selectedDropdownClusterNotifier = ValueNotifier(null);
