@@ -1,6 +1,7 @@
-import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/views/widgets/appbar_widget.dart';
 import 'package:azimutree/views/widgets/background_app_widget.dart';
+import 'package:azimutree/views/widgets/plot_cluster_manage_data_widget.dart';
+import 'package:azimutree/views/widgets/selected_cluster_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/dropdown_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/sidebar_widget.dart';
 import 'package:flutter/material.dart';
@@ -41,36 +42,32 @@ class _ManageDataPageState extends State<ManageDataPage> {
               lightBackgroundImage: "assets/images/light-bg-notitle.png",
               darkBackgroundImage: "assets/images/dark-bg-notitle.png",
             ),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      BackButton(
-                        onPressed: () {
-                          Navigator.popAndPushNamed(context, "home");
-                        },
-                      ),
-                      const Text("Kembali", style: TextStyle(fontSize: 18)),
-                    ],
-                  ),
-                  DropdownManageDataWidget(clusterOptions: clusterOptions),
-                  ValueListenableBuilder(
-                    valueListenable: selectedDropdownClusterNotifier,
-                    builder: (context, value, child) {
-                      return Row(
-                        children: [
-                          Text(
-                            "(Debug) Cluster terpilih: $value",
-                            style: const TextStyle(fontSize: 14),
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                ],
+            SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 0,
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        BackButton(
+                          onPressed: () {
+                            Navigator.popAndPushNamed(context, "home");
+                          },
+                        ),
+                        const Text("Kembali", style: TextStyle(fontSize: 18)),
+                      ],
+                    ),
+                    DropdownManageDataWidget(clusterOptions: clusterOptions),
+                    SizedBox(height: 12),
+                    SelectedClusterManageDataWidget(),
+                    SizedBox(height: 12),
+                    PlotClusterManageDataWidget(),
+                  ],
+                ),
               ),
             ),
           ],
