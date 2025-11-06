@@ -1,9 +1,9 @@
 import 'package:azimutree/views/widgets/appbar_widget.dart';
 import 'package:azimutree/views/widgets/background_app_widget.dart';
-import 'package:azimutree/views/widgets/bottomsheet_location_map_widget.dart';
-import 'package:azimutree/views/widgets/mapbox_widget.dart';
+import 'package:azimutree/views/widgets/location_map_widget/bottomsheet_location_map_widget.dart';
+import 'package:azimutree/views/widgets/location_map_widget/mapbox_widget.dart';
 import 'package:azimutree/views/widgets/sidebar_widget.dart';
-import 'package:azimutree/views/widgets/suggestion_searchbar_widget.dart';
+import 'package:azimutree/views/widgets/location_map_widget/suggestion_searchbar_widget.dart';
 import 'package:flutter/material.dart';
 
 class LocationMapPage extends StatefulWidget {

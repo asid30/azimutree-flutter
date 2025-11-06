@@ -1,5 +1,5 @@
-import 'package:azimutree/views/widgets/suggestion_body_widget.dart';
-import 'package:azimutree/views/widgets/suggestion_header_widget.dart';
+import 'package:azimutree/views/widgets/location_map_widget/suggestion_body_widget.dart';
+import 'package:azimutree/views/widgets/location_map_widget/suggestion_header_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 
