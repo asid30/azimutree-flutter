@@ -48,7 +48,15 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                   onPressed: () {},
                 ),
                 IconButton(
-                  icon: Icon(Icons.delete, color: Colors.red),
+                  icon: Icon(Icons.edit),
+                  tooltip: "Edit Data Cluster",
+                  onPressed: () {},
+                ),
+                IconButton(
+                  icon: Icon(
+                    Icons.delete,
+                    color: Color.fromARGB(255, 131, 30, 23),
+                  ),
                   tooltip: "Hapus Data Cluster",
                   onPressed: () {},
                 ),

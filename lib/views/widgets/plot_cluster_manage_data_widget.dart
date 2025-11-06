@@ -45,17 +45,33 @@ class PlotClusterManageDataWidget extends StatelessWidget {
                     IconButton(
                       icon: Icon(Icons.travel_explore),
                       tooltip: "Lihat di Peta",
-                      onPressed: () {},
+                      onPressed: () {
+                        //? TODO: Handle view on map action
+                      },
                     ),
                     IconButton(
                       icon: Icon(Icons.add_location_alt),
                       tooltip: "Tambah Data Baru",
-                      onPressed: () {},
+                      onPressed: () {
+                        //? TODO: Handle add new plot data action
+                      },
                     ),
                     IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
+                      icon: Icon(Icons.edit),
+                      tooltip: "Edit Data Plot",
+                      onPressed: () {
+                        //? TODO: Handle edit plot data action
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        Icons.delete,
+                        color: Color.fromARGB(255, 131, 30, 23),
+                      ),
                       tooltip: "Hapus Data Plot",
-                      onPressed: () {},
+                      onPressed: () {
+                        //? TODO: Handle delete plot data action
+                      },
                     ),
                   ],
                 ),
@@ -121,17 +137,26 @@ class PlotClusterManageDataWidget extends StatelessWidget {
                         IconButton(
                           icon: Icon(Icons.travel_explore),
                           tooltip: "Lihat di Peta",
-                          onPressed: () {},
+                          onPressed: () {
+                            //? TODO: Handle view on map action
+                          },
                         ),
                         IconButton(
                           icon: Icon(Icons.edit),
                           tooltip: "Edit Data Pohon",
-                          onPressed: () {},
+                          onPressed: () {
+                            //? TODO: Handle edit tree data action
+                          },
                         ),
                         IconButton(
-                          icon: Icon(Icons.delete, color: Colors.red),
+                          icon: Icon(
+                            Icons.delete,
+                            color: Color.fromARGB(255, 131, 30, 23),
+                          ),
                           tooltip: "Hapus Data Pohon",
-                          onPressed: () {},
+                          onPressed: () {
+                            //? TODO: Handle delete tree data action
+                          },
                         ),
                       ],
                     ),
