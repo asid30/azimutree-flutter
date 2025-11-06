@@ -1,5 +1,6 @@
 import 'package:azimutree/views/widgets/appbar_widget.dart';
 import 'package:azimutree/views/widgets/background_app_widget.dart';
+import 'package:azimutree/views/widgets/bottomsheet_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/plot_cluster_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/selected_cluster_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/dropdown_manage_data_widget.dart';
@@ -66,10 +67,12 @@ class _ManageDataPageState extends State<ManageDataPage> {
                     SelectedClusterManageDataWidget(),
                     SizedBox(height: 12),
                     PlotClusterManageDataWidget(),
+                    SizedBox(height: 80),
                   ],
                 ),
               ),
             ),
+            BottomsheetManageDataWidget(),
           ],
         ),
       ),
