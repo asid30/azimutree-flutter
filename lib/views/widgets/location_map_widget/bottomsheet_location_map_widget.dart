@@ -1,5 +1,5 @@
 import 'package:azimutree/data/notifiers/notifiers.dart';
-import 'package:azimutree/views/widgets/alert_development_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_development_widget.dart';
 import 'package:azimutree/views/widgets/location_map_widget/searchbar_bottomsheet_widget.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;

@@ -1,7 +1,7 @@
 //* tutorial page
-import 'package:azimutree/views/widgets/appbar_widget.dart';
-import 'package:azimutree/views/widgets/background_app_widget.dart';
-import 'package:azimutree/views/widgets/sidebar_widget.dart';
+import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
+import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
+import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_lorem/flutter_lorem.dart';
 
