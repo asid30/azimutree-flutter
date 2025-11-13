@@ -15,84 +15,106 @@ class SidebarWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: const Color.fromARGB(255, 205, 237, 211),
+
       child: ValueListenableBuilder(
         valueListenable: selectedPageNotifier,
         builder: (context, selectedPage, child) {
           return ListView(
             padding: EdgeInsets.zero,
             children: [
-              DrawerHeader(
-                decoration: BoxDecoration(color: Color(0xFF1F4226)),
+              Container(
+                color: const Color(0xFF1F4226),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 60,
+                  horizontal: 16,
+                ),
                 child: Text(
-                  'Menu',
-                  style: TextStyle(color: Colors.white, fontSize: 24),
+                  "Menu",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
+
               ListTile(
-                leading: Icon(Icons.home),
-                title: Text('Home'),
+                leading: const Icon(Icons.home),
+                title: const Text('Home'),
                 onTap: () => _selectPage(context, "home"),
               ),
-              Divider(),
+
+              const Divider(color: Color(0xFF1F4226)),
+
               ListTile(
-                leading: Icon(Icons.qr_code_scanner),
-                title: Text('Scan Kode Label'),
+                leading: const Icon(Icons.qr_code_scanner),
+                title: const Text('Scan Kode Label'),
                 onTap: () => _selectPage(context, "scan_label_page"),
               ),
               ListTile(
-                leading: Icon(Icons.storage),
-                title: Text('Kelola Data Cluster Plot'),
+                leading: const Icon(Icons.storage),
+                title: const Text('Kelola Data Cluster Plot'),
                 onTap: () => _selectPage(context, "manage_data_page"),
               ),
               ListTile(
-                leading: Icon(Icons.map),
-                title: Text('Peta Lokasi Cluster Plot'),
+                leading: const Icon(Icons.map),
+                title: const Text('Peta Lokasi Cluster Plot'),
                 onTap: () => _selectPage(context, "location_map_page"),
               ),
               ListTile(
-                leading: Icon(Icons.help),
-                title: Text('Panduan Aplikasi'),
+                leading: const Icon(Icons.help),
+                title: const Text('Panduan Aplikasi'),
                 onTap: () => _selectPage(context, "tutorial_page"),
               ),
-              Divider(),
+
+              const Divider(color: Color(0xFF1F4226)),
+
               ListTile(
-                leading: Icon(Icons.developer_mode),
-                title: Text('Test OCR Google ML Kit'),
+                leading: const Icon(Icons.developer_mode),
+                title: const Text('Test OCR Google ML Kit'),
                 onTap: () => _selectPage(context, "test_ocr_page1"),
               ),
+
               ListTile(
-                leading: Icon(Icons.developer_mode),
-                title: Text('Test OCR Google Vision API'),
-                // onTap: () => _selectPage(context, "test_ocr_page2"),
-                onTap:
-                    () => showDialog(
-                      context: context,
-                      builder:
-                          (context) => AlertWarningWidget(
-                            warningMessage: "This feature is locked ⛔",
-                          ),
-                    ),
+                leading: const Icon(Icons.developer_mode),
+                title: const Text('Test OCR Google Vision API'),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder:
+                        (context) => AlertWarningWidget(
+                          warningMessage: "This feature is locked ⛔",
+                        ),
+                  );
+                },
               ),
-              Divider(),
+
+              const Divider(color: Color(0xFF1F4226)),
+
               ListTile(
-                leading: Icon(Icons.settings),
-                title: Text('Settings'),
-                onTap:
-                    () => showDialog(
-                      context: context,
-                      builder: (context) => AlertDevelopmentWidget(),
-                    ),
+                leading: const Icon(Icons.settings),
+                title: const Text('Settings'),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDevelopmentWidget(),
+                  );
+                },
               ),
+
               ListTile(
-                leading: Icon(Icons.info),
-                title: Text('About'),
-                onTap:
-                    () => showDialog(
-                      context: context,
-                      builder: (context) => AlertDevelopmentWidget(),
-                    ),
+                leading: const Icon(Icons.info),
+                title: const Text('About'),
+                onTap: () {
+                  showDialog(
+                    context: context,
+                    builder: (context) => AlertDevelopmentWidget(),
+                  );
+                },
               ),
-              Divider(),
+
+              const Divider(color: Color(0xFF1F4226)),
             ],
           );
         },

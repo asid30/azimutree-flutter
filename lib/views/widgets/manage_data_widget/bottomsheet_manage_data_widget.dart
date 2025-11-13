@@ -1,12 +1,42 @@
 import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_data_widget.dart';
 import 'package:flutter/material.dart';
 
-class BottomsheetManageDataWidget extends StatelessWidget {
+class BottomsheetManageDataWidget extends StatefulWidget {
   const BottomsheetManageDataWidget({super.key});
+
+  @override
+  State<BottomsheetManageDataWidget> createState() =>
+      _BottomsheetManageDataWidgetState();
+}
+
+class _BottomsheetManageDataWidgetState
+    extends State<BottomsheetManageDataWidget> {
+  late final DraggableScrollableController _draggableScrollableController;
+
+  @override
+  void initState() {
+    super.initState();
+    _draggableScrollableController = DraggableScrollableController();
+  }
+
+  void _expandBottomSheet() {
+    _draggableScrollableController.animateTo(
+      0.75,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
+  void dispose() {
+    _draggableScrollableController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
+      controller: _draggableScrollableController,
       initialChildSize: 0.1,
       minChildSize: 0.1,
       maxChildSize: 0.75,
@@ -25,10 +55,15 @@ class BottomsheetManageDataWidget extends StatelessWidget {
               controller: scrollController,
               children: [
                 ListTile(
-                  title: Text(
-                    'Menu Kelola Data',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(fontWeight: FontWeight.bold),
+                  title: TextButton(
+                    onPressed: () {
+                      _expandBottomSheet();
+                    },
+                    child: Text(
+                      'Menu Kelola Data',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ),
                 Text(
