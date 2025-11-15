@@ -112,19 +112,25 @@ class _BottomsheetManageDataWidgetState
                       label: "Cluster",
                       minSize: Size(100, 40),
                       maxSize: Size(150, 70),
-                      onPressed: () {},
+                      onPressed: () {
+                        //? TODO: Handle add new cluster action
+                      },
                     ),
                     BtmButtonManageDataWidget(
                       label: "Plot",
                       minSize: Size(100, 40),
                       maxSize: Size(150, 70),
-                      onPressed: () {},
+                      onPressed: () {
+                        //? TODO: Handle add new plot action
+                      },
                     ),
                     BtmButtonManageDataWidget(
                       label: "Pohon",
                       minSize: Size(100, 40),
                       maxSize: Size(150, 70),
-                      onPressed: () {},
+                      onPressed: () {
+                        //? TODO: Handle add new tree action
+                      },
                     ),
                   ],
                 ),
