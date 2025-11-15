@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 
 class BtmButtonManageDataWidget extends StatelessWidget {
   final String label;
-  final IconData icon;
+  final IconData? icon;
   final VoidCallback onPressed;
+  final Size minSize;
+  final Size maxSize;
+  final bool? isEnabled;
 
   const BtmButtonManageDataWidget({
     super.key,
     required this.label,
-    required this.icon,
+    this.icon,
+    this.minSize = const Size(150, 75),
+    this.maxSize = const Size(200, 125),
+    this.isEnabled = true,
     required this.onPressed,
   });
 
@@ -17,16 +23,17 @@ class BtmButtonManageDataWidget extends StatelessWidget {
     return ElevatedButton(
       onPressed: onPressed,
       style: ElevatedButton.styleFrom(
-        foregroundColor: Colors.white,
-        backgroundColor: Color.fromARGB(255, 85, 146, 98),
-        minimumSize: Size(150, 75),
-        maximumSize: Size(200, 125),
+        foregroundColor: isEnabled! ? Colors.white : Colors.white70,
+        backgroundColor:
+            isEnabled! ? Color.fromARGB(255, 85, 146, 98) : Colors.grey,
+        minimumSize: minSize,
+        maximumSize: maxSize,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 30),
+          if (icon != null) Icon(icon, size: 30),
           Text(label, textAlign: TextAlign.center),
         ],
       ),

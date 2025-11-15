@@ -38,46 +38,7 @@ class PlotClusterManageDataWidget extends StatelessWidget {
                 ],
               ),
               tilePadding: EdgeInsets.zero,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.start,
-                  spacing: 10,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.travel_explore),
-                      tooltip: "Lihat di Peta",
-                      onPressed: () {
-                        //? TODO: Handle view on map action
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.add_location_alt),
-                      tooltip: "Tambah Data Baru",
-                      onPressed: () {
-                        //? TODO: Handle add new plot data action
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      tooltip: "Edit Data Plot",
-                      onPressed: () {
-                        //? TODO: Handle edit plot data action
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        Icons.delete,
-                        color: Color.fromARGB(255, 131, 30, 23),
-                      ),
-                      tooltip: "Hapus Data Plot",
-                      onPressed: () {
-                        //? TODO: Handle delete plot data action
-                      },
-                    ),
-                  ],
-                ),
-                TreePlotManageDataWidget(),
-              ],
+              children: [TreePlotManageDataWidget()],
             ),
           ),
           SizedBox(height: 8),
