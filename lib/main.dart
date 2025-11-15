@@ -1,3 +1,4 @@
+import 'package:azimutree/data/global_variables/api_key.dart';
 import 'package:azimutree/views/pages/home_page.dart';
 import 'package:azimutree/views/pages/location_map_page.dart';
 import 'package:azimutree/views/pages/manage_data_page.dart';
@@ -8,17 +9,12 @@ import 'package:azimutree/views/pages/tutorial_page.dart';
 import 'package:azimutree/data/global_variables/global_camera.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
-import 'package:flutter_map_tile_caching/flutter_map_tile_caching.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  globalCameras = await availableCameras(); // Initialize the cameras
-  await FMTCObjectBoxBackend().initialise(); // Initialize the backend
-  // store is a container that is capable of storing tiles
-  await FMTCStore('outdoorStore').manage.create(); // store for outdoor tiles
-  await FMTCStore(
-    'satelliteStore',
-  ).manage.create(); // store for satellite tiles
+  MapboxOptions.setAccessToken(mapboxAccess);
+  globalCameras = await availableCameras();
   runApp(MainApp());
 }
 
