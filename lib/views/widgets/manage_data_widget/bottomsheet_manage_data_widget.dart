@@ -12,6 +12,8 @@ class BottomsheetManageDataWidget extends StatefulWidget {
 class _BottomsheetManageDataWidgetState
     extends State<BottomsheetManageDataWidget> {
   late final DraggableScrollableController _draggableScrollableController;
+  final double _maxChildSize = 0.9;
+  final double _minChildSize = 0.1;
 
   @override
   void initState() {
@@ -21,7 +23,7 @@ class _BottomsheetManageDataWidgetState
 
   void _expandBottomSheet() {
     _draggableScrollableController.animateTo(
-      0.75,
+      _maxChildSize,
       duration: const Duration(milliseconds: 400),
       curve: Curves.easeOutCubic,
     );
@@ -38,8 +40,8 @@ class _BottomsheetManageDataWidgetState
     return DraggableScrollableSheet(
       controller: _draggableScrollableController,
       initialChildSize: 0.1,
-      minChildSize: 0.1,
-      maxChildSize: 0.75,
+      minChildSize: _minChildSize,
+      maxChildSize: _maxChildSize,
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
@@ -80,7 +82,7 @@ class _BottomsheetManageDataWidgetState
                       label: "Ekspor Data",
                       icon: Icons.file_upload,
                       onPressed: () {
-                        //? TODO: Handle import data action
+                        //? TODO: Handle export data action
                       },
                     ),
                     BtmButtonManageDataWidget(
@@ -94,8 +96,35 @@ class _BottomsheetManageDataWidgetState
                       label: "Unduh Template",
                       icon: Icons.description,
                       onPressed: () {
-                        //? TODO: Handle import data action
+                        //? TODO: Handle download template action
                       },
+                    ),
+                  ],
+                ),
+                SizedBox(height: 20),
+                Text("Atau tembah data baru secara manual:"),
+                Wrap(
+                  spacing: 10,
+                  runSpacing: 10,
+                  alignment: WrapAlignment.spaceEvenly,
+                  children: [
+                    BtmButtonManageDataWidget(
+                      label: "Cluster",
+                      minSize: Size(100, 40),
+                      maxSize: Size(150, 70),
+                      onPressed: () {},
+                    ),
+                    BtmButtonManageDataWidget(
+                      label: "Plot",
+                      minSize: Size(100, 40),
+                      maxSize: Size(150, 70),
+                      onPressed: () {},
+                    ),
+                    BtmButtonManageDataWidget(
+                      label: "Pohon",
+                      minSize: Size(100, 40),
+                      maxSize: Size(150, 70),
+                      onPressed: () {},
                     ),
                   ],
                 ),

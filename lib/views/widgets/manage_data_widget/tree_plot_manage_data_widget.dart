@@ -72,33 +72,6 @@ class TreePlotManageDataWidget extends StatelessWidget {
             ],
           ),
         ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.start,
-          spacing: 10,
-          children: [
-            IconButton(
-              icon: Icon(Icons.travel_explore),
-              tooltip: "Lihat di Peta",
-              onPressed: () {
-                //? TODO: Handle view on map action
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.edit),
-              tooltip: "Edit Data Pohon",
-              onPressed: () {
-                //? TODO: Handle edit tree data action
-              },
-            ),
-            IconButton(
-              icon: Icon(Icons.delete, color: Color.fromARGB(255, 131, 30, 23)),
-              tooltip: "Hapus Data Pohon",
-              onPressed: () {
-                //? TODO: Handle delete tree data action
-              },
-            ),
-          ],
-        ),
       ],
     );
   }
