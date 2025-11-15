@@ -5,14 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
 <body>
-  <h1>Azimutree - Forest Health Monitoring Scanner</h1>
+  <h1>Azimutree - Forest Health Monitoring</h1>
 
-  <p><strong>Azimutree</strong> adalah aplikasi Android yang dikembangkan untuk membantu proses pemantauan kesehatan hutan menggunakan metode <strong>Forest Health Monitoring (FHM)</strong>. Aplikasi ini dirancang untuk mendukung kegiatan penelitian lapangan dengan fitur pemindaian dan pemetaan digital yang efisien dan akurat.</p>
+  <p><strong>Azimutree</strong> adalah aplikasi Android yang dikembangkan untuk membantu proses pemantauan kesehatan hutan menggunakan metode <strong>Forest Health Monitoring (FHM)</strong>. Aplikasi ini dirancang untuk mendukung kegiatan penelitian lapangan dengan fitur pemetaan digital yang efisien dan akurat.</p>
 
   <h2>Fitur Utama</h2>
   <ul>
-    <li><strong>Pemindaian Kode Pohon & Plot</strong><br>
-      Menggunakan kamera ponsel dan teknologi OCR (Google ML Kit) untuk membaca label ID pohon dan Kode QR secara real-time.</li>
     <li><strong>Mapping Lokasi Pohon</strong><br>
       Menampilkan posisi pohon dalam satu klaster menggunakan data azimut dan jarak dari titik pusat klaster.</li>
     <li><strong>Pencocokan Data Pohon</strong><br>
@@ -24,7 +22,6 @@
   <h2>Teknologi yang Digunakan</h2>
   <ul>
     <li><strong>Flutter</strong> (Frontend App Development)</li>
-    <li><strong>Google ML Kit</strong> (OCR)</li>
     <li><strong>SQL Lite</strong> (Local database untuk penyimpanan data offline)</li>
     <li><strong>Pemetaan</strong> (untuk orientasi arah dan posisi)</li>
   </ul>
@@ -47,7 +44,7 @@
 
   <h2>Catatan</h2>
   <ul>
-    <li>Aplikasi ini dikembangkan untuk perangkat mobile.</li>
+    <li>Aplikasi ini dikembangkan untuk perangkat mobile Android.</li>
   </ul>
 
 </body>

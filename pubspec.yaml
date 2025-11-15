@@ -9,6 +9,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_lorem: ^2.0.0 # Lorem ipsum text generator
   camera: ^0.10.5+9 # camera plugin
   google_mlkit_text_recognition: ^0.11.0 # ML Kit for text recognition
   http: ^1.4.0 # http services
@@ -18,13 +19,9 @@ dependencies:
   path_provider: ^2.1.5 # Path provider for accessing device storage
   path: ^1.9.1 # Path manipulation
   sqflite: ^2.4.2 # SQLite database
-  excel: ^4.0.6 # Excel file handling
   logger: ^2.5.0 # Logging utility
-  flutter_map: ^7.0.2 # Flutter map widget
-  flutter_map_tile_caching: ^10.0.0 # Tile caching for maps
-  flutter_map_marker_cluster: ^1.4.0 # Marker clustering for maps
-  latlong2: ^0.9.1 # For handling latitude and longitude
   url_launcher: ^6.3.1 # URL launcher for opening links
+  mapbox_maps_flutter: ^2.10.0 # Mapbox Maps SDK for Flutter
 
 dev_dependencies:
   flutter_test:
