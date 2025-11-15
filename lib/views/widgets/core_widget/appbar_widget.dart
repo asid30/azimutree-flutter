@@ -1,4 +1,4 @@
-import 'package:azimutree/data/notifiers.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
 
 class AppbarWidget extends StatelessWidget implements PreferredSizeWidget {
@@ -10,7 +10,14 @@ class AppbarWidget extends StatelessWidget implements PreferredSizeWidget {
     return AppBar(
       title: FittedBox(fit: BoxFit.scaleDown, child: Text(title)),
       actions: [
-        Text(isLightModeNotifier.value ? "Light Theme" : "Dark Theme"),
+        ValueListenableBuilder(
+          valueListenable: isLightModeNotifier,
+          builder: (context, isLightMode, child) {
+            return Text(
+              isLightModeNotifier.value ? "Light Theme" : "Dark Theme",
+            );
+          },
+        ),
         ValueListenableBuilder(
           valueListenable: isLightModeNotifier,
           builder: (context, isLightMode, child) {

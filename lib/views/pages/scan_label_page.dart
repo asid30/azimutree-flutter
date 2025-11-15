@@ -1,14 +1,16 @@
+//* Scan label pages
 import 'dart:io';
-import 'package:azimutree/views/widgets/alert_error_widget.dart';
-import 'package:azimutree/views/widgets/appbar_widget.dart';
-import 'package:azimutree/views/widgets/sidebar_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_error_widget.dart';
+import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
+import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
+import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:azimutree/data/notifiers.dart';
-import 'package:azimutree/data/global_camera.dart';
-import 'package:azimutree/services/ocr1_service.dart';
+import 'package:azimutree/data/global_variables/global_camera.dart';
+import 'package:azimutree/services/google_ml_kit_service.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ScanLabelPage extends StatefulWidget {
   const ScanLabelPage({super.key});
@@ -39,6 +41,15 @@ class _ScanLabelPageState extends State<ScanLabelPage> {
     });
   }
 
+  Future<void> _pickImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      await _processImage(pickedFile);
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -63,170 +74,173 @@ class _ScanLabelPageState extends State<ScanLabelPage> {
       future: _initializeControllerFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.done) {
-          return Scaffold(
-            appBar: AppbarWidget(title: "Home"),
-            drawer: SidebarWidget(),
-            body: Stack(
-              children: [
-                //* Background App
-                ValueListenableBuilder(
-                  valueListenable: isLightModeNotifier,
-                  builder: (context, isLightMode, child) {
-                    return AnimatedSwitcher(
-                      duration: const Duration(milliseconds: 800),
-                      transitionBuilder: (
-                        Widget child,
-                        Animation<double> animation,
-                      ) {
-                        return FadeTransition(opacity: animation, child: child);
-                      },
-                      child: Image(
-                        key: ValueKey<bool>(isLightMode),
-                        image: AssetImage(
-                          isLightMode
-                              ? "assets/images/light-bg-notitle.png"
-                              : "assets/images/dark-bg-notitle.png",
-                        ),
-                        fit: BoxFit.cover,
-                        height: double.infinity,
-                        width: double.infinity,
-                      ),
-                    );
-                  },
-                ),
-                SingleChildScrollView(
-                  child: Column(
-                    children: [
-                      if (_image != null)
-                        Stack(
+          return PopScope(
+            canPop: false,
+            onPopInvokedWithResult: (didPop, result) {
+              if (didPop) {
+                return;
+              }
+              Navigator.pushNamedAndRemoveUntil(
+                context,
+                'home',
+                (route) => false,
+              );
+            },
+            child: Scaffold(
+              appBar: AppbarWidget(title: "Home"),
+              drawer: SidebarWidget(),
+              body: Stack(
+                children: [
+                  //* Background App
+                  BackgroundAppWidget(),
+                  //* Main Content
+                  SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Image.file(
-                              File(_image!.path),
-                              fit: BoxFit.cover,
-                              width: double.infinity,
+                            BackButton(
+                              onPressed: () {
+                                Navigator.popAndPushNamed(context, "home");
+                              },
                             ),
-                            LayoutBuilder(
-                              builder: (context, constraints) {
-                                final displayedWidth = constraints.maxWidth;
-                                final aspectRatio =
-                                    imageSize.width != 0
-                                        ? imageSize.height / imageSize.width
-                                        : 1;
-                                final displayedHeight =
-                                    displayedWidth * aspectRatio;
+                            const Text(
+                              "Kembali",
+                              style: TextStyle(fontSize: 18),
+                            ),
+                          ],
+                        ),
+                        if (_image != null)
+                          Stack(
+                            children: [
+                              Image.file(
+                                File(_image!.path),
+                                fit: BoxFit.cover,
+                                width: double.infinity,
+                              ),
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final displayedWidth = constraints.maxWidth;
+                                  final aspectRatio =
+                                      imageSize.width != 0
+                                          ? imageSize.height / imageSize.width
+                                          : 1;
+                                  final displayedHeight =
+                                      displayedWidth * aspectRatio;
 
-                                return SizedBox(
-                                  width: displayedWidth,
-                                  height: displayedHeight,
-                                  child: CustomPaint(
-                                    painter: TextBoundingBoxPainter(
-                                      elements: textElements,
-                                      originalImageSize: imageSize,
-                                      displayedImageSize: Size(
-                                        displayedWidth,
-                                        displayedHeight,
+                                  return SizedBox(
+                                    width: displayedWidth,
+                                    height: displayedHeight,
+                                    child: CustomPaint(
+                                      painter: TextBoundingBoxPainter(
+                                        elements: textElements,
+                                        originalImageSize: imageSize,
+                                        displayedImageSize: Size(
+                                          displayedWidth,
+                                          displayedHeight,
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                );
-                              },
-                            ),
-                            BackButton(
-                              onPressed: () {
-                                Navigator.popAndPushNamed(context, "home");
-                              },
-                            ),
-                          ],
-                        )
-                      else
-                        Stack(
+                                  );
+                                },
+                              ),
+                            ],
+                          )
+                        else
+                          Stack(children: [CameraPreview(_controller)]),
+                        SizedBox(height: 20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            CameraPreview(_controller),
-                            BackButton(
-                              onPressed: () {
-                                Navigator.popAndPushNamed(context, "home");
+                            ElevatedButton(
+                              onPressed: () async {
+                                try {
+                                  _pickImage();
+                                } catch (e) {
+                                  if (kDebugMode) {
+                                    debugPrint("Error Message: $e");
+                                  }
+                                  if (context.mounted) {
+                                    showDialog(
+                                      context: context,
+                                      builder:
+                                          (context) =>
+                                              AlertErrorWidget(errorMessage: e),
+                                    );
+                                  }
+                                }
                               },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF1F4226),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.upload, color: Colors.white),
+                                  Text(
+                                    " Upload",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ],
+                              ),
                             ),
-                            Container(padding: EdgeInsets.all(20)),
+                            ElevatedButton(
+                              onPressed: () async {
+                                try {
+                                  await _initializeControllerFuture;
+                                  final image = await _controller.takePicture();
+                                  await _processImage(image);
+                                  setState(() {
+                                    _image = image;
+                                  });
+                                  // Lakukan sesuatu dengan gambar yang diambil
+                                } catch (e) {
+                                  if (kDebugMode) {
+                                    debugPrint("Error Message: $e");
+                                  }
+                                  if (context.mounted) {
+                                    showDialog(
+                                      context: context,
+                                      builder:
+                                          (context) =>
+                                              AlertErrorWidget(errorMessage: e),
+                                    );
+                                  }
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Color(0xFF1F4226),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Icon(Icons.camera_alt, color: Colors.white),
+                                  Text(
+                                    " Camera",
+                                    style: TextStyle(color: Colors.white),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
-                      SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          ElevatedButton(
-                            onPressed: () async {
-                              // Pilih gambar dari galeri
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF1F4226),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.upload, color: Colors.white),
-                                Text(
-                                  " Upload",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ],
-                            ),
-                          ),
-                          ElevatedButton(
-                            onPressed: () async {
-                              try {
-                                await _initializeControllerFuture;
-                                final image = await _controller.takePicture();
-                                await _processImage(image);
-                                setState(() {
-                                  _image = image;
-                                });
-                                // Lakukan sesuatu dengan gambar yang diambil
-                              } catch (e) {
-                                if (kDebugMode) {
-                                  debugPrint("Error Message: $e");
-                                }
-                                if (context.mounted) {
-                                  showDialog(
-                                    context: context,
-                                    builder:
-                                        (context) =>
-                                            AlertErrorWidget(errorMessage: e),
-                                  );
-                                }
-                              }
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Color(0xFF1F4226),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Icon(Icons.camera_alt, color: Colors.white),
-                                Text(
-                                  " Camera",
-                                  style: TextStyle(color: Colors.white),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 20),
-                      const Text(
-                        "Hasil OCR:",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      Container(
-                        color: Colors.white,
-                        padding: const EdgeInsets.all(16.0),
-                        child: Text(extractedText),
-                      ),
-                      SizedBox(height: 20),
-                    ],
+                        SizedBox(height: 20),
+                        const Text(
+                          "Hasil OCR:",
+                          style: TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        Container(
+                          color: Colors.white,
+                          padding: const EdgeInsets.all(16.0),
+                          child: Text(extractedText),
+                        ),
+                        SizedBox(height: 20),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           );
         } else {

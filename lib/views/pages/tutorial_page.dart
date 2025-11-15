@@ -1,48 +1,78 @@
-import 'package:azimutree/data/notifiers.dart';
-import 'package:azimutree/views/widgets/appbar_widget.dart';
-import 'package:azimutree/views/widgets/sidebar_widget.dart';
+//* tutorial page
+import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
+import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
+import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_lorem/flutter_lorem.dart';
 
 class TutorialPage extends StatelessWidget {
   const TutorialPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppbarWidget(title: "Panduan Aplikasi"),
-      drawer: SidebarWidget(),
-      body: Stack(
-        children: [
-          //* Background App
-          ValueListenableBuilder(
-            valueListenable: isLightModeNotifier,
-            builder: (context, isLightMode, child) {
-              return Image(
-                image: AssetImage(
-                  isLightMode
-                      ? "assets/images/light-bg-notitle.png"
-                      : "assets/images/dark-bg-notitle.png",
-                ),
-                fit: BoxFit.cover,
-                height: double.infinity,
-                width: double.infinity,
-              );
-            },
-          ),
-          Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text("Tutorial Page"),
-                BackButton(
-                  onPressed: () {
-                    Navigator.popAndPushNamed(context, "home");
-                  },
-                ),
-              ],
+    return PopScope(
+      canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) {
+          return;
+        }
+        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
+      },
+      child: Scaffold(
+        appBar: const AppbarWidget(title: "Panduan Aplikasi"),
+        drawer: const SidebarWidget(),
+        body: Stack(
+          children: [
+            //* Background App
+            BackgroundAppWidget(
+              lightBackgroundImage: "assets/images/light-bg-plain.png",
+              darkBackgroundImage: "assets/images/dark-bg-plain.png",
             ),
-          ),
-        ],
+            //* Content
+            SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 0,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        BackButton(
+                          onPressed: () {
+                            Navigator.popAndPushNamed(context, "home");
+                          },
+                        ),
+                        const Text("Kembali", style: TextStyle(fontSize: 18)),
+                      ],
+                    ),
+                    Text(
+                      'Selamat Datang di Aplikasi Azimutree!',
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 15),
+                    Text(
+                      'Panduan ini akan membantu Anda memahami cara menggunakan aplikasi Azimutree untuk mengelola data klaster, plot, dan pohon.',
+                      style: TextStyle(fontSize: 16),
+                    ),
+                    Divider(height: 30, thickness: 1),
+                    Text(
+                      lorem(paragraphs: 3, words: 750),
+                      style: TextStyle(fontSize: 16),
+                      textAlign: TextAlign.justify,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

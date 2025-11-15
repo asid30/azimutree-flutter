@@ -1,3 +1,4 @@
+import 'package:azimutree/data/global_variables/api_key.dart';
 import 'package:azimutree/views/pages/home_page.dart';
 import 'package:azimutree/views/pages/location_map_page.dart';
 import 'package:azimutree/views/pages/manage_data_page.dart';
@@ -5,12 +6,14 @@ import 'package:azimutree/views/pages/scan_label_page.dart';
 import 'package:azimutree/views/pages/test_ocr1_page.dart';
 import 'package:azimutree/views/pages/test_ocr2_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
-import 'package:azimutree/data/global_camera.dart';
+import 'package:azimutree/data/global_variables/global_camera.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  MapboxOptions.setAccessToken(mapboxAccess);
   globalCameras = await availableCameras();
   runApp(MainApp());
 }
@@ -23,17 +26,6 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
-  //* Title of Pages
-  // final Map<String?, String?> titleOfPages = {
-  //   "home": "Home", // Default title Page
-  //   "scan_label_page": "Scan Kode Label",
-  //   "manage_data_page": "Kelola Data Cluster Plot",
-  //   "location_map_page": "Peta Lokasi Cluster Plot",
-  //   "tutorial_page": "Panduan Aplikasi",
-  //   "test_ocr_page1": "Test OCR Google ML Kit",
-  //   "test_ocr_page2": "Test OCR Google Vision API",
-  // };
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -48,7 +40,6 @@ class _MainAppState extends State<MainApp> {
         scaffoldBackgroundColor: Colors.white,
       ),
       onGenerateRoute: (settings) {
-        // Ini akan dipanggil setiap kali Navigator.pushNamed dipanggil
         switch (settings.name) {
           case 'home':
             return _buildFadeTransitionPageRoute(const HomePage(), settings);
@@ -83,8 +74,6 @@ class _MainAppState extends State<MainApp> {
               settings,
             );
           default:
-            // Jika rute tidak ditemukan, kembali ke halaman utama
-            // Animasi default
             return _buildPageRoute(const HomePage(), settings);
         }
       },
@@ -93,28 +82,22 @@ class _MainAppState extends State<MainApp> {
   }
 }
 
-// Helper function untuk PageRouteBuilder default
+//* Helper
 PageRoute<dynamic> _buildPageRoute(Widget page, RouteSettings settings) {
   return MaterialPageRoute(builder: (context) => page, settings: settings);
 }
 
-// --- Contoh Animasi Kustom ---
-
-// Animasi Fade In/Out
+// Helper function for PageRouteBuilder Animation (Fade In/Out)
 PageRoute<dynamic> _buildFadeTransitionPageRoute(
   Widget page,
   RouteSettings settings,
 ) {
   return PageRouteBuilder(
-    settings:
-        settings, // Penting untuk meneruskan settings agar pushNamed bekerja
+    settings: settings,
     pageBuilder: (context, animation, secondaryAnimation) => page,
     transitionsBuilder: (context, animation, secondaryAnimation, child) {
-      return FadeTransition(
-        opacity: animation, // Menggunakan animation untuk mengontrol opacity
-        child: child,
-      );
+      return FadeTransition(opacity: animation, child: child);
     },
-    transitionDuration: const Duration(milliseconds: 300), // Durasi transisi
+    transitionDuration: const Duration(milliseconds: 300), // Duration
   );
 }
