@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_lorem: ^2.0.0 # Lorem ipsum text generator
+  flutter_native_splash: ^2.4.7 # Native splash screen
   camera: ^0.10.5+9 # camera plugin
   google_mlkit_text_recognition: ^0.11.0 # ML Kit for text recognition
   http: ^1.4.0 # http services
@@ -32,3 +33,13 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+
+flutter_native_splash:
+  color: "#FFFFFF" # warna background
+  image: assets/images/splash.png # gambar splash
+  android: true
+  ios: true
+
+  android_12:
+    image: assets/images/splash.png
+    icon_background_color: "#FFFFFF"
