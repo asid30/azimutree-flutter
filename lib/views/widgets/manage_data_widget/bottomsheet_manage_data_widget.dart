@@ -1,4 +1,5 @@
 import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_data_widget.dart';
+import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_widget.dart';
 import 'package:flutter/material.dart';
 
 class BottomsheetManageDataWidget extends StatefulWidget {
@@ -113,7 +114,11 @@ class _BottomsheetManageDataWidgetState
                       minSize: Size(100, 40),
                       maxSize: Size(150, 70),
                       onPressed: () {
-                        //? TODO: Handle add new cluster action
+                        showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (context) => DialogAddClusterWidget(),
+                        );
                       },
                     ),
                     BtmButtonManageDataWidget(
