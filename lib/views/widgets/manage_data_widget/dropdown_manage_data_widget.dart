@@ -3,7 +3,12 @@ import 'package:flutter/material.dart';
 
 class DropdownManageDataWidget extends StatelessWidget {
   final List<String> clusterOptions;
-  const DropdownManageDataWidget({super.key, this.clusterOptions = const []});
+  final bool isEmpty;
+  const DropdownManageDataWidget({
+    super.key,
+    this.clusterOptions = const [],
+    this.isEmpty = false,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +27,7 @@ class DropdownManageDataWidget extends StatelessWidget {
                   clusterOptions.contains(selectedDropdownCluster)
                       ? selectedDropdownCluster
                       : null,
-              hint: const Text("Pilih Cluster"),
+              hint: Text(isEmpty ? "Tidak ada Klaster" : "Pilih Klaster"),
               isExpanded: true,
               dropdownColor: const Color(0xFFb4d8bb),
               style: const TextStyle(

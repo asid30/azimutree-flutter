@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 
-class SelectedClusterManageDataWidget extends StatelessWidget {
+class SelectedClusterManageDataWidget extends StatefulWidget {
   const SelectedClusterManageDataWidget({super.key});
 
+  @override
+  State<SelectedClusterManageDataWidget> createState() =>
+      _SelectedClusterManageDataWidgetState();
+}
+
+class _SelectedClusterManageDataWidgetState
+    extends State<SelectedClusterManageDataWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(

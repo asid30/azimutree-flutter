@@ -109,7 +109,7 @@ class _BottomsheetManageDataWidgetState
                   alignment: WrapAlignment.spaceEvenly,
                   children: [
                     BtmButtonManageDataWidget(
-                      label: "Cluster",
+                      label: "Klaster",
                       minSize: Size(100, 40),
                       maxSize: Size(150, 70),
                       onPressed: () {

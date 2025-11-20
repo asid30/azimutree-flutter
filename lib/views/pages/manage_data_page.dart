@@ -5,6 +5,7 @@ import 'package:azimutree/views/widgets/manage_data_widget/plot_cluster_manage_d
 import 'package:azimutree/views/widgets/manage_data_widget/selected_cluster_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dropdown_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
+import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:flutter/material.dart';
 
 class ManageDataPage extends StatefulWidget {
@@ -15,12 +16,20 @@ class ManageDataPage extends StatefulWidget {
 }
 
 class _ManageDataPageState extends State<ManageDataPage> {
-  final List<String> clusterOptions = [
-    "Cluster A",
-    "Cluster B",
-    "Cluster C",
-    "Cluster D",
-  ];
+  List<String> _clusterOptions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadClusterOptions(); // ambil data dari DB
+  }
+
+  Future<void> _loadClusterOptions() async {
+    final clusters = await ClusterDao.getAllClusters();
+    setState(() {
+      _clusterOptions = clusters.map((c) => c.kodeCluster).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,7 +71,10 @@ class _ManageDataPageState extends State<ManageDataPage> {
                         const Text("Kembali", style: TextStyle(fontSize: 18)),
                       ],
                     ),
-                    DropdownManageDataWidget(clusterOptions: clusterOptions),
+                    DropdownManageDataWidget(
+                      clusterOptions: _clusterOptions,
+                      isEmpty: _clusterOptions.isEmpty,
+                    ),
                     SizedBox(height: 12),
                     SelectedClusterManageDataWidget(),
                     SizedBox(height: 12),
