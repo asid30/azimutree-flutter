@@ -1,9 +1,11 @@
+import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_widget.dart';
 import 'package:flutter/material.dart';
 
 class BottomsheetManageDataWidget extends StatefulWidget {
-  const BottomsheetManageDataWidget({super.key});
+  final ClusterNotifier clusterNotifier;
+  const BottomsheetManageDataWidget({super.key, required this.clusterNotifier});
 
   @override
   State<BottomsheetManageDataWidget> createState() =>
@@ -117,7 +119,10 @@ class _BottomsheetManageDataWidgetState
                         showDialog(
                           barrierDismissible: false,
                           context: context,
-                          builder: (context) => DialogAddClusterWidget(),
+                          builder:
+                              (context) => DialogAddClusterWidget(
+                                clusterNotifier: widget.clusterNotifier,
+                              ),
                         );
                       },
                     ),

@@ -1,9 +1,10 @@
+import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:flutter/material.dart';
-import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 
 class DialogAddClusterWidget extends StatefulWidget {
-  const DialogAddClusterWidget({super.key});
+  final ClusterNotifier clusterNotifier;
+  const DialogAddClusterWidget({super.key, required this.clusterNotifier});
 
   @override
   State<DialogAddClusterWidget> createState() => _DialogAddClusterWidgetState();
@@ -49,7 +50,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
       tanggalPengukuran: tanggalPengukuran,
     );
 
-    await ClusterDao.insertCluster(newCluster);
+    await widget.clusterNotifier.addCluster(newCluster);
 
     if (!mounted) return;
 

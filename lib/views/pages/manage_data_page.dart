@@ -1,3 +1,4 @@
+import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/bottomsheet_manage_data_widget.dart';
@@ -5,7 +6,6 @@ import 'package:azimutree/views/widgets/manage_data_widget/plot_cluster_manage_d
 import 'package:azimutree/views/widgets/manage_data_widget/selected_cluster_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dropdown_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
-import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:flutter/material.dart';
 
 class ManageDataPage extends StatefulWidget {
@@ -16,19 +16,19 @@ class ManageDataPage extends StatefulWidget {
 }
 
 class _ManageDataPageState extends State<ManageDataPage> {
-  List<String> _clusterOptions = [];
+  late final ClusterNotifier clusterNotifier;
 
   @override
   void initState() {
     super.initState();
-    _loadClusterOptions(); // ambil data dari DB
+    clusterNotifier = ClusterNotifier();
+    clusterNotifier.loadClusters();
   }
 
-  Future<void> _loadClusterOptions() async {
-    final clusters = await ClusterDao.getAllClusters();
-    setState(() {
-      _clusterOptions = clusters.map((c) => c.kodeCluster).toList();
-    });
+  @override
+  void dispose() {
+    clusterNotifier.dispose();
+    super.dispose();
   }
 
   @override
@@ -71,12 +71,27 @@ class _ManageDataPageState extends State<ManageDataPage> {
                         const Text("Kembali", style: TextStyle(fontSize: 18)),
                       ],
                     ),
-                    DropdownManageDataWidget(
-                      clusterOptions: _clusterOptions,
-                      isEmpty: _clusterOptions.isEmpty,
+                    ValueListenableBuilder(
+                      valueListenable: clusterNotifier,
+                      builder: (context, clusterData, child) {
+                        final clusterOptions =
+                            clusterData
+                                .map((cluster) => cluster.kodeCluster)
+                                .toList();
+                        return Column(
+                          children: [
+                            DropdownManageDataWidget(
+                              clusterOptions: clusterOptions,
+                              isEmpty: clusterOptions.isEmpty,
+                            ),
+                            SizedBox(height: 12),
+                            SelectedClusterManageDataWidget(
+                              clustersData: clusterData,
+                            ),
+                          ],
+                        );
+                      },
                     ),
-                    SizedBox(height: 12),
-                    SelectedClusterManageDataWidget(),
                     SizedBox(height: 12),
                     PlotClusterManageDataWidget(),
                     SizedBox(height: 80),
@@ -84,7 +99,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                 ),
               ),
             ),
-            BottomsheetManageDataWidget(),
+            BottomsheetManageDataWidget(clusterNotifier: clusterNotifier),
           ],
         ),
       ),
