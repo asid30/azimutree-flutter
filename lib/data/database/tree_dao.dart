@@ -25,30 +25,30 @@ class TreeDao {
     ''');
   }
 
-  static Future<int> insertTree(Pohon tree) async {
+  static Future<int> insertTree(TreeModel tree) async {
     final db = await AzimutreeDB.instance.database;
     return await db.insert(tableName, tree.toMap());
   }
 
-  static Future<List<Pohon>> getAllTrees() async {
+  static Future<List<TreeModel>> getAllTrees() async {
     final db = await AzimutreeDB.instance.database;
     final result = await db.query(tableName);
 
-    return result.map((map) => Pohon.fromMap(map)).toList();
+    return result.map((map) => TreeModel.fromMap(map)).toList();
   }
 
-  static Future<Pohon?> getTreeById(int id) async {
+  static Future<TreeModel?> getTreeById(int id) async {
     final db = await AzimutreeDB.instance.database;
     final result = await db.query(tableName, where: 'id = ?', whereArgs: [id]);
 
     if (result.isNotEmpty) {
-      return Pohon.fromMap(result.first);
+      return TreeModel.fromMap(result.first);
     } else {
       return null;
     }
   }
 
-  static Future<int> updateTree(Pohon tree) async {
+  static Future<int> updateTree(TreeModel tree) async {
     final db = await AzimutreeDB.instance.database;
     return await db.update(
       tableName,

@@ -1,4 +1,4 @@
-class Pohon {
+class TreeModel {
   int? id;
   int plotId; // Foreign key ke Plot
   int kodePohon;
@@ -12,7 +12,7 @@ class Pohon {
   String? keterangan;
   String? urlFoto;
 
-  Pohon({
+  TreeModel({
     this.id,
     required this.plotId,
     required this.kodePohon,
@@ -46,8 +46,8 @@ class Pohon {
   }
 
   // Factory constructor to create Pohon from Map
-  factory Pohon.fromMap(Map<String, dynamic> map) {
-    return Pohon(
+  factory TreeModel.fromMap(Map<String, dynamic> map) {
+    return TreeModel(
       id: map['id'],
       plotId: map['plotId'],
       kodePohon: map['kodePohon'],
