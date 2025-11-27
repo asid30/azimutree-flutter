@@ -1,10 +1,10 @@
-class Cluster {
+class ClusterModel {
   int? id;
   String kodeCluster;
   String? namaPengukur;
   DateTime? tanggalPengukuran;
 
-  Cluster({
+  ClusterModel({
     this.id,
     required this.kodeCluster,
     this.namaPengukur,
@@ -22,8 +22,8 @@ class Cluster {
   }
 
   // Factory constructor to create Cluster from Map
-  factory Cluster.fromMap(Map<String, dynamic> map) {
-    return Cluster(
+  factory ClusterModel.fromMap(Map<String, dynamic> map) {
+    return ClusterModel(
       id: map['id'],
       kodeCluster: map['kodeCluster'],
       namaPengukur: map['namaPengukur'],

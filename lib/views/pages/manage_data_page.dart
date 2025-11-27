@@ -1,3 +1,4 @@
+import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/bottomsheet_manage_data_widget.dart';
@@ -15,12 +16,20 @@ class ManageDataPage extends StatefulWidget {
 }
 
 class _ManageDataPageState extends State<ManageDataPage> {
-  final List<String> clusterOptions = [
-    "Cluster A",
-    "Cluster B",
-    "Cluster C",
-    "Cluster D",
-  ];
+  late final ClusterNotifier clusterNotifier;
+
+  @override
+  void initState() {
+    super.initState();
+    clusterNotifier = ClusterNotifier();
+    clusterNotifier.loadClusters();
+  }
+
+  @override
+  void dispose() {
+    clusterNotifier.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -62,9 +71,27 @@ class _ManageDataPageState extends State<ManageDataPage> {
                         const Text("Kembali", style: TextStyle(fontSize: 18)),
                       ],
                     ),
-                    DropdownManageDataWidget(clusterOptions: clusterOptions),
-                    SizedBox(height: 12),
-                    SelectedClusterManageDataWidget(),
+                    ValueListenableBuilder(
+                      valueListenable: clusterNotifier,
+                      builder: (context, clusterData, child) {
+                        final clusterOptions =
+                            clusterData
+                                .map((cluster) => cluster.kodeCluster)
+                                .toList();
+                        return Column(
+                          children: [
+                            DropdownManageDataWidget(
+                              clusterOptions: clusterOptions,
+                              isEmpty: clusterOptions.isEmpty,
+                            ),
+                            SizedBox(height: 12),
+                            SelectedClusterManageDataWidget(
+                              clustersData: clusterData,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                     SizedBox(height: 12),
                     PlotClusterManageDataWidget(),
                     SizedBox(height: 80),
@@ -72,7 +99,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                 ),
               ),
             ),
-            BottomsheetManageDataWidget(),
+            BottomsheetManageDataWidget(clusterNotifier: clusterNotifier),
           ],
         ),
       ),
