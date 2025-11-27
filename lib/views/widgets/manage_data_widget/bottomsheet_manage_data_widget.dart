@@ -1,10 +1,12 @@
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:flutter/material.dart';
 
 class BottomsheetManageDataWidget extends StatefulWidget {
   final ClusterNotifier clusterNotifier;
+
   const BottomsheetManageDataWidget({super.key, required this.clusterNotifier});
 
   @override
@@ -38,6 +40,31 @@ class _BottomsheetManageDataWidgetState
     super.dispose();
   }
 
+  void _showWarningNeedCluster({required String target}) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder:
+          (context) => AlertWarningWidget(
+            warningMessage:
+                "Anda harus menambahkan setidaknya satu klaster sebelum menambahkan $target.",
+          ),
+    );
+  }
+
+  void _showSuccess({required String target}) {
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder:
+          (context) => AlertWarningWidget(
+            // sementara pakai widget yang sama, cuma teks beda
+            warningMessage:
+                "Sukses bro! (dummy) Berhasil menambahkan $target 👍",
+          ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
@@ -48,7 +75,7 @@ class _BottomsheetManageDataWidgetState
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: Color.fromARGB(255, 205, 237, 211),
+            color: const Color.fromARGB(255, 205, 237, 211),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Padding(
@@ -61,21 +88,19 @@ class _BottomsheetManageDataWidgetState
               children: [
                 ListTile(
                   title: TextButton(
-                    onPressed: () {
-                      _expandBottomSheet();
-                    },
-                    child: Text(
+                    onPressed: _expandBottomSheet,
+                    child: const Text(
                       'Menu Kelola Data',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
                 ),
-                Text(
+                const Text(
                   'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor data untuk menambahkan data dari file eksternal (sheet), ekspor data untuk menyimpan salinan data Anda, atau unduh template untuk format data (sheet) yang benar.',
                   textAlign: TextAlign.justify,
                 ),
-                SizedBox(height: 20),
+                const SizedBox(height: 20),
                 Wrap(
                   spacing: 20,
                   runSpacing: 20,
@@ -85,82 +110,110 @@ class _BottomsheetManageDataWidgetState
                       label: "Ekspor Data",
                       icon: Icons.file_upload,
                       onPressed: () {
-                        //? TODO: Handle export data action
+                        // TODO: Handle export data action
                       },
                     ),
                     BtmButtonManageDataWidget(
                       label: "Impor Data",
                       icon: Icons.file_download,
                       onPressed: () {
-                        //? TODO: Handle import data action
+                        // TODO: Handle import data action
                       },
                     ),
                     BtmButtonManageDataWidget(
                       label: "Unduh Template",
                       icon: Icons.description,
                       onPressed: () {
-                        //? TODO: Handle download template action
+                        // TODO: Handle download template action
                       },
                     ),
                   ],
                 ),
-                SizedBox(height: 20),
-                Text("Atau tembah data baru secara manual:"),
-                Wrap(
-                  spacing: 10,
-                  runSpacing: 10,
-                  alignment: WrapAlignment.spaceEvenly,
-                  children: [
-                    BtmButtonManageDataWidget(
-                      label: "Klaster",
-                      minSize: Size(100, 40),
-                      maxSize: Size(150, 70),
-                      onPressed: () {
-                        showDialog(
-                          barrierDismissible: false,
-                          context: context,
-                          builder:
-                              (context) => DialogAddClusterWidget(
-                                clusterNotifier: widget.clusterNotifier,
-                              ),
-                        );
-                      },
-                    ),
-                    BtmButtonManageDataWidget(
-                      label: "Plot",
-                      minSize: Size(100, 40),
-                      maxSize: Size(150, 70),
-                      onPressed: () {
-                        //? TODO: Handle add new plot action
-                      },
-                    ),
-                    BtmButtonManageDataWidget(
-                      label: "Pohon",
-                      minSize: Size(100, 40),
-                      maxSize: Size(150, 70),
-                      onPressed: () {
-                        //? TODO: Handle add new tree action
-                      },
-                    ),
-                  ],
-                ),
-                SizedBox(height: 20),
-                Text("Debug options:"),
-                ElevatedButton(
-                  onPressed: () {
-                    //? TODO: Fill random data
+                const SizedBox(height: 20),
+                const Text("Atau tambah data baru secara manual:"),
+                ValueListenableBuilder(
+                  valueListenable: widget.clusterNotifier,
+                  builder: (context, clusterState, child) {
+                    final bool hasCluster = clusterState.isNotEmpty;
+                    return Wrap(
+                      spacing: 10,
+                      runSpacing: 10,
+                      alignment: WrapAlignment.spaceEvenly,
+                      children: [
+                        // K L A S T E R
+                        BtmButtonManageDataWidget(
+                          label: "Klaster",
+                          minSize: const Size(100, 40),
+                          maxSize: const Size(150, 70),
+                          onPressed: () {
+                            showDialog(
+                              barrierDismissible: false,
+                              context: context,
+                              builder:
+                                  (context) => DialogAddClusterWidget(
+                                    clusterNotifier: widget.clusterNotifier,
+                                  ),
+                            );
+                          },
+                        ),
+
+                        // P L O T
+                        BtmButtonManageDataWidget(
+                          label: "Plot",
+                          minSize: const Size(100, 40),
+                          maxSize: const Size(150, 70),
+                          // kalau kamu mau beda warna ketika belum ada klaster:
+                          isEnabled: hasCluster,
+                          onPressed: () {
+                            if (!hasCluster) {
+                              _showWarningNeedCluster(target: "plot");
+                              return;
+                            }
+
+                            // sementara: show alert "sukses bro"
+                            _showSuccess(target: "plot");
+                            // TODO: nanti ganti ini dengan DialogAddPlotWidget / form beneran
+                          },
+                        ),
+
+                        // P O H O N
+                        BtmButtonManageDataWidget(
+                          label: "Pohon",
+                          minSize: const Size(100, 40),
+                          maxSize: const Size(150, 70),
+                          isEnabled: hasCluster,
+                          onPressed: () {
+                            if (!hasCluster) {
+                              _showWarningNeedCluster(target: "pohon");
+                              return;
+                            }
+
+                            // sementara: show alert "sukses bro"
+                            _showSuccess(target: "pohon");
+                            // TODO: nanti ganti ini dengan DialogAddTreeWidget / form beneran
+                          },
+                        ),
+                      ],
+                    );
                   },
-                  child: Text("Generate Data Random"),
+                ),
+                const SizedBox(height: 20),
+                const Text("Debug options:"),
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Fill random data
+                  },
+                  child: const Text("Generate Data Random"),
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    //? TODO: Fill random data
+                    // TODO: Hapus semua data
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color.fromARGB(255, 131, 30, 23),
                     foregroundColor: Colors.white,
                   ),
-                  child: Text("Hapus Semua Data"),
+                  child: const Text("Hapus Semua Data"),
                 ),
               ],
             ),
