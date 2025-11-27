@@ -5,9 +5,9 @@ import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:http/http.dart' as http;
-import 'package:azimutree/data/global_variables/api_key.dart';
 
 class TestOcrGoogleVisionApiPage extends StatefulWidget {
   const TestOcrGoogleVisionApiPage({super.key});
@@ -24,7 +24,7 @@ class _TestOcrGoogleVisionApiPageState
   List<Map<String, dynamic>> boundingBoxes = [];
   Size imageSize = Size.zero;
 
-  final String apiKey = mySecretApiKey;
+  final String apiKey = dotenv.env['SECRET_API']!;
 
   Future<void> _pickImage(ImageSource source) async {
     final picker = ImagePicker();
