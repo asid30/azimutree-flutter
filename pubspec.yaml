@@ -23,6 +23,7 @@ dependencies:
   logger: ^2.5.0 # Logging utility
   url_launcher: ^6.3.1 # URL launcher for opening links
   mapbox_maps_flutter: ^2.10.0 # Mapbox Maps SDK for Flutter
+  flutter_dotenv: ^6.0.0 # Environment variables
 
 dev_dependencies:
   flutter_test:
@@ -33,6 +34,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - .env
 
 flutter_native_splash:
   color: "#000000" # warna background

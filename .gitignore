@@ -44,5 +44,5 @@ app.*.map.json
 /android/app/profile
 /android/app/release
 
-#Api key 
-lib/data/global_variables/api_key.dart
+# Environment
+*.env

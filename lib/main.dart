@@ -1,4 +1,3 @@
-import 'package:azimutree/data/global_variables/api_key.dart';
 import 'package:azimutree/views/pages/home_page.dart';
 import 'package:azimutree/views/pages/location_map_page.dart';
 import 'package:azimutree/views/pages/manage_data_page.dart';
@@ -9,11 +8,13 @@ import 'package:azimutree/views/pages/tutorial_page.dart';
 import 'package:azimutree/data/global_variables/global_camera.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  MapboxOptions.setAccessToken(mapboxAccess);
+  await dotenv.load(fileName: ".env");
+  MapboxOptions.setAccessToken(dotenv.env['MAP_BOX_ACCESS']!);
   globalCameras = await availableCameras();
   runApp(MainApp());
 }
