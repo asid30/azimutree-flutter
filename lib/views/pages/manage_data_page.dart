@@ -84,6 +84,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                     ValueListenableBuilder(
                       valueListenable: clusterNotifier,
                       builder: (context, clusterData, child) {
+                        final hasCluster = clusterData.isNotEmpty;
                         final clusterOptions =
                             clusterData
                                 .map((cluster) => cluster.kodeCluster)
@@ -98,17 +99,21 @@ class _ManageDataPageState extends State<ManageDataPage> {
                             SelectedClusterManageDataWidget(
                               clustersData: clusterData,
                             ),
+                            SizedBox(height: 12),
+                            if (hasCluster)
+                              ValueListenableBuilder(
+                                valueListenable: plotNotifier,
+                                builder: (context, plotData, child) {
+                                  return PlotClusterManageDataWidget(
+                                    plotData: plotData,
+                                  );
+                                },
+                              ),
                           ],
                         );
                       },
                     ),
                     SizedBox(height: 12),
-                    ValueListenableBuilder(
-                      valueListenable: plotNotifier,
-                      builder: (context, plotData, child) {
-                        return PlotClusterManageDataWidget();
-                      },
-                    ),
                     SizedBox(height: 80),
                   ],
                 ),

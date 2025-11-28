@@ -58,6 +58,7 @@ class _BottomsheetManageDataWidgetState
           (context) => AlertWarningWidget(
             warningMessage:
                 "Anda harus menambahkan setidaknya satu klaster sebelum menambahkan $target.",
+            backgroundColor: Colors.lightGreen.shade200,
           ),
     );
   }
@@ -70,6 +71,7 @@ class _BottomsheetManageDataWidgetState
           (context) => AlertWarningWidget(
             warningMessage:
                 "Anda harus menambahkan setidaknya satu plot sebelum menambahkan $target.",
+            backgroundColor: Colors.lightGreen.shade200,
           ),
     );
   }
@@ -202,6 +204,7 @@ class _BottomsheetManageDataWidgetState
                                   builder:
                                       (context) => DialogAddPlotWidget(
                                         plotNotifier: widget.plotNotifier,
+                                        clusters: clusterState,
                                       ),
                                 );
                               },
@@ -221,7 +224,7 @@ class _BottomsheetManageDataWidgetState
 
                                 // sementara: show alert "sukses bro"
                                 _showSuccess(target: "pohon");
-                                //? TODO: nanti ganti ini dengan DialogAddTreeWidget / form beneran
+                                //? TODO: Handle add tree action
                               },
                             ),
                           ],

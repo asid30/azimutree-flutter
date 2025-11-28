@@ -1,10 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/models/plot_model.dart';
+import 'package:azimutree/data/models/cluster_model.dart';
 
 class DialogAddPlotWidget extends StatefulWidget {
   final PlotNotifier plotNotifier;
-  const DialogAddPlotWidget({super.key, required this.plotNotifier});
+  final List<ClusterModel> clusters; // daftar klaster dari DB
+
+  const DialogAddPlotWidget({
+    super.key,
+    required this.plotNotifier,
+    required this.clusters,
+  });
 
   @override
   State<DialogAddPlotWidget> createState() => _DialogAddPlotWidgetState();
@@ -12,15 +19,24 @@ class DialogAddPlotWidget extends StatefulWidget {
 
 class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
   final TextEditingController _kodePlotController = TextEditingController();
-  final TextEditingController _clusterId = TextEditingController();
   final TextEditingController _latitudeController = TextEditingController();
   final TextEditingController _longitudeController = TextEditingController();
   final TextEditingController _altitudeController = TextEditingController();
 
+  int? _selectedClusterId; // id klaster terpilih (FK)
+
+  @override
+  void initState() {
+    super.initState();
+    // optional: auto pilih klaster pertama kalau ada datanya
+    if (widget.clusters.isNotEmpty) {
+      _selectedClusterId = widget.clusters.first.id;
+    }
+  }
+
   @override
   void dispose() {
     _kodePlotController.dispose();
-    _clusterId.dispose();
     _latitudeController.dispose();
     _longitudeController.dispose();
     _altitudeController.dispose();
@@ -28,24 +44,30 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
   }
 
   Future<void> _savePlot() async {
-    final clusterId = int.tryParse(_clusterId.text.trim());
+    // idCluster dari dropdown, bukan dari textfield
+    final idCluster = _selectedClusterId;
     final kodePlot = int.tryParse(_kodePlotController.text.trim());
     final latitude = double.tryParse(_latitudeController.text.trim());
     final longitude = double.tryParse(_longitudeController.text.trim());
-    final altitude = double.tryParse(_altitudeController.text.trim());
+    final altitude =
+        _altitudeController.text.trim().isNotEmpty
+            ? double.tryParse(_altitudeController.text.trim())
+            : null; // altitude boleh kosong
 
-    if (clusterId == null ||
+    if (idCluster == null ||
         kodePlot == null ||
         latitude == null ||
         longitude == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mohon isi semua field dengan benar')),
+        const SnackBar(
+          content: Text('Mohon isi semua field wajib dengan benar'),
+        ),
       );
       return;
     }
 
     final newPlot = PlotModel(
-      clusterId: clusterId,
+      idCluster: idCluster,
       kodePlot: kodePlot,
       latitude: latitude,
       longitude: longitude,
@@ -56,41 +78,86 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
 
     if (!mounted) return;
 
-    Navigator.of(context).pop();
+    Navigator.of(context).pop(true);
   }
 
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: Colors.white,
-      title: const Text("Tambah Klaster Baru"),
+      title: const Text("Tambah Plot Baru"),
       content: SingleChildScrollView(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            TextField(
-              controller: _clusterId,
-              decoration: const InputDecoration(labelText: "Kode Klaster"),
+            // 🔽 DROPDOWN KODE KLASTER
+            DropdownButtonFormField<int>(
+              value: _selectedClusterId,
+              decoration: const InputDecoration(
+                labelText: "Klaster",
+                border: OutlineInputBorder(),
+              ),
+              isExpanded: true,
+              items:
+                  widget.clusters.map((cluster) {
+                    return DropdownMenuItem<int>(
+                      value: cluster.id,
+                      child: Text(cluster.kodeCluster),
+                    );
+                  }).toList(),
+              onChanged: (value) {
+                setState(() {
+                  _selectedClusterId = value;
+                });
+              },
             ),
             const SizedBox(height: 8),
+
             TextField(
               controller: _kodePlotController,
-              decoration: const InputDecoration(labelText: "Kode Plot"),
+              decoration: const InputDecoration(
+                labelText: "Kode Plot",
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: TextInputType.number,
             ),
             const SizedBox(height: 8),
+
             TextField(
               controller: _latitudeController,
-              decoration: const InputDecoration(labelText: "Latitude"),
+              decoration: const InputDecoration(
+                labelText: "Latitude",
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+                signed: true,
+              ),
             ),
             const SizedBox(height: 8),
+
             TextField(
               controller: _longitudeController,
-              decoration: const InputDecoration(labelText: "Longitude"),
+              decoration: const InputDecoration(
+                labelText: "Longitude",
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+                signed: true,
+              ),
             ),
             const SizedBox(height: 8),
+
             TextField(
               controller: _altitudeController,
-              decoration: const InputDecoration(labelText: "Altitude"),
+              decoration: const InputDecoration(
+                labelText: "Altitude (opsional)",
+                border: OutlineInputBorder(),
+              ),
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
             ),
           ],
         ),

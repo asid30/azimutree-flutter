@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 
 class TreePlotManageDataWidget extends StatelessWidget {
-  const TreePlotManageDataWidget({super.key});
+  final int plotId;
+  const TreePlotManageDataWidget({super.key, required this.plotId});
 
   @override
   Widget build(BuildContext context) {
