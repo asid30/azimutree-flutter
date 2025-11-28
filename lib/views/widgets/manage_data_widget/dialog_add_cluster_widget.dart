@@ -1,5 +1,5 @@
-import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 
 class DialogAddClusterWidget extends StatefulWidget {
@@ -54,9 +54,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
 
     if (!mounted) return;
 
-    Navigator.of(
-      context,
-    ).pop(true); // bisa return true kalau mau kasih info "berhasil"
+    Navigator.of(context).pop();
   }
 
   Future<void> _selectDate() async {

@@ -1,4 +1,6 @@
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
+import 'package:azimutree/data/notifiers/plot_notifier.dart';
+import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/bottomsheet_manage_data_widget.dart';
@@ -17,17 +19,25 @@ class ManageDataPage extends StatefulWidget {
 
 class _ManageDataPageState extends State<ManageDataPage> {
   late final ClusterNotifier clusterNotifier;
+  late final PlotNotifier plotNotifier;
+  late final TreeNotifier treeNotifier;
 
   @override
   void initState() {
     super.initState();
     clusterNotifier = ClusterNotifier();
+    plotNotifier = PlotNotifier();
+    treeNotifier = TreeNotifier();
     clusterNotifier.loadClusters();
+    plotNotifier.loadPlots();
+    treeNotifier.loadTrees();
   }
 
   @override
   void dispose() {
     clusterNotifier.dispose();
+    plotNotifier.dispose();
+    treeNotifier.dispose();
     super.dispose();
   }
 
@@ -93,13 +103,22 @@ class _ManageDataPageState extends State<ManageDataPage> {
                       },
                     ),
                     SizedBox(height: 12),
-                    PlotClusterManageDataWidget(),
+                    ValueListenableBuilder(
+                      valueListenable: plotNotifier,
+                      builder: (context, plotData, child) {
+                        return PlotClusterManageDataWidget();
+                      },
+                    ),
                     SizedBox(height: 80),
                   ],
                 ),
               ),
             ),
-            BottomsheetManageDataWidget(clusterNotifier: clusterNotifier),
+            BottomsheetManageDataWidget(
+              clusterNotifier: clusterNotifier,
+              plotNotifier: plotNotifier,
+              treeNotifier: treeNotifier,
+            ),
           ],
         ),
       ),
