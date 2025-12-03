@@ -1,4 +1,5 @@
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
@@ -84,28 +85,66 @@ class _ManageDataPageState extends State<ManageDataPage> {
                     ValueListenableBuilder(
                       valueListenable: clusterNotifier,
                       builder: (context, clusterData, child) {
-                        final hasCluster = clusterData.isNotEmpty;
+                        final clusters = clusterData; // List<ClusterModel>
+                        final hasCluster = clusters.isNotEmpty;
                         final clusterOptions =
-                            clusterData
+                            clusters
                                 .map((cluster) => cluster.kodeCluster)
                                 .toList();
+
                         return Column(
                           children: [
+                            // Dropdown tetap sama, karena sudah pakai selectedDropdownClusterNotifier
                             DropdownManageDataWidget(
                               clusterOptions: clusterOptions,
                               isEmpty: clusterOptions.isEmpty,
                             ),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 12),
+
                             SelectedClusterManageDataWidget(
-                              clustersData: clusterData,
+                              clustersData: clusters,
                             ),
-                            SizedBox(height: 12),
+                            const SizedBox(height: 12),
+
                             if (hasCluster)
-                              ValueListenableBuilder(
-                                valueListenable: plotNotifier,
-                                builder: (context, plotData, child) {
-                                  return PlotClusterManageDataWidget(
-                                    plotData: plotData,
+                              // 🔥 Dengarkan dropdown pilihan klaster
+                              ValueListenableBuilder<String?>(
+                                valueListenable:
+                                    selectedDropdownClusterNotifier,
+                                builder: (context, selectedKodeCluster, _) {
+                                  // Cari cluster yang cocok dengan kode yang dipilih
+                                  final selectedCluster = clusters.firstWhere(
+                                    (c) => c.kodeCluster == selectedKodeCluster,
+                                    orElse: () => clusters.first,
+                                  );
+
+                                  return ValueListenableBuilder(
+                                    valueListenable: plotNotifier,
+                                    builder: (context, plotData, child) {
+                                      final plots = plotData; // List<PlotModel>
+
+                                      // 💡 Filter plot berdasarkan idCluster dari cluster terpilih
+                                      final plotsForSelectedCluster =
+                                          plots
+                                              .where(
+                                                (plot) =>
+                                                    plot.idCluster ==
+                                                    selectedCluster.id,
+                                              )
+                                              .toList();
+
+                                      return ValueListenableBuilder(
+                                        valueListenable: treeNotifier,
+                                        builder: (context, treeData, child) {
+                                          return PlotClusterManageDataWidget(
+                                            plotData: plotsForSelectedCluster,
+                                            treeData: treeData,
+                                            isEmpty:
+                                                plotsForSelectedCluster.isEmpty,
+                                          );
+                                        },
+                                      );
+                                    },
                                   );
                                 },
                               ),
@@ -113,6 +152,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                         );
                       },
                     ),
+
                     SizedBox(height: 12),
                     SizedBox(height: 80),
                   ],

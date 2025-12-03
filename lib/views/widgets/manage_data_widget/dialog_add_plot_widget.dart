@@ -92,7 +92,7 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
           children: [
             // 🔽 DROPDOWN KODE KLASTER
             DropdownButtonFormField<int>(
-              value: _selectedClusterId,
+              initialValue: _selectedClusterId,
               decoration: const InputDecoration(
                 labelText: "Klaster",
                 border: OutlineInputBorder(),

@@ -5,6 +5,7 @@ import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_dat
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widget.dart';
+import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widget.dart';
 import 'package:flutter/material.dart';
 
 class BottomsheetManageDataWidget extends StatefulWidget {
@@ -72,19 +73,6 @@ class _BottomsheetManageDataWidgetState
             warningMessage:
                 "Anda harus menambahkan setidaknya satu plot sebelum menambahkan $target.",
             backgroundColor: Colors.lightGreen.shade200,
-          ),
-    );
-  }
-
-  void _showSuccess({required String target}) {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder:
-          (context) => AlertWarningWidget(
-            // sementara pakai widget yang sama, cuma teks beda
-            warningMessage:
-                "Sukses bro! (dummy) Berhasil menambahkan $target 👍",
           ),
     );
   }
@@ -168,7 +156,7 @@ class _BottomsheetManageDataWidgetState
                           runSpacing: 10,
                           alignment: WrapAlignment.spaceEvenly,
                           children: [
-                            // K L A S T E R
+                            //* K L A S T E R
                             BtmButtonManageDataWidget(
                               label: "Klaster",
                               minSize: const Size(100, 40),
@@ -184,8 +172,7 @@ class _BottomsheetManageDataWidgetState
                                 );
                               },
                             ),
-
-                            // P L O T
+                            //* P L O T
                             BtmButtonManageDataWidget(
                               label: "Plot",
                               minSize: const Size(100, 40),
@@ -209,8 +196,7 @@ class _BottomsheetManageDataWidgetState
                                 );
                               },
                             ),
-
-                            // P O H O N
+                            //* P O H O N
                             BtmButtonManageDataWidget(
                               label: "Pohon",
                               minSize: const Size(100, 40),
@@ -222,9 +208,16 @@ class _BottomsheetManageDataWidgetState
                                   return;
                                 }
 
-                                // sementara: show alert "sukses bro"
-                                _showSuccess(target: "pohon");
-                                //? TODO: Handle add tree action
+                                showDialog(
+                                  barrierDismissible: false,
+                                  context: context,
+                                  builder:
+                                      (context) => DialogAddTreeWidget(
+                                        treeNotifier: widget.treeNotifier,
+                                        clusters: clusterState,
+                                        plots: plotState,
+                                      ),
+                                );
                               },
                             ),
                           ],

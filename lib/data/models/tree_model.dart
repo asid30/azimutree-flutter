@@ -1,11 +1,11 @@
 class TreeModel {
   int? id;
-  int plotId; // Foreign key ke Plot
-  int kodePohon;
+  int plotId; // Foreign key ke Plot (WAJIB)
+  int kodePohon; // WAJIB
   String? namaPohon;
   String? namaIlmiah;
-  double azimut;
-  double jarakPusatM;
+  double? azimut;
+  double? jarakPusatM;
   double? latitude;
   double? longitude;
   double? altitude;
@@ -18,8 +18,8 @@ class TreeModel {
     required this.kodePohon,
     this.namaPohon,
     this.namaIlmiah,
-    required this.azimut,
-    required this.jarakPusatM,
+    this.azimut,
+    this.jarakPusatM,
     this.latitude,
     this.longitude,
     this.altitude,
@@ -27,7 +27,6 @@ class TreeModel {
     this.urlFoto,
   });
 
-  // Converting Pohon to Map for database storage
   Map<String, dynamic> toMap() {
     return {
       'id': id,
@@ -45,21 +44,20 @@ class TreeModel {
     };
   }
 
-  // Factory constructor to create Pohon from Map
   factory TreeModel.fromMap(Map<String, dynamic> map) {
     return TreeModel(
-      id: map['id'],
-      plotId: map['plotId'],
-      kodePohon: map['kodePohon'],
-      namaPohon: map['namaPohon'],
-      namaIlmiah: map['namaIlmiah'],
-      azimut: map['azimut'],
-      jarakPusatM: map['jarakPusatM'],
-      latitude: map['latitude'],
-      longitude: map['longitude'],
-      altitude: map['altitude'],
-      keterangan: map['keterangan'],
-      urlFoto: map['urlFoto'],
+      id: map['id'] as int?,
+      plotId: map['plotId'] as int,
+      kodePohon: map['kodePohon'] as int,
+      namaPohon: map['namaPohon'] as String?,
+      namaIlmiah: map['namaIlmiah'] as String?,
+      azimut: (map['azimut'] as num?)?.toDouble(),
+      jarakPusatM: (map['jarakPusatM'] as num?)?.toDouble(),
+      latitude: (map['latitude'] as num?)?.toDouble(),
+      longitude: (map['longitude'] as num?)?.toDouble(),
+      altitude: (map['altitude'] as num?)?.toDouble(),
+      keterangan: map['keterangan'] as String?,
+      urlFoto: map['urlFoto'] as String?,
     );
   }
 }
