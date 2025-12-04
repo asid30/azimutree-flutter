@@ -25,13 +25,25 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
 
   int? _selectedClusterId; // id klaster terpilih (FK)
 
+  // Notifier untuk status valid form
+  final ValueNotifier<bool> _isFormValid = ValueNotifier(false);
+
   @override
   void initState() {
     super.initState();
+
     // optional: auto pilih klaster pertama kalau ada datanya
     if (widget.clusters.isNotEmpty) {
       _selectedClusterId = widget.clusters.first.id;
     }
+
+    // Dengarkan perubahan input buat validasi real-time
+    _kodePlotController.addListener(_validateForm);
+    _latitudeController.addListener(_validateForm);
+    _longitudeController.addListener(_validateForm);
+
+    // trigger awal
+    _validateForm();
   }
 
   @override
@@ -40,12 +52,33 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
     _latitudeController.dispose();
     _longitudeController.dispose();
     _altitudeController.dispose();
+    _isFormValid.dispose();
     super.dispose();
+  }
+
+  void _validateForm() {
+    final hasCluster = _selectedClusterId != null;
+
+    final kodeText = _kodePlotController.text.trim();
+    final latText = _latitudeController.text.trim();
+    final lonText = _longitudeController.text.trim();
+
+    final kodeValid = int.tryParse(kodeText) != null;
+    final latValid = double.tryParse(latText) != null;
+    final lonValid = double.tryParse(lonText) != null;
+
+    final isValid = hasCluster && kodeValid && latValid && lonValid;
+
+    if (_isFormValid.value != isValid) {
+      _isFormValid.value = isValid;
+    }
   }
 
   Future<void> _savePlot() async {
     // idCluster dari dropdown, bukan dari textfield
     final idCluster = _selectedClusterId;
+    if (idCluster == null) return; // harusnya nggak kejadian kalau tombol aktif
+
     final kodePlot = int.tryParse(_kodePlotController.text.trim());
     final latitude = double.tryParse(_latitudeController.text.trim());
     final longitude = double.tryParse(_longitudeController.text.trim());
@@ -54,15 +87,8 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
             ? double.tryParse(_altitudeController.text.trim())
             : null; // altitude boleh kosong
 
-    if (idCluster == null ||
-        kodePlot == null ||
-        latitude == null ||
-        longitude == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Mohon isi semua field wajib dengan benar'),
-        ),
-      );
+    // Safety guard, normalnya ini sudah valid karena tombol cuma aktif kalau valid
+    if (kodePlot == null || latitude == null || longitude == null) {
       return;
     }
 
@@ -77,7 +103,6 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
     await widget.plotNotifier.addPlot(newPlot);
 
     if (!mounted) return;
-
     Navigator.of(context).pop(true);
   }
 
@@ -109,6 +134,7 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
                 setState(() {
                   _selectedClusterId = value;
                 });
+                _validateForm();
               },
             ),
             const SizedBox(height: 8),
@@ -167,7 +193,15 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
           child: const Text("Batal"),
           onPressed: () => Navigator.of(context).pop(false),
         ),
-        TextButton(onPressed: _savePlot, child: const Text("Simpan")),
+        ValueListenableBuilder<bool>(
+          valueListenable: _isFormValid,
+          builder: (context, isValid, _) {
+            return TextButton(
+              onPressed: isValid ? _savePlot : null,
+              child: const Text("Simpan"),
+            );
+          },
+        ),
       ],
     );
   }

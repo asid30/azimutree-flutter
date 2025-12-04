@@ -9,7 +9,7 @@ enum TreePositionInputMode { azimuthDistance, coordinates }
 class DialogAddTreeWidget extends StatefulWidget {
   final TreeNotifier treeNotifier;
   final List<ClusterModel> clusters;
-  final List<PlotModel> plots; // semua plot, nanti difilter per klaster
+  final List<PlotModel> plots;
 
   const DialogAddTreeWidget({
     super.key,
@@ -23,7 +23,7 @@ class DialogAddTreeWidget extends StatefulWidget {
 }
 
 class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
-  // Controllers untuk field input
+  // Controllers field input
   final TextEditingController _kodePohonController = TextEditingController();
   final TextEditingController _namaPohonController = TextEditingController();
   final TextEditingController _namaIlmiahController = TextEditingController();
@@ -42,18 +42,31 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
 
   TreePositionInputMode _positionMode = TreePositionInputMode.azimuthDistance;
 
+  // Notifier status valid form
+  final ValueNotifier<bool> _isFormValid = ValueNotifier(false);
+
   @override
   void initState() {
     super.initState();
 
     if (widget.clusters.isNotEmpty) {
       _selectedClusterId = widget.clusters.first.id;
-
       final firstPlots = _filteredPlots;
       if (firstPlots.isNotEmpty) {
         _selectedPlotId = firstPlots.first.id;
       }
     }
+
+    // listener untuk validasi real-time
+    _kodePohonController.addListener(_validateForm);
+    _namaPohonController.addListener(_validateForm);
+    _namaIlmiahController.addListener(_validateForm);
+    _azimutController.addListener(_validateForm);
+    _jarakPusatController.addListener(_validateForm);
+    _latitudeController.addListener(_validateForm);
+    _longitudeController.addListener(_validateForm);
+
+    _validateForm();
   }
 
   @override
@@ -68,6 +81,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
     _latitudeController.dispose();
     _longitudeController.dispose();
     _altitudeController.dispose();
+    _isFormValid.dispose();
     super.dispose();
   }
 
@@ -78,45 +92,58 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
         .toList();
   }
 
-  Future<void> _saveTree() async {
+  void _validateForm() {
     final plotsForSelectedCluster = _filteredPlots;
     final hasPlotsForSelectedCluster = plotsForSelectedCluster.isNotEmpty;
+    final hasSelectedPlot = _selectedPlotId != null;
 
-    if (!hasPlotsForSelectedCluster || _selectedPlotId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Klaster ini belum memiliki plot. Tambahkan plot dulu.',
-          ),
-        ),
-      );
-      return;
-    }
-
-    final selectedPlotId = _selectedPlotId;
-
-    // --- Common required fields ---
     final kodePohonText = _kodePohonController.text.trim();
     final namaPohonText = _namaPohonController.text.trim();
     final namaIlmiahText = _namaIlmiahController.text.trim();
-
     final kodePohon = int.tryParse(kodePohonText);
 
-    if (kodePohonText.isEmpty ||
-        namaPohonText.isEmpty ||
-        namaIlmiahText.isEmpty ||
-        kodePohon == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Kode pohon, nama pohon, dan nama ilmiah wajib diisi dan kode harus angka.',
-          ),
-        ),
-      );
+    // posisi
+    bool positionValid = false;
+
+    if (_positionMode == TreePositionInputMode.azimuthDistance) {
+      final azimut = double.tryParse(_azimutController.text.trim());
+      final jarak = double.tryParse(_jarakPusatController.text.trim());
+      positionValid = azimut != null && jarak != null;
+    } else {
+      final lat = double.tryParse(_latitudeController.text.trim());
+      final lon = double.tryParse(_longitudeController.text.trim());
+      positionValid = lat != null && lon != null;
+    }
+
+    final isValid =
+        hasPlotsForSelectedCluster &&
+        hasSelectedPlot &&
+        kodePohonText.isNotEmpty &&
+        namaPohonText.isNotEmpty &&
+        namaIlmiahText.isNotEmpty &&
+        kodePohon != null &&
+        positionValid;
+
+    if (_isFormValid.value != isValid) {
+      _isFormValid.value = isValid;
+    }
+  }
+
+  Future<void> _saveTree() async {
+    final plotsForSelectedCluster = _filteredPlots;
+    final hasPlotsForSelectedCluster = plotsForSelectedCluster.isNotEmpty;
+    if (!hasPlotsForSelectedCluster || _selectedPlotId == null) {
+      // harusnya ga kejadian karena tombol disabled, tapi buat jaga-jaga
       return;
     }
 
-    // --- Optional fields ---
+    final selectedPlotId = _selectedPlotId!;
+
+    final kodePohonText = _kodePohonController.text.trim();
+    final namaPohonText = _namaPohonController.text.trim();
+    final namaIlmiahText = _namaIlmiahController.text.trim();
+    final kodePohon = int.tryParse(kodePohonText)!;
+
     final keterangan =
         _keteranganController.text.trim().isNotEmpty
             ? _keteranganController.text.trim()
@@ -132,65 +159,24 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
     double? longitude;
     double? altitude;
 
-    // Altitude bisa diisi di kedua mode
     if (_altitudeController.text.trim().isNotEmpty) {
       altitude = double.tryParse(_altitudeController.text.trim());
     }
 
-    // --- Mode 1: Azimut & Jarak ---
     if (_positionMode == TreePositionInputMode.azimuthDistance) {
-      final azimutText = _azimutController.text.trim();
-      final jarakText = _jarakPusatController.text.trim();
-
-      azimut = double.tryParse(azimutText);
-      jarakPusatM = double.tryParse(jarakText);
-
-      if (azimutText.isEmpty ||
-          jarakText.isEmpty ||
-          azimut == null ||
-          jarakPusatM == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Azimut dan jarak dari pusat wajib diisi di mode ini.',
-            ),
-          ),
-        );
-        return;
-      }
-
-      // Di mode ini koordinat tidak diisi manual (nanti bisa dihitung dari helper)
+      azimut = double.tryParse(_azimutController.text.trim());
+      jarakPusatM = double.tryParse(_jarakPusatController.text.trim());
       latitude = null;
       longitude = null;
     } else {
-      // --- Mode 2: Koordinat langsung ---
-      final latText = _latitudeController.text.trim();
-      final lonText = _longitudeController.text.trim();
-
-      latitude = double.tryParse(latText);
-      longitude = double.tryParse(lonText);
-
-      if (latText.isEmpty ||
-          lonText.isEmpty ||
-          latitude == null ||
-          longitude == null) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Latitude dan longitude wajib diisi di mode koordinat.',
-            ),
-          ),
-        );
-        return;
-      }
-
-      // Di mode koordinat, azimut & jarak dibiarkan null
+      latitude = double.tryParse(_latitudeController.text.trim());
+      longitude = double.tryParse(_longitudeController.text.trim());
       azimut = null;
       jarakPusatM = null;
     }
 
     final newTree = TreeModel(
-      plotId: selectedPlotId!,
+      plotId: selectedPlotId,
       kodePohon: kodePohon,
       namaPohon: namaPohonText,
       namaIlmiah: namaIlmiahText,
@@ -206,7 +192,6 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
     await widget.treeNotifier.addTree(newTree);
 
     if (!mounted) return;
-
     Navigator.of(context).pop(true);
   }
 
@@ -214,7 +199,6 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
   Widget build(BuildContext context) {
     final plotsForSelectedCluster = _filteredPlots;
     final hasPlotsForSelectedCluster = plotsForSelectedCluster.isNotEmpty;
-
     final bool fieldsEnabled = hasPlotsForSelectedCluster;
 
     return AlertDialog(
@@ -224,7 +208,8 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // Dropdown Klaster (selalu aktif)
+            SizedBox(height: 8),
+            // Dropdown Klaster
             DropdownButtonFormField<int>(
               initialValue: _selectedClusterId,
               decoration: const InputDecoration(
@@ -246,11 +231,12 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                   _selectedPlotId =
                       filtered.isNotEmpty ? filtered.first.id : null;
                 });
+                _validateForm();
               },
             ),
             const SizedBox(height: 8),
 
-            // Dropdown Plot (tergantung klaster)
+            // Dropdown Plot
             DropdownButtonFormField<int>(
               initialValue: _selectedPlotId,
               decoration: const InputDecoration(
@@ -271,6 +257,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                         setState(() {
                           _selectedPlotId = value;
                         });
+                        _validateForm();
                       }
                       : null,
             ),
@@ -284,7 +271,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
               ),
             const SizedBox(height: 8),
 
-            // Mode input posisi
+            // Metode input posisi
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -319,6 +306,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                             setState(() {
                               _positionMode = newSelection.first;
                             });
+                            _validateForm();
                           }
                           : null,
                   multiSelectionEnabled: false,
@@ -328,7 +316,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
             ),
             const SizedBox(height: 8),
 
-            // 🔁 Field posisi: tergantung mode
+            // Field posisi sesuai mode
             if (_positionMode == TreePositionInputMode.azimuthDistance) ...[
               Row(
                 children: [
@@ -398,7 +386,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
             ],
             const SizedBox(height: 8),
 
-            // Altitude selalu setelah field posisi
+            // Altitude
             TextField(
               controller: _altitudeController,
               decoration: const InputDecoration(
@@ -412,6 +400,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
             ),
             const SizedBox(height: 8),
 
+            // Identitas pohon
             TextField(
               controller: _kodePohonController,
               decoration: const InputDecoration(
@@ -443,6 +432,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
             ),
             const SizedBox(height: 8),
 
+            // Opsional
             TextField(
               controller: _keteranganController,
               decoration: const InputDecoration(
@@ -470,9 +460,15 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
           child: const Text("Batal"),
           onPressed: () => Navigator.of(context).pop(false),
         ),
-        TextButton(
-          onPressed: hasPlotsForSelectedCluster ? _saveTree : null,
-          child: const Text("Simpan"),
+        ValueListenableBuilder<bool>(
+          valueListenable: _isFormValid,
+          builder: (context, isValid, _) {
+            return TextButton(
+              onPressed:
+                  (isValid && hasPlotsForSelectedCluster) ? _saveTree : null,
+              child: const Text("Simpan"),
+            );
+          },
         ),
       ],
     );
