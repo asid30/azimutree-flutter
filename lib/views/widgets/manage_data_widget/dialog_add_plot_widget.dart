@@ -63,11 +63,19 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
     final latText = _latitudeController.text.trim();
     final lonText = _longitudeController.text.trim();
 
-    final kodeValid = int.tryParse(kodeText) != null;
+    final kode = int.tryParse(kodeText);
     final latValid = double.tryParse(latText) != null;
     final lonValid = double.tryParse(lonText) != null;
 
-    final isValid = hasCluster && kodeValid && latValid && lonValid;
+    final hasDuplicate = hasCluster && kode != null
+        ? widget.plotNotifier.value.any(
+            (plot) =>
+                plot.idCluster == _selectedClusterId && plot.kodePlot == kode,
+          )
+        : false;
+
+    final isValid =
+        hasCluster && kode != null && latValid && lonValid && !hasDuplicate;
 
     if (_isFormValid.value != isValid) {
       _isFormValid.value = isValid;
@@ -89,6 +97,22 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
 
     // Safety guard, normalnya ini sudah valid karena tombol cuma aktif kalau valid
     if (kodePlot == null || latitude == null || longitude == null) {
+      return;
+    }
+
+    final hasDuplicate = widget.plotNotifier.value.any(
+      (plot) => plot.idCluster == idCluster && plot.kodePlot == kodePlot,
+    );
+
+    if (hasDuplicate) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Kode plot sudah ada pada klaster ini. Gunakan kode plot lain.',
+          ),
+        ),
+      );
       return;
     }
 

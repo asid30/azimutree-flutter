@@ -3,6 +3,7 @@ import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
+import 'package:azimutree/services/azimuth_latlong_service.dart';
 
 enum TreePositionInputMode { azimuthDistance, coordinates }
 
@@ -115,6 +116,13 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
       positionValid = lat != null && lon != null;
     }
 
+    final hasDuplicate = _selectedPlotId != null && kodePohon != null
+        ? widget.treeNotifier.value.any(
+            (tree) =>
+                tree.plotId == _selectedPlotId && tree.kodePohon == kodePohon,
+          )
+        : false;
+
     final isValid =
         hasPlotsForSelectedCluster &&
         hasSelectedPlot &&
@@ -122,7 +130,8 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
         namaPohonText.isNotEmpty &&
         namaIlmiahText.isNotEmpty &&
         kodePohon != null &&
-        positionValid;
+        positionValid &&
+        !hasDuplicate;
 
     if (_isFormValid.value != isValid) {
       _isFormValid.value = isValid;
@@ -138,6 +147,8 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
     }
 
     final selectedPlotId = _selectedPlotId!;
+    final selectedPlot =
+        plotsForSelectedCluster.firstWhere((plot) => plot.id == selectedPlotId);
 
     final kodePohonText = _kodePohonController.text.trim();
     final namaPohonText = _namaPohonController.text.trim();
@@ -166,13 +177,47 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
     if (_positionMode == TreePositionInputMode.azimuthDistance) {
       azimut = double.tryParse(_azimutController.text.trim());
       jarakPusatM = double.tryParse(_jarakPusatController.text.trim());
-      latitude = null;
-      longitude = null;
+      if (azimut == null || jarakPusatM == null) return;
+
+      final targetPoint = AzimuthLatLongService.fromAzimuthDistance(
+        centerLatDeg: selectedPlot.latitude,
+        centerLonDeg: selectedPlot.longitude,
+        azimuthDeg: azimut,
+        distanceM: jarakPusatM!,
+      );
+
+      latitude = targetPoint.latitude;
+      longitude = targetPoint.longitude;
     } else {
       latitude = double.tryParse(_latitudeController.text.trim());
       longitude = double.tryParse(_longitudeController.text.trim());
-      azimut = null;
-      jarakPusatM = null;
+      if (latitude == null || longitude == null) return;
+
+      final azimuthDistance = AzimuthLatLongService.toAzimuthDistance(
+        centerLatDeg: selectedPlot.latitude,
+        centerLonDeg: selectedPlot.longitude,
+        targetLatDeg: latitude!,
+        targetLonDeg: longitude!,
+      );
+
+      azimut = azimuthDistance.azimuthDeg;
+      jarakPusatM = azimuthDistance.distanceM;
+    }
+
+    final hasDuplicate = widget.treeNotifier.value.any(
+      (tree) => tree.plotId == selectedPlotId && tree.kodePohon == kodePohon,
+    );
+
+    if (hasDuplicate) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            'Kode pohon sudah ada pada plot ini. Gunakan kode pohon lain.',
+          ),
+        ),
+      );
+      return;
     }
 
     final newTree = TreeModel(
