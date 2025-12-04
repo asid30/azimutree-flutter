@@ -75,30 +75,19 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
     final latText = _latitudeController.text.trim();
     final lonText = _longitudeController.text.trim();
 
+    final kode = int.tryParse(kodeText);
     final latValid = double.tryParse(latText) != null;
     final lonValid = double.tryParse(lonText) != null;
 
-    final hasDuplicate = hasCluster && _selectedPlotCode != null
+    final hasDuplicate = hasCluster && kode != null
         ? widget.plotNotifier.value.any(
-            (plot) => plot.idCluster == _selectedClusterId &&
-                plot.kodePlot == _selectedPlotCode,
+            (plot) =>
+                plot.idCluster == _selectedClusterId && plot.kodePlot == kode,
           )
         : false;
 
-    if (_isDuplicateCode != hasDuplicate) {
-      setState(() {
-        _isDuplicateCode = hasDuplicate;
-      });
-    } else {
-      _isDuplicateCode = hasDuplicate;
-    }
-
     final isValid =
-        hasCluster &&
-            _selectedPlotCode != null &&
-            latValid &&
-            lonValid &&
-            !hasDuplicate;
+        hasCluster && kode != null && latValid && lonValid && !hasDuplicate;
 
     if (_isFormValid.value != isValid) {
       _isFormValid.value = isValid;

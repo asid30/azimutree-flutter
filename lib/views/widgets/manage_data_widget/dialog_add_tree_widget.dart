@@ -4,7 +4,6 @@ import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/services/azimuth_latlong_service.dart';
-import 'package:azimutree/data/notifiers/notifiers.dart';
 
 enum TreePositionInputMode { azimuthDistance, coordinates }
 
@@ -142,14 +141,6 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
           )
         : false;
 
-    if (_isDuplicateCode != hasDuplicate) {
-      setState(() {
-        _isDuplicateCode = hasDuplicate;
-      });
-    } else {
-      _isDuplicateCode = hasDuplicate;
-    }
-
     final isValid =
         hasPlotsForSelectedCluster &&
         hasSelectedPlot &&
@@ -174,9 +165,9 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
     }
 
     final selectedPlotId = _selectedPlotId!;
-    final selectedPlot =
-        plotsForSelectedCluster.firstWhere((plot) => plot.id == selectedPlotId);
-
+    final selectedPlot = plotsForSelectedCluster.firstWhere(
+      (plot) => plot.id == selectedPlotId,
+    );
     final kodePohonText = _kodePohonController.text.trim();
     final namaPohonText = _capitalizeWords(_namaPohonController.text.trim());
     final namaIlmiahText = _capitalizeWords(_namaIlmiahController.text.trim());
@@ -210,7 +201,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
         centerLatDeg: selectedPlot.latitude,
         centerLonDeg: selectedPlot.longitude,
         azimuthDeg: azimut,
-        distanceM: jarakPusatM!,
+        distanceM: jarakPusatM,
       );
 
       latitude = targetPoint.latitude;
@@ -223,28 +214,12 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
       final azimuthDistance = AzimuthLatLongService.toAzimuthDistance(
         centerLatDeg: selectedPlot.latitude,
         centerLonDeg: selectedPlot.longitude,
-        targetLatDeg: latitude!,
-        targetLonDeg: longitude!,
+        targetLatDeg: latitude,
+        targetLonDeg: longitude,
       );
 
       azimut = azimuthDistance.azimuthDeg;
       jarakPusatM = azimuthDistance.distanceM;
-    }
-
-    final hasDuplicate = widget.treeNotifier.value.any(
-      (tree) => tree.plotId == selectedPlotId && tree.kodePohon == kodePohon,
-    );
-
-    if (hasDuplicate) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Kode pohon sudah ada pada plot ini. Gunakan kode pohon lain.',
-          ),
-        ),
-      );
-      return;
     }
 
     final newTree = TreeModel(

@@ -54,14 +54,6 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
       (cluster) => cluster.kodeCluster.toUpperCase() == kode,
     );
 
-    if (_isDuplicateCode != isDuplicate) {
-      setState(() {
-        _isDuplicateCode = isDuplicate;
-      });
-    } else {
-      _isDuplicateCode = isDuplicate;
-    }
-
     final isValid = kode.isNotEmpty && nama.isNotEmpty && !isDuplicate;
 
     if (_isFormValid.value != isValid) {
@@ -87,7 +79,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
       return;
     }
 
-    final namaPengukur = _capitalizeWords(_namaPengukurController.text.trim());
+    final namaPengukur = _namaPengukurController.text.trim();
     final tanggalText = _tanggalPengukuranController.text.trim();
 
     DateTime? tanggalPengukuran;
