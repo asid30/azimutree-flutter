@@ -65,6 +65,9 @@ class PlotClusterManageDataWidget extends StatelessWidget {
     }
 
     // Normal case: ada plot untuk klaster ini
+    final sortedPlotData = [...plotData]
+      ..sort((a, b) => a.kodePlot.compareTo(b.kodePlot));
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -81,7 +84,7 @@ class PlotClusterManageDataWidget extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          for (final plot in plotData) ...[
+          for (final plot in sortedPlotData) ...[
             Theme(
               data: ThemeData().copyWith(dividerColor: Colors.transparent),
               child: ExpansionTile(
