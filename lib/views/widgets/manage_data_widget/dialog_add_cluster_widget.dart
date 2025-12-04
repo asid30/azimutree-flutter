@@ -19,14 +19,21 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
 
   // Notifier: apakah form valid?
   final ValueNotifier<bool> _isFormValid = ValueNotifier(false);
+  bool _isDuplicateCode = false;
 
   @override
   void initState() {
     super.initState();
 
-    // Listener setiap kali user mengetik → validasi ulang
-    _kodeClusterController.addListener(_validateForm);
-    _namaPengukurController.addListener(_validateForm);
+    // Listener setiap kali user mengetik → normalisasi & validasi ulang
+    _kodeClusterController.addListener(() {
+      _syncUppercase(_kodeClusterController);
+      _validateForm();
+    });
+    _namaPengukurController.addListener(() {
+      _syncCapitalizedWords(_namaPengukurController);
+      _validateForm();
+    });
   }
 
   @override
@@ -39,10 +46,23 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
   }
 
   void _validateForm() {
-    final kode = _kodeClusterController.text.trim();
+    final kode =
+        _kodeClusterController.text.replaceAll(RegExp(r'\s+'), '').toUpperCase();
     final nama = _namaPengukurController.text.trim();
 
-    final isValid = kode.isNotEmpty && nama.isNotEmpty;
+    final isDuplicate = widget.clusterNotifier.value.any(
+      (cluster) => cluster.kodeCluster.toUpperCase() == kode,
+    );
+
+    if (_isDuplicateCode != isDuplicate) {
+      setState(() {
+        _isDuplicateCode = isDuplicate;
+      });
+    } else {
+      _isDuplicateCode = isDuplicate;
+    }
+
+    final isValid = kode.isNotEmpty && nama.isNotEmpty && !isDuplicate;
 
     if (_isFormValid.value != isValid) {
       _isFormValid.value = isValid;
@@ -55,7 +75,19 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
             .replaceAll(RegExp(r'\s+'), '')
             .toUpperCase();
 
-    final namaPengukur = _namaPengukurController.text.trim();
+    final hasDuplicate = widget.clusterNotifier.value.any(
+      (cluster) => cluster.kodeCluster.toUpperCase() == kodeCluster,
+    );
+
+    if (hasDuplicate) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kode klaster sudah ada. Gunakan kode lain.')),
+      );
+      return;
+    }
+
+    final namaPengukur = _capitalizeWords(_namaPengukurController.text.trim());
     final tanggalText = _tanggalPengukuranController.text.trim();
 
     DateTime? tanggalPengukuran;
@@ -91,6 +123,37 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
     }
   }
 
+  void _syncUppercase(TextEditingController controller) {
+    final sanitized = controller.text.toUpperCase();
+    if (controller.text != sanitized) {
+      controller.value = TextEditingValue(
+        text: sanitized,
+        selection: TextSelection.collapsed(offset: sanitized.length),
+      );
+    }
+  }
+
+  void _syncCapitalizedWords(TextEditingController controller) {
+    final sanitized = _capitalizeWords(controller.text);
+    if (controller.text != sanitized) {
+      controller.value = TextEditingValue(
+        text: sanitized,
+        selection: TextSelection.collapsed(offset: sanitized.length),
+      );
+    }
+  }
+
+  String _capitalizeWords(String value) {
+    return value
+        .split(RegExp(r'\s+'))
+        .where((word) => word.isNotEmpty)
+        .map(
+          (word) =>
+              word[0].toUpperCase() + (word.length > 1 ? word.substring(1).toLowerCase() : ''),
+        )
+        .join(' ');
+  }
+
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
@@ -103,10 +166,13 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
             // Kode Klaster
             TextField(
               controller: _kodeClusterController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: "Kode Klaster (wajib)",
-                border: OutlineInputBorder(),
+                border: const OutlineInputBorder(),
                 helperText: "Contoh: CL01 (otomatis huruf besar)",
+                errorText: _isDuplicateCode
+                    ? 'Kode klaster sudah ada, gunakan kode lain.'
+                    : null,
               ),
               textCapitalization: TextCapitalization.characters,
             ),
