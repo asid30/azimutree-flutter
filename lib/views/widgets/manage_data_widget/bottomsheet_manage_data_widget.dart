@@ -1,4 +1,6 @@
+import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_data_widget.dart';
@@ -147,80 +149,104 @@ class _BottomsheetManageDataWidgetState
                   valueListenable: widget.clusterNotifier,
                   builder: (context, clusterState, child) {
                     final bool hasCluster = clusterState.isNotEmpty;
-                    return ValueListenableBuilder(
-                      valueListenable: widget.plotNotifier,
-                      builder: (context, plotState, child) {
-                        final bool hasPlot = plotState.isNotEmpty;
-                        return Wrap(
-                          spacing: 10,
-                          runSpacing: 10,
-                          alignment: WrapAlignment.spaceEvenly,
-                          children: [
-                            //* K L A S T E R
-                            BtmButtonManageDataWidget(
-                              label: "Klaster",
-                              minSize: const Size(100, 40),
-                              maxSize: const Size(150, 70),
-                              onPressed: () {
-                                showDialog(
-                                  barrierDismissible: false,
-                                  context: context,
-                                  builder:
-                                      (context) => DialogAddClusterWidget(
-                                        clusterNotifier: widget.clusterNotifier,
-                                      ),
-                                );
-                              },
-                            ),
-                            //* P L O T
-                            BtmButtonManageDataWidget(
-                              label: "Plot",
-                              minSize: const Size(100, 40),
-                              maxSize: const Size(150, 70),
-                              // kalau kamu mau beda warna ketika belum ada klaster:
-                              isEnabled: hasCluster,
-                              onPressed: () {
-                                if (!hasCluster) {
-                                  _showWarningNeedCluster(target: "plot");
-                                  return;
-                                }
+                    return ValueListenableBuilder<String?>(
+                      valueListenable: selectedDropdownClusterNotifier,
+                      builder: (context, selectedClusterCode, _) {
+                        final selectedCluster = hasCluster
+                            ? clusterState.firstWhere(
+                                (cluster) =>
+                                    cluster.kodeCluster == selectedClusterCode,
+                                orElse: () => clusterState.first,
+                              )
+                            : null;
 
-                                showDialog(
-                                  barrierDismissible: false,
-                                  context: context,
-                                  builder:
-                                      (context) => DialogAddPlotWidget(
-                                        plotNotifier: widget.plotNotifier,
-                                        clusters: clusterState,
-                                      ),
-                                );
-                              },
-                            ),
-                            //* P O H O N
-                            BtmButtonManageDataWidget(
-                              label: "Pohon",
-                              minSize: const Size(100, 40),
-                              maxSize: const Size(150, 70),
-                              isEnabled: hasPlot,
-                              onPressed: () {
-                                if (!hasPlot) {
-                                  _showWarningNeedPlot(target: "pohon");
-                                  return;
-                                }
+                        return ValueListenableBuilder(
+                          valueListenable: widget.plotNotifier,
+                          builder: (context, plotState, child) {
+                            final plotsForSelectedCluster = selectedCluster == null
+                                ? <PlotModel>[]
+                                : plotState
+                                    .where(
+                                      (plot) =>
+                                          plot.idCluster == selectedCluster.id,
+                                    )
+                                    .toList();
+                            final bool hasPlotForSelectedCluster =
+                                plotsForSelectedCluster.isNotEmpty;
 
-                                showDialog(
-                                  barrierDismissible: false,
-                                  context: context,
-                                  builder:
-                                      (context) => DialogAddTreeWidget(
-                                        treeNotifier: widget.treeNotifier,
-                                        clusters: clusterState,
-                                        plots: plotState,
-                                      ),
-                                );
-                              },
-                            ),
-                          ],
+                            return Wrap(
+                              spacing: 10,
+                              runSpacing: 10,
+                              alignment: WrapAlignment.spaceEvenly,
+                              children: [
+                                //* K L A S T E R
+                                BtmButtonManageDataWidget(
+                                  label: "Klaster",
+                                  minSize: const Size(100, 40),
+                                  maxSize: const Size(150, 70),
+                                  onPressed: () {
+                                    showDialog(
+                                      barrierDismissible: false,
+                                      context: context,
+                                      builder:
+                                          (context) => DialogAddClusterWidget(
+                                            clusterNotifier:
+                                                widget.clusterNotifier,
+                                          ),
+                                    );
+                                  },
+                                ),
+                                //* P L O T
+                                BtmButtonManageDataWidget(
+                                  label: "Plot",
+                                  minSize: const Size(100, 40),
+                                  maxSize: const Size(150, 70),
+                                  // kalau kamu mau beda warna ketika belum ada klaster:
+                                  isEnabled: hasCluster,
+                                  onPressed: () {
+                                    if (!hasCluster) {
+                                      _showWarningNeedCluster(target: "plot");
+                                      return;
+                                    }
+
+                                    showDialog(
+                                      barrierDismissible: false,
+                                      context: context,
+                                      builder:
+                                          (context) => DialogAddPlotWidget(
+                                            plotNotifier: widget.plotNotifier,
+                                            clusters: clusterState,
+                                          ),
+                                    );
+                                  },
+                                ),
+                                //* P O H O N
+                                BtmButtonManageDataWidget(
+                                  label: "Pohon",
+                                  minSize: const Size(100, 40),
+                                  maxSize: const Size(150, 70),
+                                  isEnabled: hasPlotForSelectedCluster,
+                                  onPressed: () {
+                                    if (!hasPlotForSelectedCluster) {
+                                      _showWarningNeedPlot(target: "pohon");
+                                      return;
+                                    }
+
+                                    showDialog(
+                                      barrierDismissible: false,
+                                      context: context,
+                                      builder:
+                                          (context) => DialogAddTreeWidget(
+                                            treeNotifier: widget.treeNotifier,
+                                            clusters: clusterState,
+                                            plots: plotState,
+                                          ),
+                                    );
+                                  },
+                                ),
+                              ],
+                            );
+                          },
                         );
                       },
                     );

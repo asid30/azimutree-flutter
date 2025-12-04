@@ -158,9 +158,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
         buffer.write(char);
         capitalizeNext = true;
       } else {
-        buffer.write(
-          capitalizeNext ? char.toUpperCase() : char.toLowerCase(),
-        );
+        buffer.write(capitalizeNext ? char.toUpperCase() : char.toLowerCase());
         capitalizeNext = false;
       }
     }
@@ -183,7 +181,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
               decoration: InputDecoration(
                 labelText: "Kode Klaster (wajib)",
                 border: const OutlineInputBorder(),
-                helperText: "Contoh: CL01 (otomatis huruf besar)",
+                helperText: "Contoh: CL1 (otomatis huruf besar)",
                 helperMaxLines: 2,
                 errorText:
                     _isDuplicateCode
