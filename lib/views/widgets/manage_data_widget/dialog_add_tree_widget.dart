@@ -40,7 +40,6 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
 
   int? _selectedClusterId;
   int? _selectedPlotId;
-  bool _isDuplicateCode = false;
 
   TreePositionInputMode _positionMode = TreePositionInputMode.azimuthDistance;
 
@@ -52,18 +51,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
     super.initState();
 
     if (widget.clusters.isNotEmpty) {
-      final activeCode = selectedDropdownClusterNotifier.value;
-      ClusterModel? activeCluster;
-      if (activeCode != null) {
-        try {
-          activeCluster = widget.clusters
-              .firstWhere((cluster) => cluster.kodeCluster == activeCode);
-        } catch (_) {
-          activeCluster = null;
-        }
-      }
-
-      _selectedClusterId = activeCluster?.id ?? widget.clusters.first.id;
+      _selectedClusterId = widget.clusters.first.id;
       final firstPlots = _filteredPlots;
       if (firstPlots.isNotEmpty) {
         _selectedPlotId = firstPlots.first.id;
@@ -72,14 +60,8 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
 
     // listener untuk validasi real-time
     _kodePohonController.addListener(_validateForm);
-    _namaPohonController.addListener(() {
-      _syncCapitalizedWords(_namaPohonController);
-      _validateForm();
-    });
-    _namaIlmiahController.addListener(() {
-      _syncCapitalizedWords(_namaIlmiahController);
-      _validateForm();
-    });
+    _namaPohonController.addListener(_validateForm);
+    _namaIlmiahController.addListener(_validateForm);
     _azimutController.addListener(_validateForm);
     _jarakPusatController.addListener(_validateForm);
     _latitudeController.addListener(_validateForm);
@@ -169,13 +151,13 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
       (plot) => plot.id == selectedPlotId,
     );
     final kodePohonText = _kodePohonController.text.trim();
-    final namaPohonText = _capitalizeWords(_namaPohonController.text.trim());
-    final namaIlmiahText = _capitalizeWords(_namaIlmiahController.text.trim());
+    final namaPohonText = _namaPohonController.text.trim();
+    final namaIlmiahText = _namaIlmiahController.text.trim();
     final kodePohon = int.tryParse(kodePohonText)!;
 
     final keterangan =
         _keteranganController.text.trim().isNotEmpty
-            ? _capitalizeWords(_keteranganController.text.trim())
+            ? _keteranganController.text.trim()
             : null;
     final urlFoto =
         _urlFotoController.text.trim().isNotEmpty
@@ -240,27 +222,6 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
 
     if (!mounted) return;
     Navigator.of(context).pop(true);
-  }
-
-  void _syncCapitalizedWords(TextEditingController controller) {
-    final sanitized = _capitalizeWords(controller.text);
-    if (controller.text != sanitized) {
-      controller.value = TextEditingValue(
-        text: sanitized,
-        selection: TextSelection.collapsed(offset: sanitized.length),
-      );
-    }
-  }
-
-  String _capitalizeWords(String value) {
-    return value
-        .split(RegExp(r'\s+'))
-        .where((word) => word.isNotEmpty)
-        .map(
-          (word) =>
-              word[0].toUpperCase() + (word.length > 1 ? word.substring(1).toLowerCase() : ''),
-        )
-        .join(' ');
   }
 
   @override
@@ -471,12 +432,9 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
             // Identitas pohon
             TextField(
               controller: _kodePohonController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: "Kode Pohon",
-                border: const OutlineInputBorder(),
-                errorText: _isDuplicateCode
-                    ? 'Kode pohon sudah ada, gunakan kode lain.'
-                    : null,
+                border: OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
               enabled: fieldsEnabled,
@@ -489,7 +447,6 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 labelText: "Nama Pohon",
                 border: OutlineInputBorder(),
               ),
-              textCapitalization: TextCapitalization.words,
               enabled: fieldsEnabled,
             ),
             const SizedBox(height: 8),
@@ -500,7 +457,6 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 labelText: "Nama Ilmiah",
                 border: OutlineInputBorder(),
               ),
-              textCapitalization: TextCapitalization.words,
               enabled: fieldsEnabled,
             ),
             const SizedBox(height: 8),
@@ -513,7 +469,6 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 border: OutlineInputBorder(),
               ),
               maxLines: 2,
-              textCapitalization: TextCapitalization.sentences,
               enabled: fieldsEnabled,
             ),
             const SizedBox(height: 8),
