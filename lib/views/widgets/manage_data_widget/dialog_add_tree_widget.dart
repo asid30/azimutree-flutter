@@ -116,6 +116,13 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
       positionValid = lat != null && lon != null;
     }
 
+    final hasDuplicate = _selectedPlotId != null && kodePohon != null
+        ? widget.treeNotifier.value.any(
+            (tree) =>
+                tree.plotId == _selectedPlotId && tree.kodePohon == kodePohon,
+          )
+        : false;
+
     final isValid =
         hasPlotsForSelectedCluster &&
         hasSelectedPlot &&
@@ -123,7 +130,8 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
         namaPohonText.isNotEmpty &&
         namaIlmiahText.isNotEmpty &&
         kodePohon != null &&
-        positionValid;
+        positionValid &&
+        !hasDuplicate;
 
     if (_isFormValid.value != isValid) {
       _isFormValid.value = isValid;

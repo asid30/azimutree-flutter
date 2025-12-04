@@ -39,10 +39,15 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
   }
 
   void _validateForm() {
-    final kode = _kodeClusterController.text.trim();
+    final kode =
+        _kodeClusterController.text.replaceAll(RegExp(r'\s+'), '').toUpperCase();
     final nama = _namaPengukurController.text.trim();
 
-    final isValid = kode.isNotEmpty && nama.isNotEmpty;
+    final isDuplicate = widget.clusterNotifier.value.any(
+      (cluster) => cluster.kodeCluster.toUpperCase() == kode,
+    );
+
+    final isValid = kode.isNotEmpty && nama.isNotEmpty && !isDuplicate;
 
     if (_isFormValid.value != isValid) {
       _isFormValid.value = isValid;
@@ -54,6 +59,18 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
         _kodeClusterController.text
             .replaceAll(RegExp(r'\s+'), '')
             .toUpperCase();
+
+    final hasDuplicate = widget.clusterNotifier.value.any(
+      (cluster) => cluster.kodeCluster.toUpperCase() == kodeCluster,
+    );
+
+    if (hasDuplicate) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Kode klaster sudah ada. Gunakan kode lain.')),
+      );
+      return;
+    }
 
     final namaPengukur = _namaPengukurController.text.trim();
     final tanggalText = _tanggalPengukuranController.text.trim();
