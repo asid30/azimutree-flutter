@@ -148,15 +148,24 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
   }
 
   String _capitalizeWords(String value) {
-    return value
-        .split(RegExp(r'\s+'))
-        .where((word) => word.isNotEmpty)
-        .map(
-          (word) =>
-              word[0].toUpperCase() +
-              (word.length > 1 ? word.substring(1).toLowerCase() : ''),
-        )
-        .join(' ');
+    final buffer = StringBuffer();
+    var capitalizeNext = true;
+
+    for (final rune in value.runes) {
+      final char = String.fromCharCode(rune);
+
+      if (char.trim().isEmpty) {
+        buffer.write(char);
+        capitalizeNext = true;
+      } else {
+        buffer.write(
+          capitalizeNext ? char.toUpperCase() : char.toLowerCase(),
+        );
+        capitalizeNext = false;
+      }
+    }
+
+    return buffer.toString();
   }
 
   @override
