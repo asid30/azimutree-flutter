@@ -1,13 +1,19 @@
 import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/data/models/plot_model.dart';
+import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
 
 class SelectedClusterManageDataWidget extends StatelessWidget {
   final List<ClusterModel> clustersData;
+  final List<PlotModel> plotData;
+  final List<TreeModel> treeData;
 
   const SelectedClusterManageDataWidget({
     super.key,
     this.clustersData = const [],
+    this.plotData = const [],
+    this.treeData = const [],
   });
 
   @override
@@ -16,11 +22,29 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
       valueListenable: selectedDropdownClusterNotifier,
       builder: (context, selectedClusterCode, child) {
         ClusterModel? selectedCluster;
+        int plotCount = 0;
+        int treeCount = 0;
         if (selectedClusterCode != null && clustersData.isNotEmpty) {
           try {
             selectedCluster = clustersData.firstWhere(
               (c) => c.kodeCluster == selectedClusterCode,
             );
+            if (selectedCluster.id != null) {
+              plotCount = plotData
+                  .where((plot) => plot.idCluster == selectedCluster?.id)
+                  .length;
+
+              final clusterPlotIds = plotData
+                  .where(
+                    (plot) =>
+                        plot.idCluster == selectedCluster?.id && plot.id != null,
+                  )
+                  .map((plot) => plot.id!)
+                  .toSet();
+              treeCount = treeData
+                  .where((tree) => clusterPlotIds.contains(tree.plotId))
+                  .length;
+            }
           } catch (_) {
             selectedCluster = null; // kalau tidak ketemu
           }
@@ -58,6 +82,8 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                         children: [
                           _row("Kode Klaster", selectedCluster.kodeCluster),
                           _row("Pengukur", selectedCluster.namaPengukur ?? "-"),
+                          _row("Jumlah Plot", plotCount.toString()),
+                          _row("Jumlah Pohon", treeCount.toString()),
                           _row(
                             "Tanggal Pengukuran",
                             selectedCluster.tanggalPengukuran != null

@@ -101,6 +101,15 @@ class PlotClusterManageDataWidget extends StatelessWidget {
                       "Altitude",
                       plot.altitude != null ? "${plot.altitude} m" : "-",
                     ),
+                    _row(
+                      "Jumlah Pohon",
+                      plot.id != null
+                          ? treeData
+                              .where((tree) => tree.plotId == plot.id)
+                              .length
+                              .toString()
+                          : "0",
+                    ),
                   ],
                 ),
                 tilePadding: EdgeInsets.zero,

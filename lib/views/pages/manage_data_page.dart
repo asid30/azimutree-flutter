@@ -101,8 +101,20 @@ class _ManageDataPageState extends State<ManageDataPage> {
                             ),
                             const SizedBox(height: 12),
 
-                            SelectedClusterManageDataWidget(
-                              clustersData: clusters,
+                            ValueListenableBuilder(
+                              valueListenable: plotNotifier,
+                              builder: (context, plotData, _) {
+                                return ValueListenableBuilder(
+                                  valueListenable: treeNotifier,
+                                  builder: (context, treeData, __) {
+                                    return SelectedClusterManageDataWidget(
+                                      clustersData: clusters,
+                                      plotData: plotData,
+                                      treeData: treeData,
+                                    );
+                                  },
+                                );
+                              },
                             ),
                             const SizedBox(height: 12),
 
