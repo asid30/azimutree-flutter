@@ -1,4 +1,5 @@
 import 'package:azimutree/data/models/tree_model.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 class TreePlotManageDataWidget extends StatelessWidget {
@@ -138,32 +139,19 @@ class TreePlotManageDataWidget extends StatelessWidget {
   Widget _buildTreeImage(TreeModel tree) {
     final url = tree.urlFoto!;
 
-    return Image.network(
-      url,
+    return CachedNetworkImage(
+      imageUrl: url,
       fit: BoxFit.cover,
-      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-        if (wasSynchronouslyLoaded) return child;
-
-        if (frame == null) {
-          return const Center(
-            child: SizedBox(
-              width: 28,
-              height: 28,
-              child: CircularProgressIndicator(strokeWidth: 2.5),
-            ),
-          );
-        }
-        return AnimatedOpacity(
-          opacity: 1,
-          duration: const Duration(milliseconds: 250),
-          child: child,
-        );
-      },
-      errorBuilder: (context, error, stackTrace) {
-        return const Center(
-          child: Icon(Icons.broken_image, color: Colors.grey),
-        );
-      },
+      placeholder: (context, _) => const Center(
+        child: SizedBox(
+          width: 28,
+          height: 28,
+          child: CircularProgressIndicator(strokeWidth: 2.5),
+        ),
+      ),
+      errorWidget: (context, _, __) => const Center(
+        child: Icon(Icons.broken_image, color: Colors.grey),
+      ),
     );
   }
 }

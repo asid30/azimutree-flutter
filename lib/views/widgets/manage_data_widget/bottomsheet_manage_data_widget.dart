@@ -3,11 +3,13 @@ import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
+import 'package:azimutree/data/services/debug_data_service.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widget.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class BottomsheetManageDataWidget extends StatefulWidget {
@@ -23,20 +25,23 @@ class BottomsheetManageDataWidget extends StatefulWidget {
   });
 
   @override
-  State<BottomsheetManageDataWidget> createState() =>
-      _BottomsheetManageDataWidgetState();
+  State<BottomsheetManageDataWidget> createState() => _BottomsheetManageDataWidgetState();
 }
 
-class _BottomsheetManageDataWidgetState
-    extends State<BottomsheetManageDataWidget> {
+class _BottomsheetManageDataWidgetState extends State<BottomsheetManageDataWidget> {
   late final DraggableScrollableController _draggableScrollableController;
   final double _maxChildSize = 0.9;
   final double _minChildSize = 0.1;
-
+  late final DebugDataService _debugDataService;
   @override
   void initState() {
     super.initState();
     _draggableScrollableController = DraggableScrollableController();
+    _debugDataService = DebugDataService(
+      clusterNotifier: widget.clusterNotifier,
+      plotNotifier: widget.plotNotifier,
+      treeNotifier: widget.treeNotifier,
+    );
   }
 
   void _expandBottomSheet() {
@@ -46,7 +51,6 @@ class _BottomsheetManageDataWidgetState
       curve: Curves.easeOutCubic,
     );
   }
-
   @override
   void dispose() {
     _draggableScrollableController.dispose();
@@ -57,12 +61,11 @@ class _BottomsheetManageDataWidgetState
     showDialog(
       barrierDismissible: false,
       context: context,
-      builder:
-          (context) => AlertWarningWidget(
-            warningMessage:
-                "Anda harus menambahkan setidaknya satu klaster sebelum menambahkan $target.",
-            backgroundColor: Colors.lightGreen.shade200,
-          ),
+      builder: (context) => AlertWarningWidget(
+        warningMessage:
+            "Anda harus menambahkan setidaknya satu klaster sebelum menambahkan $target.",
+        backgroundColor: Colors.lightGreen.shade200,
+      ),
     );
   }
 
@@ -70,12 +73,36 @@ class _BottomsheetManageDataWidgetState
     showDialog(
       barrierDismissible: false,
       context: context,
-      builder:
-          (context) => AlertWarningWidget(
-            warningMessage:
-                "Anda harus menambahkan setidaknya satu plot sebelum menambahkan $target.",
-            backgroundColor: Colors.lightGreen.shade200,
-          ),
+      builder: (context) => AlertWarningWidget(
+        warningMessage:
+            "Anda harus menambahkan setidaknya satu plot sebelum menambahkan $target.",
+        backgroundColor: Colors.lightGreen.shade200,
+      ),
+    );
+  }
+
+  Future<void> _generateRandomData() async {
+    try {
+      await _debugDataService.seedRandomData();
+      _showSnackBar("Berhasil generate data random");
+    } catch (e) {
+      _showSnackBar("Gagal generate data: $e");
+    }
+  }
+
+  Future<void> _clearAllData() async {
+    try {
+      await _debugDataService.clearAllData();
+      _showSnackBar("Semua data berhasil dihapus");
+    } catch (e) {
+      _showSnackBar("Gagal menghapus data: $e");
+    }
+  }
+
+  void _showSnackBar(String message) {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
     );
   }
 
@@ -93,10 +120,7 @@ class _BottomsheetManageDataWidgetState
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(
-              horizontal: 16.0,
-              vertical: 8.0,
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
             child: ListView(
               controller: scrollController,
               children: [
@@ -148,16 +172,15 @@ class _BottomsheetManageDataWidgetState
                 ValueListenableBuilder(
                   valueListenable: widget.clusterNotifier,
                   builder: (context, clusterState, child) {
-                    final bool hasCluster = clusterState.isNotEmpty;
+                    final hasCluster = clusterState.isNotEmpty;
                     return ValueListenableBuilder<String?>(
                       valueListenable: selectedDropdownClusterNotifier,
                       builder: (context, selectedClusterCode, _) {
                         final selectedCluster = hasCluster
                             ? clusterState.firstWhere(
-                                (cluster) =>
-                                    cluster.kodeCluster == selectedClusterCode,
-                                orElse: () => clusterState.first,
-                              )
+                              (cluster) => cluster.kodeCluster == selectedClusterCode,
+                              orElse: () => clusterState.first,
+                            )
                             : null;
 
                         return ValueListenableBuilder(
@@ -166,13 +189,9 @@ class _BottomsheetManageDataWidgetState
                             final plotsForSelectedCluster = selectedCluster == null
                                 ? <PlotModel>[]
                                 : plotState
-                                    .where(
-                                      (plot) =>
-                                          plot.idCluster == selectedCluster.id,
-                                    )
+                                    .where((plot) => plot.idCluster == selectedCluster.id)
                                     .toList();
-                            final bool hasPlotForSelectedCluster =
-                                plotsForSelectedCluster.isNotEmpty;
+                            final hasPlotForSelectedCluster = plotsForSelectedCluster.isNotEmpty;
 
                             return Wrap(
                               spacing: 10,
@@ -253,23 +272,23 @@ class _BottomsheetManageDataWidgetState
                   },
                 ),
                 const SizedBox(height: 20),
-                const Text("Debug options:"),
-                ElevatedButton(
-                  onPressed: () {
-                    //? TODO: Fill random data
-                  },
-                  child: const Text("Generate Data Random"),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    //? TODO: Hapus semua data
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color.fromARGB(255, 131, 30, 23),
-                    foregroundColor: Colors.white,
+                if (kDebugMode) ...[
+                  const Text("Debug options:"),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _generateRandomData,
+                    child: const Text("Generate Data Random"),
                   ),
-                  child: const Text("Hapus Semua Data"),
-                ),
+                  const SizedBox(height: 8),
+                  ElevatedButton(
+                    onPressed: _clearAllData,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color.fromARGB(255, 131, 30, 23),
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text("Hapus Semua Data"),
+                  ),
+                ],
               ],
             ),
           ),
