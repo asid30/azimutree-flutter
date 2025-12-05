@@ -10,6 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   flutter_lorem: ^2.0.0 # Lorem ipsum text generator
+  flutter_native_splash: ^2.4.7 # Native splash screen
   camera: ^0.10.5+9 # camera plugin
   google_mlkit_text_recognition: ^0.11.0 # ML Kit for text recognition
   http: ^1.4.0 # http services
@@ -22,6 +23,8 @@ dependencies:
   logger: ^2.5.0 # Logging utility
   url_launcher: ^6.3.1 # URL launcher for opening links
   mapbox_maps_flutter: ^2.10.0 # Mapbox Maps SDK for Flutter
+  flutter_dotenv: ^6.0.0 # Environment variables
+  cached_network_image: ^3.4.1 # Cached images for network photos
 
 dev_dependencies:
   flutter_test:
@@ -32,3 +35,14 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - .env
+
+flutter_native_splash:
+  color: "#000000" # warna background
+  image: assets/images/ic_launcher.png # gambar splash
+  android: true
+  ios: true
+
+  android_12:
+    image: assets/images/ic_launcher.png
+    icon_background_color: "#000000"

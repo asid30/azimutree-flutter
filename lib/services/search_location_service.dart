@@ -1,10 +1,10 @@
 import 'dart:convert';
-import 'package:azimutree/data/global_variables/api_key.dart';
 import 'package:azimutree/data/global_variables/logger_global.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 Future<List<Map<String, dynamic>>> searchLocationService(String query) async {
-  final token = mapboxAccess;
+  final token = dotenv.env['MAP_BOX_ACCESS']!;
   final encodedQuery = Uri.encodeComponent(query);
   final url =
       'https://api.mapbox.com/geocoding/v5/mapbox.places/$encodedQuery.json?access_token=$token&limit=5';

@@ -1,15 +1,15 @@
-class Plot {
+class PlotModel {
   int? id;
-  int clusterId; // Foreign key ke Cluster
-  int nomorPlot;
+  int idCluster; // Foreign key ke Cluster
+  int kodePlot;
   double latitude;
   double longitude;
   double? altitude;
 
-  Plot({
+  PlotModel({
     this.id,
-    required this.clusterId,
-    required this.nomorPlot,
+    required this.idCluster,
+    required this.kodePlot,
     required this.latitude,
     required this.longitude,
     this.altitude,
@@ -19,8 +19,8 @@ class Plot {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'clusterId': clusterId,
-      'nomorPlot': nomorPlot,
+      'idCluster': idCluster,
+      'kodePlot': kodePlot,
       'latitude': latitude,
       'longitude': longitude,
       'altitude': altitude,
@@ -28,11 +28,11 @@ class Plot {
   }
 
   // Factory constructor untuk membuat Plot dari Map
-  factory Plot.fromMap(Map<String, dynamic> map) {
-    return Plot(
+  factory PlotModel.fromMap(Map<String, dynamic> map) {
+    return PlotModel(
       id: map['id'],
-      clusterId: map['clusterId'],
-      nomorPlot: map['nomorPlot'],
+      idCluster: map['idCluster'],
+      kodePlot: map['kodePlot'],
       latitude: map['latitude'],
       longitude: map['longitude'],
       altitude: map['altitude'],
