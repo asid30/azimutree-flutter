@@ -3,7 +3,7 @@ import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
-import 'package:azimutree/data/services/debug_data_service.dart';
+import 'package:azimutree/services/debug_data_service.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
@@ -25,10 +25,12 @@ class BottomsheetManageDataWidget extends StatefulWidget {
   });
 
   @override
-  State<BottomsheetManageDataWidget> createState() => _BottomsheetManageDataWidgetState();
+  State<BottomsheetManageDataWidget> createState() =>
+      _BottomsheetManageDataWidgetState();
 }
 
-class _BottomsheetManageDataWidgetState extends State<BottomsheetManageDataWidget> {
+class _BottomsheetManageDataWidgetState
+    extends State<BottomsheetManageDataWidget> {
   late final DraggableScrollableController _draggableScrollableController;
   final double _maxChildSize = 0.9;
   final double _minChildSize = 0.1;
@@ -51,6 +53,7 @@ class _BottomsheetManageDataWidgetState extends State<BottomsheetManageDataWidge
       curve: Curves.easeOutCubic,
     );
   }
+
   @override
   void dispose() {
     _draggableScrollableController.dispose();
@@ -61,11 +64,12 @@ class _BottomsheetManageDataWidgetState extends State<BottomsheetManageDataWidge
     showDialog(
       barrierDismissible: false,
       context: context,
-      builder: (context) => AlertWarningWidget(
-        warningMessage:
-            "Anda harus menambahkan setidaknya satu klaster sebelum menambahkan $target.",
-        backgroundColor: Colors.lightGreen.shade200,
-      ),
+      builder:
+          (context) => AlertWarningWidget(
+            warningMessage:
+                "Anda harus menambahkan setidaknya satu klaster sebelum menambahkan $target.",
+            backgroundColor: Colors.lightGreen.shade200,
+          ),
     );
   }
 
@@ -73,11 +77,12 @@ class _BottomsheetManageDataWidgetState extends State<BottomsheetManageDataWidge
     showDialog(
       barrierDismissible: false,
       context: context,
-      builder: (context) => AlertWarningWidget(
-        warningMessage:
-            "Anda harus menambahkan setidaknya satu plot sebelum menambahkan $target.",
-        backgroundColor: Colors.lightGreen.shade200,
-      ),
+      builder:
+          (context) => AlertWarningWidget(
+            warningMessage:
+                "Anda harus menambahkan setidaknya satu plot sebelum menambahkan $target.",
+            backgroundColor: Colors.lightGreen.shade200,
+          ),
     );
   }
 
@@ -101,9 +106,9 @@ class _BottomsheetManageDataWidgetState extends State<BottomsheetManageDataWidge
 
   void _showSnackBar(String message) {
     if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(message)),
-    );
+    ScaffoldMessenger.of(
+      context,
+    ).showSnackBar(SnackBar(content: Text(message)));
   }
 
   @override
@@ -120,7 +125,10 @@ class _BottomsheetManageDataWidgetState extends State<BottomsheetManageDataWidge
             borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
           ),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            padding: const EdgeInsets.symmetric(
+              horizontal: 16.0,
+              vertical: 8.0,
+            ),
             child: ListView(
               controller: scrollController,
               children: [
@@ -176,22 +184,31 @@ class _BottomsheetManageDataWidgetState extends State<BottomsheetManageDataWidge
                     return ValueListenableBuilder<String?>(
                       valueListenable: selectedDropdownClusterNotifier,
                       builder: (context, selectedClusterCode, _) {
-                        final selectedCluster = hasCluster
-                            ? clusterState.firstWhere(
-                              (cluster) => cluster.kodeCluster == selectedClusterCode,
-                              orElse: () => clusterState.first,
-                            )
-                            : null;
+                        final selectedCluster =
+                            hasCluster
+                                ? clusterState.firstWhere(
+                                  (cluster) =>
+                                      cluster.kodeCluster ==
+                                      selectedClusterCode,
+                                  orElse: () => clusterState.first,
+                                )
+                                : null;
 
                         return ValueListenableBuilder(
                           valueListenable: widget.plotNotifier,
                           builder: (context, plotState, child) {
-                            final plotsForSelectedCluster = selectedCluster == null
-                                ? <PlotModel>[]
-                                : plotState
-                                    .where((plot) => plot.idCluster == selectedCluster.id)
-                                    .toList();
-                            final hasPlotForSelectedCluster = plotsForSelectedCluster.isNotEmpty;
+                            final plotsForSelectedCluster =
+                                selectedCluster == null
+                                    ? <PlotModel>[]
+                                    : plotState
+                                        .where(
+                                          (plot) =>
+                                              plot.idCluster ==
+                                              selectedCluster.id,
+                                        )
+                                        .toList();
+                            final hasPlotForSelectedCluster =
+                                plotsForSelectedCluster.isNotEmpty;
 
                             return Wrap(
                               spacing: 10,
