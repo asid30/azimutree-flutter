@@ -15,6 +15,12 @@ class TreeNotifier extends ValueNotifier<List<TreeModel>> {
     await loadTrees(); // reload lagi setelah insert
   }
 
+  Future<void> updateTree(TreeModel tree) async {
+    if (tree.id == null) return;
+    await TreeDao.updateTree(tree);
+    await loadTrees();
+  }
+
   Future<void> deleteTree(int id) async {
     await TreeDao.deleteTree(id);
     await loadTrees();

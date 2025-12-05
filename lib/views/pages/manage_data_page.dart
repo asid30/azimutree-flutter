@@ -111,6 +111,9 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                       clustersData: clusters,
                                       plotData: plotData,
                                       treeData: treeData,
+                                      clusterNotifier: clusterNotifier,
+                                      plotNotifier: plotNotifier,
+                                      treeNotifier: treeNotifier,
                                     );
                                   },
                                 );
@@ -151,6 +154,9 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                           return PlotClusterManageDataWidget(
                                             plotData: plotsForSelectedCluster,
                                             treeData: treeData,
+                                            clustersData: clusters,
+                                            plotNotifier: plotNotifier,
+                                            treeNotifier: treeNotifier,
                                             isEmpty:
                                                 plotsForSelectedCluster.isEmpty,
                                           );
@@ -164,7 +170,6 @@ class _ManageDataPageState extends State<ManageDataPage> {
                         );
                       },
                     ),
-
                     SizedBox(height: 12),
                     SizedBox(height: 80),
                   ],

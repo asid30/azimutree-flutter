@@ -15,6 +15,12 @@ class ClusterNotifier extends ValueNotifier<List<ClusterModel>> {
     await loadClusters(); // reload lagi setelah insert
   }
 
+  Future<void> updateCluster(ClusterModel cluster) async {
+    if (cluster.id == null) return;
+    await ClusterDao.updateCluster(cluster);
+    await loadClusters();
+  }
+
   Future<void> deleteCluster(int id) async {
     await ClusterDao.deleteCluster(id);
     await loadClusters();
