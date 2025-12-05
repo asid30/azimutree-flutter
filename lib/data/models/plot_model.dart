@@ -1,6 +1,6 @@
 class PlotModel {
   int? id;
-  int clusterId; // Foreign key ke Cluster
+  int idCluster; // Foreign key ke Cluster
   int kodePlot;
   double latitude;
   double longitude;
@@ -8,7 +8,7 @@ class PlotModel {
 
   PlotModel({
     this.id,
-    required this.clusterId,
+    required this.idCluster,
     required this.kodePlot,
     required this.latitude,
     required this.longitude,
@@ -19,7 +19,7 @@ class PlotModel {
   Map<String, dynamic> toMap() {
     return {
       'id': id,
-      'clusterId': clusterId,
+      'idCluster': idCluster,
       'kodePlot': kodePlot,
       'latitude': latitude,
       'longitude': longitude,
@@ -31,7 +31,7 @@ class PlotModel {
   factory PlotModel.fromMap(Map<String, dynamic> map) {
     return PlotModel(
       id: map['id'],
-      clusterId: map['clusterId'],
+      idCluster: map['idCluster'],
       kodePlot: map['kodePlot'],
       latitude: map['latitude'],
       longitude: map['longitude'],

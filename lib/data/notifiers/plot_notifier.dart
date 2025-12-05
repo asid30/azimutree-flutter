@@ -15,6 +15,12 @@ class PlotNotifier extends ValueNotifier<List<PlotModel>> {
     await loadPlots(); // reload lagi setelah insert
   }
 
+  Future<void> updatePlot(PlotModel plot) async {
+    if (plot.id == null) return;
+    await PlotDao.updatePlot(plot);
+    await loadPlots();
+  }
+
   Future<void> deletePlot(int id) async {
     await PlotDao.deletePlot(id);
     await loadPlots();

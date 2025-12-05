@@ -1,4 +1,7 @@
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:azimutree/data/notifiers/plot_notifier.dart';
+import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/bottomsheet_manage_data_widget.dart';
@@ -17,17 +20,25 @@ class ManageDataPage extends StatefulWidget {
 
 class _ManageDataPageState extends State<ManageDataPage> {
   late final ClusterNotifier clusterNotifier;
+  late final PlotNotifier plotNotifier;
+  late final TreeNotifier treeNotifier;
 
   @override
   void initState() {
     super.initState();
     clusterNotifier = ClusterNotifier();
+    plotNotifier = PlotNotifier();
+    treeNotifier = TreeNotifier();
     clusterNotifier.loadClusters();
+    plotNotifier.loadPlots();
+    treeNotifier.loadTrees();
   }
 
   @override
   void dispose() {
     clusterNotifier.dispose();
+    plotNotifier.dispose();
+    treeNotifier.dispose();
     super.dispose();
   }
 
@@ -74,32 +85,102 @@ class _ManageDataPageState extends State<ManageDataPage> {
                     ValueListenableBuilder(
                       valueListenable: clusterNotifier,
                       builder: (context, clusterData, child) {
+                        final clusters = clusterData; // List<ClusterModel>
+                        final hasCluster = clusters.isNotEmpty;
                         final clusterOptions =
-                            clusterData
+                            clusters
                                 .map((cluster) => cluster.kodeCluster)
                                 .toList();
+
                         return Column(
                           children: [
+                            // Dropdown tetap sama, karena sudah pakai selectedDropdownClusterNotifier
                             DropdownManageDataWidget(
                               clusterOptions: clusterOptions,
                               isEmpty: clusterOptions.isEmpty,
                             ),
-                            SizedBox(height: 12),
-                            SelectedClusterManageDataWidget(
-                              clustersData: clusterData,
+                            const SizedBox(height: 12),
+
+                            ValueListenableBuilder(
+                              valueListenable: plotNotifier,
+                              builder: (context, plotData, _) {
+                                return ValueListenableBuilder(
+                                  valueListenable: treeNotifier,
+                                  builder: (context, treeData, __) {
+                                    return SelectedClusterManageDataWidget(
+                                      clustersData: clusters,
+                                      plotData: plotData,
+                                      treeData: treeData,
+                                      clusterNotifier: clusterNotifier,
+                                      plotNotifier: plotNotifier,
+                                      treeNotifier: treeNotifier,
+                                    );
+                                  },
+                                );
+                              },
                             ),
+                            const SizedBox(height: 12),
+
+                            if (hasCluster)
+                              // 🔥 Dengarkan dropdown pilihan klaster
+                              ValueListenableBuilder<String?>(
+                                valueListenable:
+                                    selectedDropdownClusterNotifier,
+                                builder: (context, selectedKodeCluster, _) {
+                                  // Cari cluster yang cocok dengan kode yang dipilih
+                                  final selectedCluster = clusters.firstWhere(
+                                    (c) => c.kodeCluster == selectedKodeCluster,
+                                    orElse: () => clusters.first,
+                                  );
+
+                                  return ValueListenableBuilder(
+                                    valueListenable: plotNotifier,
+                                    builder: (context, plotData, child) {
+                                      final plots = plotData; // List<PlotModel>
+
+                                      // 💡 Filter plot berdasarkan idCluster dari cluster terpilih
+                                      final plotsForSelectedCluster =
+                                          plots
+                                              .where(
+                                                (plot) =>
+                                                    plot.idCluster ==
+                                                    selectedCluster.id,
+                                              )
+                                              .toList();
+
+                                      return ValueListenableBuilder(
+                                        valueListenable: treeNotifier,
+                                        builder: (context, treeData, child) {
+                                          return PlotClusterManageDataWidget(
+                                            plotData: plotsForSelectedCluster,
+                                            treeData: treeData,
+                                            clustersData: clusters,
+                                            plotNotifier: plotNotifier,
+                                            treeNotifier: treeNotifier,
+                                            isEmpty:
+                                                plotsForSelectedCluster.isEmpty,
+                                          );
+                                        },
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
                           ],
                         );
                       },
                     ),
                     SizedBox(height: 12),
-                    PlotClusterManageDataWidget(),
                     SizedBox(height: 80),
                   ],
                 ),
               ),
             ),
-            BottomsheetManageDataWidget(clusterNotifier: clusterNotifier),
+            BottomsheetManageDataWidget(
+              clusterNotifier: clusterNotifier,
+              plotNotifier: plotNotifier,
+              treeNotifier: treeNotifier,
+            ),
           ],
         ),
       ),

@@ -1,6 +1,6 @@
-import 'package:sqflite/sqflite.dart';
 import 'package:azimutree/data/database/azimutree_db.dart';
 import 'package:azimutree/data/models/tree_model.dart';
+import 'package:sqflite/sqflite.dart';
 
 class TreeDao {
   static const String tableName = 'trees';
@@ -9,18 +9,18 @@ class TreeDao {
     await db.execute('''
       CREATE TABLE $tableName (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        kodeTree TEXT NOT NULL,
-        kodePlot TEXT NOT NULL,
+        kodePohon INTEGER NOT NULL,
+        plotId INTEGER NOT NULL,
         namaPohon TEXT,
         namaIlmiah TEXT,
-        azimut REAL NOT NULL,
-        jarakPusatM REAL NOT NULL,
+        azimut REAL,
+        jarakPusatM REAL,
         latitude REAL,
         longitude REAL,
         altitude REAL,
         keterangan TEXT,
         urlFoto TEXT,
-        FOREIGN KEY (kodePlot) REFERENCES plots(kodePlot) ON DELETE CASCADE
+        FOREIGN KEY (plotId) REFERENCES plots(id) ON DELETE CASCADE
       )
     ''');
   }

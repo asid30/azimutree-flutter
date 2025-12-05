@@ -9,12 +9,12 @@ class PlotDao {
     await db.execute('''
       CREATE TABLE $tableName (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        kodePlot TEXT NOT NULL,
-        kodeCluster TEXT NOT NULL,
+        kodePlot INTEGER NOT NULL,
+        idCluster INTEGER NOT NULL,
         latitude REAL NOT NULL,
         longitude REAL NOT NULL,    
         altitude REAL,
-        FOREIGN KEY (kodeCluster) REFERENCES clusters(kodeCluster) ON DELETE CASCADE
+        FOREIGN KEY (idCluster) REFERENCES clusters(id) ON DELETE CASCADE
       )
     ''');
   }

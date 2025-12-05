@@ -2,8 +2,6 @@ import 'package:azimutree/views/pages/home_page.dart';
 import 'package:azimutree/views/pages/location_map_page.dart';
 import 'package:azimutree/views/pages/manage_data_page.dart';
 import 'package:azimutree/views/pages/scan_label_page.dart';
-import 'package:azimutree/views/pages/test_ocr1_page.dart';
-import 'package:azimutree/views/pages/test_ocr2_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
 import 'package:azimutree/data/global_variables/global_camera.dart';
 import 'package:flutter/material.dart';
@@ -62,16 +60,6 @@ class _MainAppState extends State<MainApp> {
           case 'tutorial_page':
             return _buildFadeTransitionPageRoute(
               const TutorialPage(),
-              settings,
-            );
-          case 'test_ocr_page1':
-            return _buildFadeTransitionPageRoute(
-              const TestOcrGoogleMlKitPage(),
-              settings,
-            );
-          case 'test_ocr_page2':
-            return _buildFadeTransitionPageRoute(
-              const TestOcrGoogleVisionApiPage(),
               settings,
             );
           default:
