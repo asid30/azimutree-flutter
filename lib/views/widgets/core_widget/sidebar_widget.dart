@@ -1,6 +1,5 @@
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_development_widget.dart';
-import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:flutter/material.dart';
 
 class SidebarWidget extends StatelessWidget {
@@ -66,28 +65,6 @@ class SidebarWidget extends StatelessWidget {
                 leading: const Icon(Icons.help),
                 title: const Text('Panduan Aplikasi'),
                 onTap: () => _selectPage(context, "tutorial_page"),
-              ),
-
-              const Divider(color: Color(0xFF1F4226)),
-
-              ListTile(
-                leading: const Icon(Icons.developer_mode),
-                title: const Text('Test OCR Google ML Kit'),
-                onTap: () => _selectPage(context, "test_ocr_page1"),
-              ),
-
-              ListTile(
-                leading: const Icon(Icons.developer_mode),
-                title: const Text('Test OCR Google Vision API'),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder:
-                        (context) => AlertWarningWidget(
-                          warningMessage: "This feature is locked ⛔",
-                        ),
-                  );
-                },
               ),
 
               const Divider(color: Color(0xFF1F4226)),
