@@ -34,26 +34,44 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
         ClusterModel? selectedCluster;
         int plotCount = 0;
         int treeCount = 0;
+        double? clusterLat;
+        double? clusterLon;
         if (selectedClusterCode != null && clustersData.isNotEmpty) {
           try {
             selectedCluster = clustersData.firstWhere(
               (c) => c.kodeCluster == selectedClusterCode,
             );
             if (selectedCluster.id != null) {
-              plotCount = plotData
+              final plotsForCluster = plotData
                   .where((plot) => plot.idCluster == selectedCluster?.id)
-                  .length;
+                  .toList();
 
-              final clusterPlotIds = plotData
-                  .where(
-                    (plot) =>
-                        plot.idCluster == selectedCluster?.id && plot.id != null,
-                  )
-                  .map((plot) => plot.id!)
-                  .toSet();
-              treeCount = treeData
-                  .where((tree) => clusterPlotIds.contains(tree.plotId))
-                  .length;
+              plotCount = plotsForCluster.length;
+
+              if (plotsForCluster.isNotEmpty) {
+                final plot1 = plotsForCluster.firstWhere(
+                  (p) => p.kodePlot == 1,
+                  orElse: () => plotsForCluster.first,
+                );
+
+                // Kalau plot 1 ada: pakai koordinatnya; kalau tidak, pakai rata-rata plot yang ada.
+                clusterLat = plot1.latitude;
+                clusterLon = plot1.longitude;
+
+                if (plot1.kodePlot != 1 && plotsForCluster.length > 1) {
+                  clusterLat =
+                      plotsForCluster.map((p) => p.latitude).reduce((a, b) => a + b) /
+                      plotsForCluster.length;
+                  clusterLon =
+                      plotsForCluster.map((p) => p.longitude).reduce((a, b) => a + b) /
+                      plotsForCluster.length;
+                }
+              }
+
+              final clusterPlotIds =
+                  plotsForCluster.where((plot) => plot.id != null).map((plot) => plot.id!).toSet();
+              treeCount =
+                  treeData.where((tree) => clusterPlotIds.contains(tree.plotId)).length;
             }
           } catch (_) {
             selectedCluster = null; // kalau tidak ketemu
@@ -94,6 +112,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                           _row("Pengukur", selectedCluster.namaPengukur ?? "-"),
                           _row("Jumlah Plot", plotCount.toString()),
                           _row("Jumlah Pohon", treeCount.toString()),
+                          _coordinateRow(clusterLat, clusterLon),
                           _row(
                             "Tanggal Pengukuran",
                             selectedCluster.tanggalPengukuran != null
@@ -148,6 +167,35 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     final m = date.month.toString().padLeft(2, '0');
     final y = date.year.toString();
     return "$d-$m-$y";
+  }
+
+  TableRow _coordinateRow(double? lat, double? lon) {
+    String value;
+    String tooltip;
+    if (lat != null && lon != null) {
+      value = "${lat.toStringAsFixed(6)}, ${lon.toStringAsFixed(6)}";
+      tooltip =
+          "Koordinat klaster diambil dari plot 1 jika ada, atau rata-rata plot yang tersedia.";
+    } else {
+      value = "-";
+      tooltip = "Belum ada plot, koordinat klaster belum tersedia.";
+    }
+
+    return TableRow(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 0),
+          child: Text("Koordinat"),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 0),
+          child: Tooltip(
+            message: tooltip,
+            child: Text(": $value"),
+          ),
+        ),
+      ],
+    );
   }
 
   Future<void> _editCluster(BuildContext context, ClusterModel cluster) async {
