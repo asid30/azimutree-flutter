@@ -235,6 +235,7 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
                 border: OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 10),
             _textField(
               controller: _kodeController,
               label: "Kode Pohon",
@@ -272,6 +273,7 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
               label: "Altitude (opsional)",
               type: const TextInputType.numberWithOptions(decimal: true),
             ),
+            const SizedBox(height: 8),
             _textField(
               controller: _urlController,
               label: "URL Foto",
