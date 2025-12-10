@@ -65,10 +65,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
             ),
             SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 0,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                 child: Column(
                   children: [
                     Row(
@@ -99,7 +96,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                               clusterOptions: clusterOptions,
                               isEmpty: clusterOptions.isEmpty,
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
 
                             ValueListenableBuilder(
                               valueListenable: plotNotifier,
@@ -119,7 +116,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                 );
                               },
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
 
                             if (hasCluster)
                               // 🔥 Dengarkan dropdown pilihan klaster
@@ -170,7 +167,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                         );
                       },
                     ),
-                    SizedBox(height: 12),
+                    SizedBox(height: 8),
                     SizedBox(height: 80),
                   ],
                 ),

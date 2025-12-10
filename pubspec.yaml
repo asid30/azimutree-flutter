@@ -25,6 +25,7 @@ dependencies:
   mapbox_maps_flutter: ^2.10.0 # Mapbox Maps SDK for Flutter
   flutter_dotenv: ^6.0.0 # Environment variables
   cached_network_image: ^3.4.1 # Cached images for network photos
+  flutter_slidable: ^3.1.0 # Swipeable action panes
 
 dev_dependencies:
   flutter_test:

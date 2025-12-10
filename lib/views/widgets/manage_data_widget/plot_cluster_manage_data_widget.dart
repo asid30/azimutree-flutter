@@ -127,7 +127,7 @@ class PlotClusterManageDataWidget extends StatelessWidget {
                         IconButton(
                           icon: const Icon(
                             Icons.delete,
-                            color: Colors.redAccent,
+                            color: Color.fromARGB(255, 98, 32, 32),
                           ),
                           tooltip: "Hapus plot",
                           onPressed:
