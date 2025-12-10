@@ -82,33 +82,57 @@ class _BottomsheetManageDataWidgetState
             warningMessage:
                 "Anda harus menambahkan setidaknya satu plot sebelum menambahkan $target.",
             backgroundColor: Colors.lightGreen.shade200,
-          ),
+      ),
     );
   }
 
   Future<void> _generateRandomData() async {
     try {
       await _debugDataService.seedRandomData();
-      _showSnackBar("Berhasil generate data random");
+      if (!mounted) return;
+      await _showAlert(
+        message: "Berhasil generate data random",
+        backgroundColor: Colors.lightGreen.shade200,
+      );
     } catch (e) {
-      _showSnackBar("Gagal generate data: $e");
+      if (!mounted) return;
+      await _showAlert(
+        message: "Gagal generate data: $e",
+        backgroundColor: Colors.red.shade200,
+      );
     }
   }
 
   Future<void> _clearAllData() async {
     try {
       await _debugDataService.clearAllData();
-      _showSnackBar("Semua data berhasil dihapus");
+      if (!mounted) return;
+      await _showAlert(
+        message: "Semua data berhasil dihapus",
+        backgroundColor: Colors.lightGreen.shade200,
+      );
     } catch (e) {
-      _showSnackBar("Gagal menghapus data: $e");
+      if (!mounted) return;
+      await _showAlert(
+        message: "Gagal menghapus data: $e",
+        backgroundColor: Colors.red.shade200,
+      );
     }
   }
 
-  void _showSnackBar(String message) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+  Future<void> _showAlert({
+    required String message,
+    required Color backgroundColor,
+  }) {
+    return showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder:
+          (_) => AlertWarningWidget(
+            warningMessage: message,
+            backgroundColor: backgroundColor,
+          ),
+    );
   }
 
   @override
