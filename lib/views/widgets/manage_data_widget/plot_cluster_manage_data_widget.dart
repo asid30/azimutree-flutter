@@ -99,7 +99,7 @@ class PlotClusterManageDataWidget extends StatelessWidget {
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
-              color: const Color.fromARGB(240, 180, 216, 187),
+              color: const Color.fromARGB(239, 188, 228, 196),
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 10,
