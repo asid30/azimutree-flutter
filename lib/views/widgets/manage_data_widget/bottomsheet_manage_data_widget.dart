@@ -33,7 +33,7 @@ class _BottomsheetManageDataWidgetState
     extends State<BottomsheetManageDataWidget> {
   late final DraggableScrollableController _draggableScrollableController;
   final double _maxChildSize = 0.9;
-  final double _minChildSize = 0.1;
+  final double _minChildSize = 0.13;
   late final DebugDataService _debugDataService;
   @override
   void initState() {
@@ -82,7 +82,7 @@ class _BottomsheetManageDataWidgetState
             warningMessage:
                 "Anda harus menambahkan setidaknya satu plot sebelum menambahkan $target.",
             backgroundColor: Colors.lightGreen.shade200,
-      ),
+          ),
     );
   }
 
@@ -139,7 +139,7 @@ class _BottomsheetManageDataWidgetState
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
       controller: _draggableScrollableController,
-      initialChildSize: 0.1,
+      initialChildSize: 0.13,
       minChildSize: _minChildSize,
       maxChildSize: _maxChildSize,
       builder: (context, scrollController) {
@@ -156,16 +156,48 @@ class _BottomsheetManageDataWidgetState
             child: ListView(
               controller: scrollController,
               children: [
-                ListTile(
-                  title: TextButton(
-                    onPressed: _expandBottomSheet,
-                    child: const Text(
-                      'Menu Kelola Data',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                // Header with drag handle and a rounded button to expand sheet
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // subtle drag handle
+                      Container(
+                        width: 48,
+                        height: 6,
+                        margin: const EdgeInsets.only(bottom: 8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      Center(
+                        child: OutlinedButton.icon(
+                          onPressed: _expandBottomSheet,
+                          icon: const Icon(Icons.menu, size: 18),
+                          label: const Text(
+                            'Menu Kelola Data',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            foregroundColor: Colors.black87,
+                            side: BorderSide.none,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18.0,
+                              vertical: 12.0,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24.0),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                SizedBox(height: 30),
                 const Text(
                   'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor data untuk menambahkan data dari file eksternal (sheet), ekspor data untuk menyimpan salinan data Anda, atau unduh template untuk format data (sheet) yang benar.',
                   textAlign: TextAlign.justify,

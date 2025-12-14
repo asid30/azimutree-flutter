@@ -168,7 +168,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                       },
                     ),
                     SizedBox(height: 8),
-                    SizedBox(height: 80),
+                    SizedBox(height: 120),
                   ],
                 ),
               ),
