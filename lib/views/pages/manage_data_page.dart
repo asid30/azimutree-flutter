@@ -22,6 +22,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
   late final ClusterNotifier clusterNotifier;
   late final PlotNotifier plotNotifier;
   late final TreeNotifier treeNotifier;
+  late final DraggableScrollableController _draggableController;
 
   @override
   void initState() {
@@ -29,6 +30,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
     clusterNotifier = ClusterNotifier();
     plotNotifier = PlotNotifier();
     treeNotifier = TreeNotifier();
+    _draggableController = DraggableScrollableController();
     clusterNotifier.loadClusters();
     plotNotifier.loadPlots();
     treeNotifier.loadTrees();
@@ -39,6 +41,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
     clusterNotifier.dispose();
     plotNotifier.dispose();
     treeNotifier.dispose();
+    _draggableController.dispose();
     super.dispose();
   }
 
@@ -173,12 +176,25 @@ class _ManageDataPageState extends State<ManageDataPage> {
                 ),
               ),
             ),
+
             BottomsheetManageDataWidget(
               clusterNotifier: clusterNotifier,
               plotNotifier: plotNotifier,
               treeNotifier: treeNotifier,
+              draggableController: _draggableController,
             ),
           ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            // expand bottom sheet to near-fullscreen
+            _draggableController.animateTo(
+              0.9,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutCubic,
+            );
+          },
+          child: const Icon(Icons.menu_open),
         ),
       ),
     );
