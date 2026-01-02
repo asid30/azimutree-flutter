@@ -9,6 +9,10 @@ import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_wi
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widget.dart';
+import 'package:azimutree/views/widgets/manage_data_widget/dialog_import_data_widget.dart';
+import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/services/excel_import_service.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_error_widget.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -16,12 +20,14 @@ class BottomsheetManageDataWidget extends StatefulWidget {
   final ClusterNotifier clusterNotifier;
   final PlotNotifier plotNotifier;
   final TreeNotifier treeNotifier;
+  final DraggableScrollableController? draggableController;
 
   const BottomsheetManageDataWidget({
     super.key,
     required this.clusterNotifier,
     required this.plotNotifier,
     required this.treeNotifier,
+    this.draggableController,
   });
 
   @override
@@ -32,13 +38,22 @@ class BottomsheetManageDataWidget extends StatefulWidget {
 class _BottomsheetManageDataWidgetState
     extends State<BottomsheetManageDataWidget> {
   late final DraggableScrollableController _draggableScrollableController;
+  late final bool _ownsController;
   final double _maxChildSize = 0.9;
-  final double _minChildSize = 0.1;
+  final double _minChildSize = 0.03;
   late final DebugDataService _debugDataService;
   @override
   void initState() {
     super.initState();
-    _draggableScrollableController = DraggableScrollableController();
+    // Use external controller if parent provided one, otherwise create our own
+    if (widget.draggableController != null) {
+      _draggableScrollableController = widget.draggableController!;
+      _ownsController = false;
+    } else {
+      _draggableScrollableController = DraggableScrollableController();
+      _ownsController = true;
+    }
+
     _debugDataService = DebugDataService(
       clusterNotifier: widget.clusterNotifier,
       plotNotifier: widget.plotNotifier,
@@ -54,68 +69,99 @@ class _BottomsheetManageDataWidgetState
     );
   }
 
+  /// Public method so parent widgets can request the bottom sheet to expand.
+  void expandBottomSheet() => _expandBottomSheet();
+
   @override
   void dispose() {
-    _draggableScrollableController.dispose();
-    super.dispose();
-  }
-
-  void _showWarningNeedCluster({required String target}) {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder:
-          (context) => AlertWarningWidget(
-            warningMessage:
-                "Anda harus menambahkan setidaknya satu klaster sebelum menambahkan $target.",
-            backgroundColor: Colors.lightGreen.shade200,
-          ),
-    );
-  }
-
-  void _showWarningNeedPlot({required String target}) {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder:
-          (context) => AlertWarningWidget(
-            warningMessage:
-                "Anda harus menambahkan setidaknya satu plot sebelum menambahkan $target.",
-            backgroundColor: Colors.lightGreen.shade200,
-          ),
-    );
-  }
-
-  Future<void> _generateRandomData() async {
-    try {
-      await _debugDataService.seedRandomData();
-      _showSnackBar("Berhasil generate data random");
-    } catch (e) {
-      _showSnackBar("Gagal generate data: $e");
+    if (_ownsController) {
+      _draggableScrollableController.dispose();
     }
+    super.dispose();
   }
 
   Future<void> _clearAllData() async {
     try {
       await _debugDataService.clearAllData();
-      _showSnackBar("Semua data berhasil dihapus");
+      if (!mounted) return;
+      await _showAlert(
+        message: "Semua data berhasil dihapus",
+        backgroundColor: Colors.lightGreen.shade200,
+      );
     } catch (e) {
-      _showSnackBar("Gagal menghapus data: $e");
+      if (!mounted) return;
+      await _showAlert(
+        message: "Gagal menghapus data: $e",
+        backgroundColor: Colors.red.shade200,
+      );
     }
   }
 
-  void _showSnackBar(String message) {
+  Future<void> _generateRandomData() async {
+    try {
+      await _debugDataService.seedRandomData();
+      if (!mounted) return;
+      await _showAlert(
+        message: "Data acak berhasil dibuat",
+        backgroundColor: Colors.lightGreen.shade200,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      await _showAlert(
+        message: "Gagal membuat data acak: $e",
+        backgroundColor: Colors.red.shade200,
+      );
+    }
+  }
+
+  Future<void> _showAlert({
+    required String message,
+    required Color backgroundColor,
+  }) {
+    return showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder:
+          (_) => AlertWarningWidget(
+            warningMessage: message,
+            backgroundColor: backgroundColor,
+          ),
+    );
+  }
+
+  Future<void> _showWarningNeedCluster({required String target}) async {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    await showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder:
+          (_) => AlertWarningWidget(
+            warningMessage:
+                'Harap tambahkan klaster terlebih dahulu sebelum menambahkan $target.',
+            backgroundColor: Colors.orange.shade200,
+          ),
+    );
+  }
+
+  Future<void> _showWarningNeedPlot({required String target}) async {
+    if (!mounted) return;
+    await showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder:
+          (_) => AlertWarningWidget(
+            warningMessage:
+                'Harap tambahkan plot terlebih dahulu sebelum menambahkan $target.',
+            backgroundColor: Colors.orange.shade200,
+          ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
       controller: _draggableScrollableController,
-      initialChildSize: 0.1,
+      initialChildSize: 0.03,
       minChildSize: _minChildSize,
       maxChildSize: _maxChildSize,
       builder: (context, scrollController) {
@@ -132,16 +178,48 @@ class _BottomsheetManageDataWidgetState
             child: ListView(
               controller: scrollController,
               children: [
-                ListTile(
-                  title: TextButton(
-                    onPressed: _expandBottomSheet,
-                    child: const Text(
-                      'Menu Kelola Data',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                // Header with drag handle and a rounded button to expand sheet
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // subtle drag handle
+                      Container(
+                        width: 48,
+                        height: 6,
+                        margin: const EdgeInsets.only(bottom: 8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      Center(
+                        child: OutlinedButton.icon(
+                          onPressed: _expandBottomSheet,
+                          icon: const Icon(Icons.menu, size: 18),
+                          label: const Text(
+                            'Menu Kelola Data',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            foregroundColor: Colors.black87,
+                            side: BorderSide.none,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18.0,
+                              vertical: 12.0,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24.0),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                SizedBox(height: 30),
                 const Text(
                   'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor data untuk menambahkan data dari file eksternal (sheet), ekspor data untuk menyimpan salinan data Anda, atau unduh template untuk format data (sheet) yang benar.',
                   textAlign: TextAlign.justify,
@@ -162,8 +240,62 @@ class _BottomsheetManageDataWidgetState
                     BtmButtonManageDataWidget(
                       label: "Impor Data",
                       icon: Icons.file_download,
-                      onPressed: () {
-                        //? TODO: Handle import data action
+                      onPressed: () async {
+                        final result = await showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder:
+                              (context) => DialogImportDataWidget(
+                                clusterNotifier: widget.clusterNotifier,
+                              ),
+                        );
+
+                        if (result != null) {
+                          try {
+                            final cluster = ClusterModel(
+                              kodeCluster: result['kodeCluster'] as String,
+                              namaPengukur: result['namaPengukur'] as String?,
+                              tanggalPengukuran:
+                                  (result['tanggalPengukuran'] as String?)
+                                              ?.isNotEmpty ==
+                                          true
+                                      ? DateTime.tryParse(
+                                        result['tanggalPengukuran'] as String,
+                                      )
+                                      : null,
+                            );
+
+                            // Use file uploaded by user (picked in dialog)
+                            final uploadedPath = result['filePath'] as String;
+                            final importResult =
+                                await ExcelImportService.importFile(
+                                  filePath: uploadedPath,
+                                  cluster: cluster,
+                                );
+
+                            // reload notifiers
+                            await widget.clusterNotifier.loadClusters();
+                            await widget.plotNotifier.loadPlots();
+                            await widget.treeNotifier.loadTrees();
+
+                            if (!mounted) return;
+                            await _showAlert(
+                              message:
+                                  'Impor selesai. Plots: ${importResult['plots']}, Trees: ${importResult['trees']}',
+                              backgroundColor: Colors.lightGreen.shade200,
+                            );
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            showDialog(
+                              context: context,
+                              barrierDismissible: false,
+                              builder:
+                                  (_) => AlertErrorWidget(
+                                    errorMessage: e.toString(),
+                                  ),
+                            );
+                          }
+                        }
                       },
                     ),
                     BtmButtonManageDataWidget(

@@ -48,18 +48,24 @@ class DebugDataService {
           minPlotPerCluster +
           _rng.nextInt((maxPlotPerCluster - minPlotPerCluster) + 1);
 
-      for (int j = 0; j < plotCount; j++) {
-        // Koordinat sekitar Bandar Lampung
-        const latMin = -5.6;
-        const latMax = -5.3;
-        const lonMin = 105.1;
-        const lonMax = 105.4;
+      // Tentukan pusat klaster (plot 1) agar plot lain tidak terlalu jauh
+      const latMin = -5.6;
+      const latMax = -5.3;
+      const lonMin = 105.1;
+      const lonMax = 105.4;
+      final centerLat = _randomCoordinate(latMin, latMax);
+      final centerLon = _randomCoordinate(lonMin, lonMax);
 
+      for (int j = 0; j < plotCount; j++) {
         final plot = PlotModel(
           idCluster: clusterId,
           kodePlot: j + 1,
-          latitude: _randomCoordinate(latMin, latMax),
-          longitude: _randomCoordinate(lonMin, lonMax),
+          latitude: j == 0
+              ? centerLat
+              : centerLat + (_rng.nextDouble() - 0.5) * 0.01,
+          longitude: j == 0
+              ? centerLon
+              : centerLon + (_rng.nextDouble() - 0.5) * 0.01,
           altitude: 100 + _rng.nextInt(250).toDouble(),
         );
 
