@@ -8,6 +8,7 @@ import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/global_variables/logger_global.dart';
+import 'package:azimutree/services/azimuth_latlong_service.dart';
 
 class ExcelImportService {
   /// Parse the given Excel file and insert cluster, plots and trees.
@@ -193,13 +194,36 @@ class ExcelImportService {
         }
         final plot = matchedPlots.first;
 
+        final azimutVal = _toDouble(v4);
+        final jarakVal = _toDouble(v5);
+        double? treeLat;
+        double? treeLon;
+        if (azimutVal != null && jarakVal != null) {
+          try {
+            final pt = AzimuthLatLongService.fromAzimuthDistance(
+              centerLatDeg: plot.latitude,
+              centerLonDeg: plot.longitude,
+              azimuthDeg: azimutVal,
+              distanceM: jarakVal,
+            );
+            treeLat = pt.latitude;
+            treeLon = pt.longitude;
+          } catch (e) {
+            logger.w(
+              '[ExcelImport] Azimuth->LatLon conversion failed at row $r: $e',
+            );
+          }
+        }
+
         final tree = TreeModel(
           plotId: plot.id!,
           kodePohon: kodePohon,
           namaPohon: v2?.toString(),
           namaIlmiah: v3?.toString(),
-          azimut: _toDouble(v4),
-          jarakPusatM: _toDouble(v5),
+          azimut: azimutVal,
+          jarakPusatM: jarakVal,
+          latitude: treeLat,
+          longitude: treeLon,
           altitude: _toDouble(v6), // optional
           urlFoto: v7?.toString(), // optional
           keterangan: v8?.toString(), // optional
