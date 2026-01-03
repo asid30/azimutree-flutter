@@ -171,7 +171,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                       },
                     ),
                     SizedBox(height: 8),
-                    SizedBox(height: 120),
+                    SizedBox(height: 70),
                   ],
                 ),
               ),
@@ -186,6 +186,8 @@ class _ManageDataPageState extends State<ManageDataPage> {
           ],
         ),
         floatingActionButton: FloatingActionButton(
+          backgroundColor: Color.fromARGB(255, 71, 123, 82),
+          foregroundColor: Colors.white,
           onPressed: () {
             // expand bottom sheet to near-fullscreen
             _draggableController.animateTo(
