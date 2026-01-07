@@ -24,6 +24,9 @@ class ExcelExportService {
     // Plots sheet
     final plotsSheetName = 'titik_pusat_plot';
     final Sheet plotsSheet = excel[plotsSheetName];
+    // Template expects header at row 3 (A3:D3)
+    plotsSheet.appendRow([]);
+    plotsSheet.appendRow([]);
     plotsSheet.appendRow(['plot', 'latitude', 'longitude', 'altitude']);
 
     final allPlots = await PlotDao.getAllPlots();
@@ -41,6 +44,12 @@ class ExcelExportService {
     // Trees sheet
     final treesSheetName = 'jenis_dan_lokasi_pohon';
     final Sheet treesSheet = excel[treesSheetName];
+    // Template expects header at row 6 (A6:I6)
+    treesSheet.appendRow([]);
+    treesSheet.appendRow([]);
+    treesSheet.appendRow([]);
+    treesSheet.appendRow([]);
+    treesSheet.appendRow([]);
     treesSheet.appendRow([
       'kode plot',
       'kode pohon',
