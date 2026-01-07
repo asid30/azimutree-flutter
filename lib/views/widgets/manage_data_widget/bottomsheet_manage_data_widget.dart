@@ -12,7 +12,8 @@ import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widge
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_import_data_widget.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/services/excel_import_service.dart';
-import 'package:azimutree/views/widgets/alert_dialog_widget/alert_error_widget.dart';
+import 'package:azimutree/services/excel_export_service.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -115,6 +116,7 @@ class _BottomsheetManageDataWidgetState
   }
 
   Future<void> _showAlert({
+    String title = 'Warning!',
     required String message,
     required Color backgroundColor,
   }) {
@@ -123,6 +125,7 @@ class _BottomsheetManageDataWidgetState
       context: context,
       builder:
           (_) => AlertWarningWidget(
+            title: title,
             warningMessage: message,
             backgroundColor: backgroundColor,
           ),
@@ -234,7 +237,190 @@ class _BottomsheetManageDataWidgetState
                       label: "Ekspor Data",
                       icon: Icons.file_upload,
                       onPressed: () {
-                        //? TODO: Handle export data action
+                        showDialog<void>(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (dialogContext) {
+                            final clusters = widget.clusterNotifier.value;
+                            String? selectedKode;
+                            if (clusters.isNotEmpty) {
+                              selectedKode = clusters.first.kodeCluster;
+                            }
+                            String? selectedDirectoryPath;
+
+                            return StatefulBuilder(
+                              builder: (builderContext, setState) {
+                                return AlertDialog(
+                                  title: const Text('Ekspor Data ke Excel'),
+                                  content: SizedBox(
+                                    width: double.maxFinite,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (clusters.isEmpty) ...[
+                                          const Text(
+                                            'Belum ada klaster tersedia.',
+                                          ),
+                                        ] else ...[
+                                          const Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text('Pilih klaster:'),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          DropdownButton<String>(
+                                            isExpanded: true,
+                                            value: selectedKode,
+                                            items:
+                                                clusters
+                                                    .map(
+                                                      (c) => DropdownMenuItem(
+                                                        value: c.kodeCluster,
+                                                        child: Text(
+                                                          c.kodeCluster +
+                                                              (c.namaPengukur !=
+                                                                      null
+                                                                  ? ' - ${c.namaPengukur}'
+                                                                  : ''),
+                                                        ),
+                                                      ),
+                                                    )
+                                                    .toList(),
+                                            onChanged:
+                                                (v) => setState(
+                                                  () => selectedKode = v,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          const Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text('Simpan ke folder:'),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(
+                                              selectedDirectoryPath == null
+                                                  ? 'Default: Download'
+                                                  : selectedDirectoryPath!,
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          OutlinedButton(
+                                            onPressed: () async {
+                                              final picked =
+                                                  await FilePicker.platform
+                                                      .getDirectoryPath();
+                                              if (!builderContext.mounted) {
+                                                return;
+                                              }
+                                              if (picked == null ||
+                                                  picked.trim().isEmpty) {
+                                                return;
+                                              }
+                                              setState(
+                                                () =>
+                                                    selectedDirectoryPath =
+                                                        picked,
+                                              );
+                                            },
+                                            child: const Text(
+                                              'Pilih Folder Simpan',
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed:
+                                          () =>
+                                              Navigator.of(dialogContext).pop(),
+                                      child: const Text('Batal'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed:
+                                          clusters.isEmpty
+                                              ? null
+                                              : () async {
+                                                final cluster = clusters
+                                                    .firstWhere(
+                                                      (c) =>
+                                                          c.kodeCluster ==
+                                                          selectedKode,
+                                                      orElse:
+                                                          () => clusters.first,
+                                                    );
+
+                                                // Close selection dialog (no async gap before using dialogContext)
+                                                Navigator.of(
+                                                  dialogContext,
+                                                ).pop();
+
+                                                // Show progress dialog on root navigator
+                                                showDialog<void>(
+                                                  barrierDismissible: false,
+                                                  context: this.context,
+                                                  useRootNavigator: true,
+                                                  builder:
+                                                      (_) => const Center(
+                                                        child:
+                                                            CircularProgressIndicator(),
+                                                      ),
+                                                );
+
+                                                try {
+                                                  final path =
+                                                      await ExcelExportService.exportClusterToExcel(
+                                                        cluster: cluster,
+                                                        directoryPath:
+                                                            selectedDirectoryPath,
+                                                        preferDownloads:
+                                                            selectedDirectoryPath ==
+                                                            null,
+                                                      );
+
+                                                  if (!mounted) return;
+                                                  // Close progress dialog (root)
+                                                  Navigator.of(
+                                                    this.context,
+                                                    rootNavigator: true,
+                                                  ).pop();
+                                                  await _showAlert(
+                                                    title: 'Sukses',
+                                                    message:
+                                                        'Ekspor selesai. File disimpan di:\n$path',
+                                                    backgroundColor:
+                                                        Colors
+                                                            .lightGreen
+                                                            .shade200,
+                                                  );
+                                                } catch (e) {
+                                                  if (!mounted) return;
+                                                  Navigator.of(
+                                                    this.context,
+                                                    rootNavigator: true,
+                                                  ).pop();
+                                                  await _showAlert(
+                                                    title: 'Gagal',
+                                                    message:
+                                                        'Ekspor gagal: ${e.toString()}',
+                                                    backgroundColor:
+                                                        Colors.red.shade200,
+                                                  );
+                                                }
+                                              },
+                                      child: const Text('Ekspor'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        );
                       },
                     ),
                     BtmButtonManageDataWidget(
@@ -280,19 +466,17 @@ class _BottomsheetManageDataWidgetState
 
                             if (!mounted) return;
                             await _showAlert(
+                              title: 'Sukses',
                               message:
                                   'Impor selesai. Plots: ${importResult['plots']}, Trees: ${importResult['trees']}',
                               backgroundColor: Colors.lightGreen.shade200,
                             );
                           } catch (e) {
                             if (!context.mounted) return;
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder:
-                                  (_) => AlertErrorWidget(
-                                    errorMessage: e.toString(),
-                                  ),
+                            await _showAlert(
+                              title: 'Gagal',
+                              message: 'Impor gagal: ${e.toString()}',
+                              backgroundColor: Colors.red.shade200,
                             );
                           }
                         }

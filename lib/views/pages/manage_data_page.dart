@@ -95,9 +95,33 @@ class _ManageDataPageState extends State<ManageDataPage> {
                         return Column(
                           children: [
                             // Dropdown tetap sama, karena sudah pakai selectedDropdownClusterNotifier
-                            DropdownManageDataWidget(
-                              clusterOptions: clusterOptions,
-                              isEmpty: clusterOptions.isEmpty,
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+                              decoration: BoxDecoration(
+                                color:
+                                    DropdownManageDataWidget
+                                        .defaultBackgroundColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Pilih Klaster",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  DropdownManageDataWidget(
+                                    clusterOptions: clusterOptions,
+                                    isEmpty: clusterOptions.isEmpty,
+                                    embedded: true,
+                                  ),
+                                ],
+                              ),
                             ),
                             const SizedBox(height: 8),
 
@@ -171,7 +195,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                       },
                     ),
                     SizedBox(height: 8),
-                    SizedBox(height: 120),
+                    SizedBox(height: 70),
                   ],
                 ),
               ),
@@ -186,6 +210,8 @@ class _ManageDataPageState extends State<ManageDataPage> {
           ],
         ),
         floatingActionButton: FloatingActionButton(
+          backgroundColor: Color.fromARGB(255, 71, 123, 82),
+          foregroundColor: Colors.white,
           onPressed: () {
             // expand bottom sheet to near-fullscreen
             _draggableController.animateTo(
