@@ -47,6 +47,7 @@ class AboutPage extends StatelessWidget {
                         const Text("Kembali", style: TextStyle(fontSize: 18)),
                       ],
                     ),
+                    //? TODO: Add about app content
                     Text(
                       'Tentang Aplikasi',
                       style: TextStyle(

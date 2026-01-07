@@ -52,6 +52,7 @@ class _SettingsPageState extends State<SettingsPage> {
                         const Text("Kembali", style: TextStyle(fontSize: 18)),
                       ],
                     ),
+                    //? TODO: Add settings content
                     Text(
                       'Pengaturan',
                       style: TextStyle(
