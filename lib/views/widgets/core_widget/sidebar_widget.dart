@@ -1,5 +1,4 @@
 import 'package:azimutree/data/notifiers/notifiers.dart';
-import 'package:azimutree/views/widgets/alert_dialog_widget/alert_development_widget.dart';
 import 'package:flutter/material.dart';
 
 class SidebarWidget extends StatelessWidget {
@@ -72,23 +71,13 @@ class SidebarWidget extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.settings),
                 title: const Text('Settings'),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDevelopmentWidget(),
-                  );
-                },
+                onTap: () => _selectPage(context, "settings_page"),
               ),
 
               ListTile(
                 leading: const Icon(Icons.info),
                 title: const Text('About'),
-                onTap: () {
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDevelopmentWidget(),
-                  );
-                },
+                onTap: () => _selectPage(context, "about_page"),
               ),
 
               const Divider(color: Color(0xFF1F4226)),

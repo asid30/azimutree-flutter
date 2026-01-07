@@ -1,7 +1,9 @@
+import 'package:azimutree/views/pages/about_page.dart';
 import 'package:azimutree/views/pages/home_page.dart';
 import 'package:azimutree/views/pages/location_map_page.dart';
 import 'package:azimutree/views/pages/manage_data_page.dart';
 import 'package:azimutree/views/pages/scan_label_page.dart';
+import 'package:azimutree/views/pages/settings_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
 import 'package:azimutree/data/global_variables/global_camera.dart';
 import 'package:flutter/material.dart';
@@ -62,6 +64,13 @@ class _MainAppState extends State<MainApp> {
               const TutorialPage(),
               settings,
             );
+          case 'settings_page':
+            return _buildFadeTransitionPageRoute(
+              const SettingsPage(),
+              settings,
+            );
+          case 'about_page':
+            return _buildFadeTransitionPageRoute(const AboutPage(), settings);
           default:
             return _buildPageRoute(const HomePage(), settings);
         }
