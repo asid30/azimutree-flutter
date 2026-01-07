@@ -13,7 +13,6 @@ import 'package:azimutree/views/widgets/manage_data_widget/dialog_import_data_wi
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/services/excel_import_service.dart';
 import 'package:azimutree/services/excel_export_service.dart';
-import 'package:azimutree/views/widgets/alert_dialog_widget/alert_error_widget.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -117,6 +116,7 @@ class _BottomsheetManageDataWidgetState
   }
 
   Future<void> _showAlert({
+    String title = 'Warning!',
     required String message,
     required Color backgroundColor,
   }) {
@@ -125,6 +125,7 @@ class _BottomsheetManageDataWidgetState
       context: context,
       builder:
           (_) => AlertWarningWidget(
+            title: title,
             warningMessage: message,
             backgroundColor: backgroundColor,
           ),
@@ -389,6 +390,7 @@ class _BottomsheetManageDataWidgetState
                                                     rootNavigator: true,
                                                   ).pop();
                                                   await _showAlert(
+                                                    title: 'Sukses',
                                                     message:
                                                         'Ekspor selesai. File disimpan di:\n$path',
                                                     backgroundColor:
@@ -402,14 +404,12 @@ class _BottomsheetManageDataWidgetState
                                                     this.context,
                                                     rootNavigator: true,
                                                   ).pop();
-                                                  showDialog(
-                                                    context: this.context,
-                                                    barrierDismissible: false,
-                                                    builder:
-                                                        (_) => AlertErrorWidget(
-                                                          errorMessage:
-                                                              e.toString(),
-                                                        ),
+                                                  await _showAlert(
+                                                    title: 'Gagal',
+                                                    message:
+                                                        'Ekspor gagal: ${e.toString()}',
+                                                    backgroundColor:
+                                                        Colors.red.shade200,
                                                   );
                                                 }
                                               },
@@ -466,19 +466,17 @@ class _BottomsheetManageDataWidgetState
 
                             if (!mounted) return;
                             await _showAlert(
+                              title: 'Sukses',
                               message:
                                   'Impor selesai. Plots: ${importResult['plots']}, Trees: ${importResult['trees']}',
                               backgroundColor: Colors.lightGreen.shade200,
                             );
                           } catch (e) {
                             if (!context.mounted) return;
-                            showDialog(
-                              context: context,
-                              barrierDismissible: false,
-                              builder:
-                                  (_) => AlertErrorWidget(
-                                    errorMessage: e.toString(),
-                                  ),
+                            await _showAlert(
+                              title: 'Gagal',
+                              message: 'Impor gagal: ${e.toString()}',
+                              backgroundColor: Colors.red.shade200,
                             );
                           }
                         }

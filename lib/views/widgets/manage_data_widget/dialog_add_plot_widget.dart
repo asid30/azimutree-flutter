@@ -1,8 +1,37 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
+
+class _CommaToDotNoSpaceFormatter extends TextInputFormatter {
+  _CommaToDotNoSpaceFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final sanitized = newValue.text.replaceAll(',', '.').replaceAll(' ', '');
+    if (sanitized == newValue.text) return newValue;
+
+    final baseOffset = newValue.selection.baseOffset;
+    final safeOffset = baseOffset < 0 ? 0 : baseOffset;
+    final beforeCursor = newValue.text.substring(
+      0,
+      safeOffset.clamp(0, newValue.text.length),
+    );
+    final beforeCursorSanitized = beforeCursor
+        .replaceAll(',', '.')
+        .replaceAll(' ', '');
+
+    return TextEditingValue(
+      text: sanitized,
+      selection: TextSelection.collapsed(offset: beforeCursorSanitized.length),
+    );
+  }
+}
 
 class DialogAddPlotWidget extends StatefulWidget {
   final PlotNotifier plotNotifier;
@@ -255,6 +284,10 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
                 decimal: true,
                 signed: true,
               ),
+              inputFormatters: [
+                _CommaToDotNoSpaceFormatter(),
+                FilteringTextInputFormatter.allow(RegExp(r'[-0-9\.,]')),
+              ],
             ),
             const SizedBox(height: 8),
 
@@ -268,6 +301,10 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
                 decimal: true,
                 signed: true,
               ),
+              inputFormatters: [
+                _CommaToDotNoSpaceFormatter(),
+                FilteringTextInputFormatter.allow(RegExp(r'[-0-9\.,]')),
+              ],
             ),
             const SizedBox(height: 8),
 
@@ -280,6 +317,10 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
               keyboardType: const TextInputType.numberWithOptions(
                 decimal: true,
               ),
+              inputFormatters: [
+                _CommaToDotNoSpaceFormatter(),
+                FilteringTextInputFormatter.allow(RegExp(r'[0-9\.,-]')),
+              ],
             ),
           ],
         ),
