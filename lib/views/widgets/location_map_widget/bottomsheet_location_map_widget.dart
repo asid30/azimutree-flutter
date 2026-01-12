@@ -18,6 +18,9 @@ class _BottomsheetLocationMapWidgetState
     extends State<BottomsheetLocationMapWidget> {
   StreamSubscription<geo.Position>? _positionSub;
 
+  final double _maxChildSize = 0.32;
+  final double _minChildSize = 0.10;
+
   @override
   void dispose() {
     _positionSub?.cancel();
@@ -95,59 +98,87 @@ class _BottomsheetLocationMapWidgetState
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SizedBox(height: 8),
-          SearchbarBottomsheetWidget(),
-          ValueListenableBuilder(
-            valueListenable: selectedMenuBottomSheetNotifier,
-            builder: (context, selectedMenuBottomSheet, child) {
-              return NavigationBar(
-                selectedIndex: selectedMenuBottomSheet,
-                onDestinationSelected: (value) {
-                  selectedMenuBottomSheetNotifier.value = value;
-                },
-                destinations: [
-                  NavigationDestination(
-                    icon: Icon(Icons.map_outlined),
-                    selectedIcon: Icon(Icons.map),
-                    label: 'Medan',
-                  ),
-                  NavigationDestination(
-                    icon: Icon(Icons.terrain_outlined),
-                    selectedIcon: Icon(Icons.terrain),
-                    label: 'Satelit',
-                  ),
-                  Row(
-                    children: [
-                      IconButton(
-                        onPressed: () => _centerToMyLocation(context),
-                        icon: Icon(Icons.my_location),
+    return DraggableScrollableSheet(
+      initialChildSize: _minChildSize,
+      minChildSize: _minChildSize,
+      maxChildSize: _maxChildSize,
+      builder: (context, scrollController) {
+        return SafeArea(
+          child: Material(
+            color: Colors.transparent,
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color.fromARGB(255, 205, 237, 211),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: ListView(
+                controller: scrollController,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                children: [
+                  Center(
+                    child: Container(
+                      width: 48,
+                      height: 6,
+                      margin: const EdgeInsets.only(bottom: 8),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade400,
+                        borderRadius: BorderRadius.circular(6),
                       ),
-                      IconButton(
-                        onPressed: () {
-                          // Request the map to reset bearing to north.
-                          northResetRequestNotifier.value =
-                              northResetRequestNotifier.value + 1;
+                    ),
+                  ),
+                  SearchbarBottomsheetWidget(),
+                  const SizedBox(height: 8),
+                  ValueListenableBuilder(
+                    valueListenable: selectedMenuBottomSheetNotifier,
+                    builder: (context, selectedMenuBottomSheet, child) {
+                      return NavigationBar(
+                        selectedIndex: selectedMenuBottomSheet,
+                        onDestinationSelected: (value) {
+                          selectedMenuBottomSheetNotifier.value = value;
                         },
-                        icon: Transform.rotate(
-                          angle:
-                              -45 *
-                              math.pi /
-                              180, // rotasi -45 derajat biar ke utara
-                          child: Icon(Icons.explore_outlined),
-                        ),
-                      ),
-                    ],
+                        destinations: [
+                          const NavigationDestination(
+                            icon: Icon(Icons.map_outlined),
+                            selectedIcon: Icon(Icons.map),
+                            label: 'Medan',
+                          ),
+                          const NavigationDestination(
+                            icon: Icon(Icons.terrain_outlined),
+                            selectedIcon: Icon(Icons.terrain),
+                            label: 'Satelit',
+                          ),
+                          Row(
+                            children: [
+                              IconButton(
+                                onPressed: () => _centerToMyLocation(context),
+                                icon: const Icon(Icons.my_location),
+                              ),
+                              IconButton(
+                                onPressed: () {
+                                  // Request the map to reset bearing to north.
+                                  northResetRequestNotifier.value =
+                                      northResetRequestNotifier.value + 1;
+                                },
+                                icon: Transform.rotate(
+                                  angle: -45 * math.pi / 180,
+                                  child: const Icon(Icons.explore_outlined),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ],
-              );
-            },
+              ),
+            ),
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
