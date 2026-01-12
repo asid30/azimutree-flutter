@@ -1,6 +1,8 @@
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
+import 'package:azimutree/services/debug_mode_service.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
 
 class SettingsPage extends StatefulWidget {
@@ -11,6 +13,13 @@ class SettingsPage extends StatefulWidget {
 }
 
 class _SettingsPageState extends State<SettingsPage> {
+  @override
+  void initState() {
+    super.initState();
+    // Ensure preference is loaded (main() already calls init, but keep this safe).
+    DebugModeService.instance.init();
+  }
+
   @override
   Widget build(BuildContext context) {
     return PopScope(
@@ -52,15 +61,41 @@ class _SettingsPageState extends State<SettingsPage> {
                         const Text("Kembali", style: TextStyle(fontSize: 18)),
                       ],
                     ),
-                    //? TODO: Add settings content
-                    Text(
-                      'Pengaturan',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                    Card(
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: isLightModeNotifier,
+                        builder: (context, isLightMode, _) {
+                          return SwitchListTile(
+                            title: const Text('Tema'),
+                            subtitle: Text(
+                              isLightMode ? 'Light Theme' : 'Dark Theme',
+                            ),
+                            value: isLightMode,
+                            onChanged: (value) {
+                              isLightModeNotifier.value = value;
+                            },
+                          );
+                        },
                       ),
                     ),
-                    const SizedBox(height: 15),
+
+                    Card(
+                      child: ValueListenableBuilder<bool>(
+                        valueListenable: DebugModeService.instance.enabled,
+                        builder: (context, enabled, _) {
+                          return SwitchListTile(
+                            title: const Text('Mode Debug'),
+                            subtitle: const Text(
+                              'Tampilkan fitur debug (generate/hapus data) di Kelola Data',
+                            ),
+                            value: enabled,
+                            onChanged: (value) async {
+                              await DebugModeService.instance.setEnabled(value);
+                            },
+                          );
+                        },
+                      ),
+                    ),
                   ],
                 ),
               ),

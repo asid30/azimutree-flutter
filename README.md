@@ -13,8 +13,6 @@
   <ul>
     <li><strong>Mapping Lokasi Pohon</strong><br>
       Menampilkan posisi pohon dalam satu klaster menggunakan data azimut dan jarak dari titik pusat klaster.</li>
-    <li><strong>Pencocokan Data Pohon</strong><br>
-      Setelah pemindaian, aplikasi akan mencocokkan kode ID dengan data pohon yang telah direkam dalam database.</li>
     <li><strong>Manajemen Data Klaster</strong><br>
       Menyimpan dan menampilkan informasi lengkap tentang plot, klaster, dan pohon-pohon yang berada dalam area monitoring.</li>
   </ul>
@@ -23,11 +21,14 @@
   <ul>
     <li><strong>Flutter</strong> (Frontend App Development)</li>
     <li><strong>SQL Lite</strong> (Local database untuk penyimpanan data offline)</li>
-    <li><strong>Pemetaan</strong> (untuk orientasi arah dan posisi)</li>
+    <li><strong>MapBox</strong> (Platform peta digital untuk menampilkan dan mengelola data lokasi berbasis koordinat secara interaktif)</li>
+    <li><strong>
   </ul>
 
-  <h2>Tujuan Proyek</h2>
-  <p>Proyek ini dikembangkan sebagai bagian dari penelitian akademik untuk mempercepat dan mempermudah pengumpulan data lapangan dalam studi kesehatan hutan tropis.</p>
+ <h2>Tujuan Proyek</h2>
+  <p>
+  Proyek ini bertujuan untuk membantu kegiatan survei lapangan kehutanan dengan menyediakan alat digital yang memudahkan pencatatan lokasi klaster, plot, dan pohon secara langsung di lapangan tanpa bergantung pada pencatatan manual.
+  </p>
 
   <h2>Instalasi</h2>
   <ol>
@@ -46,6 +47,10 @@
   <ul>
     <li>Aplikasi ini dikembangkan untuk perangkat mobile Android.</li>
   </ul>
+
+  <p style="font-size: 12px; color: #666;">
+    Developed by Asid30 © 2026
+  </p>
 
 </body>
 </html>

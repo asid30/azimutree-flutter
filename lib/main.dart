@@ -6,6 +6,8 @@ import 'package:azimutree/views/pages/scan_label_page.dart';
 import 'package:azimutree/views/pages/settings_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
 import 'package:azimutree/data/global_variables/global_camera.dart';
+import 'package:azimutree/services/debug_mode_service.dart';
+import 'package:azimutree/services/theme_preference_service.dart';
 import 'package:flutter/material.dart';
 import 'package:camera/camera.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -16,6 +18,8 @@ void main() async {
   await dotenv.load(fileName: ".env");
   MapboxOptions.setAccessToken(dotenv.env['MAP_BOX_ACCESS']!);
   globalCameras = await availableCameras();
+  await DebugModeService.instance.init();
+  await ThemePreferenceService.instance.init();
   runApp(MainApp());
 }
 

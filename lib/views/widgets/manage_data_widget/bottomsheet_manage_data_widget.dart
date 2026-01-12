@@ -4,6 +4,7 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/services/debug_data_service.dart';
+import 'package:azimutree/services/debug_mode_service.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
@@ -14,7 +15,6 @@ import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/services/excel_import_service.dart';
 import 'package:azimutree/services/excel_export_service.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 class BottomsheetManageDataWidget extends StatefulWidget {
@@ -82,6 +82,29 @@ class _BottomsheetManageDataWidgetState
   }
 
   Future<void> _clearAllData() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder:
+          (_) => AlertDialog(
+            title: const Text("Hapus semua data?"),
+            content: const Text(
+              "Semua klaster, plot, dan pohon akan dihapus permanen.",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text("Batal"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text("Hapus"),
+              ),
+            ],
+          ),
+    );
+
+    if (confirm != true) return;
+
     try {
       await _debugDataService.clearAllData();
       if (!mounted) return;
@@ -605,23 +628,37 @@ class _BottomsheetManageDataWidgetState
                   },
                 ),
                 const SizedBox(height: 20),
-                if (kDebugMode) ...[
-                  const Text("Debug options:"),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: _generateRandomData,
-                    child: const Text("Generate Data Random"),
-                  ),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: _clearAllData,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 131, 30, 23),
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text("Hapus Semua Data"),
-                  ),
-                ],
+                ValueListenableBuilder<bool>(
+                  valueListenable: DebugModeService.instance.enabled,
+                  builder: (context, enabled, _) {
+                    if (!enabled) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Debug options:"),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: _generateRandomData,
+                          child: const Text("Generate Data Random"),
+                        ),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: _clearAllData,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              131,
+                              30,
+                              23,
+                            ),
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text("Hapus Semua Data"),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           ),
