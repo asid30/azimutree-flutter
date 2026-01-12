@@ -34,26 +34,54 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
         ClusterModel? selectedCluster;
         int plotCount = 0;
         int treeCount = 0;
+        double? clusterLat;
+        double? clusterLon;
         if (selectedClusterCode != null && clustersData.isNotEmpty) {
           try {
             selectedCluster = clustersData.firstWhere(
               (c) => c.kodeCluster == selectedClusterCode,
             );
             if (selectedCluster.id != null) {
-              plotCount = plotData
-                  .where((plot) => plot.idCluster == selectedCluster?.id)
-                  .length;
+              final plotsForCluster =
+                  plotData
+                      .where((plot) => plot.idCluster == selectedCluster?.id)
+                      .toList();
 
-              final clusterPlotIds = plotData
-                  .where(
-                    (plot) =>
-                        plot.idCluster == selectedCluster?.id && plot.id != null,
-                  )
-                  .map((plot) => plot.id!)
-                  .toSet();
-              treeCount = treeData
-                  .where((tree) => clusterPlotIds.contains(tree.plotId))
-                  .length;
+              plotCount = plotsForCluster.length;
+
+              if (plotsForCluster.isNotEmpty) {
+                final plot1 = plotsForCluster.firstWhere(
+                  (p) => p.kodePlot == 1,
+                  orElse: () => plotsForCluster.first,
+                );
+
+                // Kalau plot 1 ada: pakai koordinatnya; kalau tidak, pakai rata-rata plot yang ada.
+                clusterLat = plot1.latitude;
+                clusterLon = plot1.longitude;
+
+                if (plot1.kodePlot != 1 && plotsForCluster.length > 1) {
+                  clusterLat =
+                      plotsForCluster
+                          .map((p) => p.latitude)
+                          .reduce((a, b) => a + b) /
+                      plotsForCluster.length;
+                  clusterLon =
+                      plotsForCluster
+                          .map((p) => p.longitude)
+                          .reduce((a, b) => a + b) /
+                      plotsForCluster.length;
+                }
+              }
+
+              final clusterPlotIds =
+                  plotsForCluster
+                      .where((plot) => plot.id != null)
+                      .map((plot) => plot.id!)
+                      .toSet();
+              treeCount =
+                  treeData
+                      .where((tree) => clusterPlotIds.contains(tree.plotId))
+                      .length;
             }
           } catch (_) {
             selectedCluster = null; // kalau tidak ketemu
@@ -94,6 +122,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                           _row("Pengukur", selectedCluster.namaPengukur ?? "-"),
                           _row("Jumlah Plot", plotCount.toString()),
                           _row("Jumlah Pohon", treeCount.toString()),
+                          _coordinateRow(clusterLat, clusterLon),
                           _row(
                             "Tanggal Pengukuran",
                             selectedCluster.tanggalPengukuran != null
@@ -109,13 +138,18 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                         children: [
                           IconButton(
                             tooltip: "Edit klaster",
-                            onPressed: () => _editCluster(context, selectedCluster!),
+                            onPressed:
+                                () => _editCluster(context, selectedCluster!),
                             icon: const Icon(Icons.edit),
                           ),
                           IconButton(
                             tooltip: "Hapus klaster",
-                            onPressed: () => _deleteCluster(context, selectedCluster!),
-                            icon: const Icon(Icons.delete, color: Colors.redAccent),
+                            onPressed:
+                                () => _deleteCluster(context, selectedCluster!),
+                            icon: const Icon(
+                              Icons.delete,
+                              color: Color.fromARGB(255, 98, 32, 32),
+                            ),
                           ),
                         ],
                       ),
@@ -150,13 +184,40 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     return "$d-$m-$y";
   }
 
+  TableRow _coordinateRow(double? lat, double? lon) {
+    String value;
+    String tooltip;
+    if (lat != null && lon != null) {
+      value = "${lat.toStringAsFixed(6)}, ${lon.toStringAsFixed(6)}";
+      tooltip =
+          "Koordinat klaster diambil dari plot 1 jika ada, atau rata-rata plot yang tersedia.";
+    } else {
+      value = "-";
+      tooltip = "Belum ada plot, koordinat klaster belum tersedia.";
+    }
+
+    return TableRow(
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 0),
+          child: Text("Koordinat"),
+        ),
+        Padding(
+          padding: const EdgeInsets.symmetric(vertical: 0),
+          child: Tooltip(message: tooltip, child: Text(": $value")),
+        ),
+      ],
+    );
+  }
+
   Future<void> _editCluster(BuildContext context, ClusterModel cluster) async {
     final result = await showDialog<ClusterModel>(
       context: context,
-      builder: (_) => DialogEditClusterWidget(
-        cluster: cluster,
-        clusterNotifier: clusterNotifier,
-      ),
+      builder:
+          (_) => DialogEditClusterWidget(
+            cluster: cluster,
+            clusterNotifier: clusterNotifier,
+          ),
     );
 
     if (result != null && cluster.id == result.id) {
@@ -164,24 +225,30 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     }
   }
 
-  Future<void> _deleteCluster(BuildContext context, ClusterModel cluster) async {
+  Future<void> _deleteCluster(
+    BuildContext context,
+    ClusterModel cluster,
+  ) async {
     if (cluster.id == null) return;
     final confirm = await showDialog<bool>(
       context: context,
-      builder: (_) => AlertDialog(
-        title: const Text("Hapus klaster?"),
-        content: const Text("Semua plot dan pohon di klaster ini akan ikut terhapus."),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text("Batal"),
+      builder:
+          (_) => AlertDialog(
+            title: const Text("Hapus klaster?"),
+            content: const Text(
+              "Semua plot dan pohon di klaster ini akan ikut terhapus.",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text("Batal"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text("Hapus"),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            child: const Text("Hapus"),
-          ),
-        ],
-      ),
     );
 
     if (confirm != true) return;
@@ -194,9 +261,9 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
         clusters.isNotEmpty ? clusters.first.kodeCluster : null;
 
     if (context.mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Klaster dihapus")),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text("Klaster dihapus")));
     }
   }
 }

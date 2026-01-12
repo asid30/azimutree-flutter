@@ -22,6 +22,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
   late final ClusterNotifier clusterNotifier;
   late final PlotNotifier plotNotifier;
   late final TreeNotifier treeNotifier;
+  late final DraggableScrollableController _draggableController;
 
   @override
   void initState() {
@@ -29,6 +30,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
     clusterNotifier = ClusterNotifier();
     plotNotifier = PlotNotifier();
     treeNotifier = TreeNotifier();
+    _draggableController = DraggableScrollableController();
     clusterNotifier.loadClusters();
     plotNotifier.loadPlots();
     treeNotifier.loadTrees();
@@ -39,6 +41,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
     clusterNotifier.dispose();
     plotNotifier.dispose();
     treeNotifier.dispose();
+    _draggableController.dispose();
     super.dispose();
   }
 
@@ -65,10 +68,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
             ),
             SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 0,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
                 child: Column(
                   children: [
                     Row(
@@ -95,11 +95,35 @@ class _ManageDataPageState extends State<ManageDataPage> {
                         return Column(
                           children: [
                             // Dropdown tetap sama, karena sudah pakai selectedDropdownClusterNotifier
-                            DropdownManageDataWidget(
-                              clusterOptions: clusterOptions,
-                              isEmpty: clusterOptions.isEmpty,
+                            Container(
+                              width: double.infinity,
+                              padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+                              decoration: BoxDecoration(
+                                color:
+                                    DropdownManageDataWidget
+                                        .defaultBackgroundColor,
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Pilih Klaster",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  DropdownManageDataWidget(
+                                    clusterOptions: clusterOptions,
+                                    isEmpty: clusterOptions.isEmpty,
+                                    embedded: true,
+                                  ),
+                                ],
+                              ),
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
 
                             ValueListenableBuilder(
                               valueListenable: plotNotifier,
@@ -119,7 +143,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                 );
                               },
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 8),
 
                             if (hasCluster)
                               // 🔥 Dengarkan dropdown pilihan klaster
@@ -170,18 +194,33 @@ class _ManageDataPageState extends State<ManageDataPage> {
                         );
                       },
                     ),
-                    SizedBox(height: 12),
-                    SizedBox(height: 80),
+                    SizedBox(height: 8),
+                    SizedBox(height: 70),
                   ],
                 ),
               ),
             ),
+
             BottomsheetManageDataWidget(
               clusterNotifier: clusterNotifier,
               plotNotifier: plotNotifier,
               treeNotifier: treeNotifier,
+              draggableController: _draggableController,
             ),
           ],
+        ),
+        floatingActionButton: FloatingActionButton(
+          backgroundColor: Color.fromARGB(255, 71, 123, 82),
+          foregroundColor: Colors.white,
+          onPressed: () {
+            // expand bottom sheet to near-fullscreen
+            _draggableController.animateTo(
+              0.9,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeOutCubic,
+            );
+          },
+          child: const Icon(Icons.menu_open),
         ),
       ),
     );

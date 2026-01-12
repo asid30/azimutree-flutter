@@ -7,7 +7,7 @@ import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_plot_widg
 import 'package:azimutree/views/widgets/manage_data_widget/tree_plot_manage_data_widget.dart';
 import 'package:flutter/material.dart';
 
-class PlotClusterManageDataWidget extends StatelessWidget {
+class PlotClusterManageDataWidget extends StatefulWidget {
   final List<PlotModel> plotData;
   final List<TreeModel> treeData;
   final List<ClusterModel> clustersData;
@@ -26,10 +26,22 @@ class PlotClusterManageDataWidget extends StatelessWidget {
   });
 
   @override
+  State<PlotClusterManageDataWidget> createState() =>
+      _PlotClusterManageDataWidgetState();
+}
+
+class _PlotClusterManageDataWidgetState
+    extends State<PlotClusterManageDataWidget> {
+  String? _expandedKey;
+
+  String _tileKey(PlotModel plot) =>
+      plot.id != null ? "id_${plot.id}" : "kode_${plot.kodePlot}";
+
+  @override
   Widget build(BuildContext context) {
     // Kalau dari parent sudah dibilang klaster ini tidak punya plot,
     // langsung tampilkan pesan dan jangan render list plot sama sekali.
-    if (isEmpty) {
+    if (widget.isEmpty) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -52,7 +64,7 @@ class PlotClusterManageDataWidget extends StatelessWidget {
     }
 
     // Fallback: kalau isEmpty == false tapi plotData kosong (just in case)
-    if (plotData.isEmpty) {
+    if (widget.plotData.isEmpty) {
       return Container(
         width: double.infinity,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
@@ -75,7 +87,7 @@ class PlotClusterManageDataWidget extends StatelessWidget {
     }
 
     // Normal case: ada plot untuk klaster ini
-    final sortedPlotData = [...plotData]
+    final sortedPlotData = [...widget.plotData]
       ..sort((a, b) => a.kodePlot.compareTo(b.kodePlot));
 
     return Container(
@@ -94,117 +106,139 @@ class PlotClusterManageDataWidget extends StatelessWidget {
           ),
           const SizedBox(height: 10),
           for (final plot in sortedPlotData) ...[
-            Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              color: const Color.fromARGB(240, 180, 216, 187),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          child: Text(
-                            "Plot ${plot.kodePlot}",
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          tooltip: "Edit plot",
-                          onPressed:
-                              plot.id != null
-                                  ? () => _editPlot(context, plot)
-                                  : null,
-                        ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.delete,
-                            color: Colors.redAccent,
-                          ),
-                          tooltip: "Hapus plot",
-                          onPressed:
-                              plot.id != null
-                                  ? () => _deletePlot(context, plot)
-                                  : null,
-                        ),
-                      ],
+            Builder(
+              builder: (context) {
+                final tileKey = _tileKey(plot);
+                final isExpanded = _expandedKey == tileKey;
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  color: const Color.fromARGB(239, 188, 228, 196),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 8,
                     ),
-                    const SizedBox(height: 6),
-                    Theme(
-                      data: ThemeData().copyWith(
-                        dividerColor: Colors.transparent,
-                      ),
-                      child: ExpansionTile(
-                        tilePadding: EdgeInsets.zero,
-                        title: const Text(
-                          "Detail plot",
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        subtitle: Table(
-                          columnWidths: const {
-                            0: FlexColumnWidth(2),
-                            1: FlexColumnWidth(3),
-                          },
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            _row("Latitude", plot.latitude.toStringAsFixed(6)),
-                            _row(
-                              "Longitude",
-                              plot.longitude.toStringAsFixed(6),
+                            Expanded(
+                              child: Text(
+                                "Plot ${plot.kodePlot}",
+                                style:
+                                    const TextStyle(fontWeight: FontWeight.w600),
+                              ),
                             ),
-                            _row(
-                              "Altitude",
-                              plot.altitude != null
-                                  ? "${plot.altitude} m"
-                                  : "-",
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              tooltip: "Edit plot",
+                              onPressed:
+                                  plot.id != null
+                                      ? () => _editPlot(context, plot)
+                                      : null,
                             ),
-                            _row(
-                              "Jumlah Pohon",
-                              plot.id != null
-                                  ? treeData
-                                      .where((tree) => tree.plotId == plot.id)
-                                      .length
-                                      .toString()
-                                  : "0",
+                            IconButton(
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Color.fromARGB(255, 98, 32, 32),
+                              ),
+                              tooltip: "Hapus plot",
+                              onPressed:
+                                  plot.id != null
+                                      ? () => _deletePlot(context, plot)
+                                      : null,
                             ),
                           ],
                         ),
-                        children: [
-                          const Divider(height: 1),
-                          if (plot.id != null)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8.0,
+                        const SizedBox(height: 6),
+                        Theme(
+                          data: ThemeData().copyWith(
+                            dividerColor: Colors.transparent,
+                          ),
+                          child: ExpansionTile(
+                            key: ValueKey("${isExpanded}_$tileKey"),
+                            initiallyExpanded: isExpanded,
+                            onExpansionChanged: (expanded) {
+                              setState(() {
+                                if (expanded) {
+                                  _expandedKey = tileKey;
+                                } else if (_expandedKey == tileKey) {
+                                  _expandedKey = null;
+                                }
+                              });
+                            },
+                            tilePadding: EdgeInsets.zero,
+                            title: const Text(
+                              "Detail plot",
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w500,
                               ),
-                              child: TreePlotManageDataWidget(
-                                plotId: plot.id!,
-                                treeData: treeData,
-                                plots: plotData,
-                                clusters: clustersData,
-                                treeNotifier: treeNotifier,
-                              ),
-                            )
-                          else
-                            const Padding(
-                              padding: EdgeInsets.all(8.0),
-                              child: Text("ID plot tidak tersedia"),
                             ),
-                        ],
-                      ),
+                            subtitle: Table(
+                              columnWidths: const {
+                                0: FlexColumnWidth(2),
+                                1: FlexColumnWidth(3),
+                              },
+                              children: [
+                                _row(
+                                  "Latitude",
+                                  plot.latitude.toStringAsFixed(6),
+                                ),
+                                _row(
+                                  "Longitude",
+                                  plot.longitude.toStringAsFixed(6),
+                                ),
+                                _row(
+                                  "Altitude",
+                                  plot.altitude != null
+                                      ? "${plot.altitude} m"
+                                      : "-",
+                                ),
+                                _row(
+                                  "Jumlah Pohon",
+                                  plot.id != null
+                                      ? widget.treeData
+                                          .where((tree) => tree.plotId == plot.id)
+                                          .length
+                                          .toString()
+                                      : "0",
+                                ),
+                              ],
+                            ),
+                            children: [
+                              const Divider(height: 1),
+                              if (plot.id != null)
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8.0,
+                                  ),
+                                  child: TreePlotManageDataWidget(
+                                    plotId: plot.id!,
+                                    treeData: widget.treeData,
+                                    plots: widget.plotData,
+                                    clusters: widget.clustersData,
+                                    treeNotifier: widget.treeNotifier,
+                                  ),
+                                )
+                              else
+                                const Padding(
+                                  padding: EdgeInsets.all(8.0),
+                                  child: Text("ID plot tidak tersedia"),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
-              ),
+                  ),
+                );
+              },
             ),
           ],
         ],
@@ -233,8 +267,8 @@ class PlotClusterManageDataWidget extends StatelessWidget {
       builder:
           (_) => DialogEditPlotWidget(
             plot: plot,
-            clusters: clustersData,
-            plotNotifier: plotNotifier,
+            clusters: widget.clustersData,
+            plotNotifier: widget.plotNotifier,
           ),
     );
 
@@ -267,8 +301,8 @@ class PlotClusterManageDataWidget extends StatelessWidget {
     );
 
     if (confirm != true) return;
-    await plotNotifier.deletePlot(plot.id!);
-    await treeNotifier.loadTrees();
+    await widget.plotNotifier.deletePlot(plot.id!);
+    await widget.treeNotifier.loadTrees();
 
     if (context.mounted) {
       ScaffoldMessenger.of(

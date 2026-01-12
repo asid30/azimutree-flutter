@@ -4,24 +4,31 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/services/debug_data_service.dart';
+import 'package:azimutree/services/debug_mode_service.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widget.dart';
-import 'package:flutter/foundation.dart';
+import 'package:azimutree/views/widgets/manage_data_widget/dialog_import_data_widget.dart';
+import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/services/excel_import_service.dart';
+import 'package:azimutree/services/excel_export_service.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
 class BottomsheetManageDataWidget extends StatefulWidget {
   final ClusterNotifier clusterNotifier;
   final PlotNotifier plotNotifier;
   final TreeNotifier treeNotifier;
+  final DraggableScrollableController? draggableController;
 
   const BottomsheetManageDataWidget({
     super.key,
     required this.clusterNotifier,
     required this.plotNotifier,
     required this.treeNotifier,
+    this.draggableController,
   });
 
   @override
@@ -32,13 +39,22 @@ class BottomsheetManageDataWidget extends StatefulWidget {
 class _BottomsheetManageDataWidgetState
     extends State<BottomsheetManageDataWidget> {
   late final DraggableScrollableController _draggableScrollableController;
+  late final bool _ownsController;
   final double _maxChildSize = 0.9;
-  final double _minChildSize = 0.1;
+  final double _minChildSize = 0.03;
   late final DebugDataService _debugDataService;
   @override
   void initState() {
     super.initState();
-    _draggableScrollableController = DraggableScrollableController();
+    // Use external controller if parent provided one, otherwise create our own
+    if (widget.draggableController != null) {
+      _draggableScrollableController = widget.draggableController!;
+      _ownsController = false;
+    } else {
+      _draggableScrollableController = DraggableScrollableController();
+      _ownsController = true;
+    }
+
     _debugDataService = DebugDataService(
       clusterNotifier: widget.clusterNotifier,
       plotNotifier: widget.plotNotifier,
@@ -54,68 +70,124 @@ class _BottomsheetManageDataWidgetState
     );
   }
 
+  /// Public method so parent widgets can request the bottom sheet to expand.
+  void expandBottomSheet() => _expandBottomSheet();
+
   @override
   void dispose() {
-    _draggableScrollableController.dispose();
+    if (_ownsController) {
+      _draggableScrollableController.dispose();
+    }
     super.dispose();
   }
 
-  void _showWarningNeedCluster({required String target}) {
-    showDialog(
-      barrierDismissible: false,
+  Future<void> _clearAllData() async {
+    final confirm = await showDialog<bool>(
       context: context,
       builder:
-          (context) => AlertWarningWidget(
-            warningMessage:
-                "Anda harus menambahkan setidaknya satu klaster sebelum menambahkan $target.",
-            backgroundColor: Colors.lightGreen.shade200,
+          (_) => AlertDialog(
+            title: const Text("Hapus semua data?"),
+            content: const Text(
+              "Semua klaster, plot, dan pohon akan dihapus permanen.",
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text("Batal"),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text("Hapus"),
+              ),
+            ],
           ),
     );
-  }
 
-  void _showWarningNeedPlot({required String target}) {
-    showDialog(
-      barrierDismissible: false,
-      context: context,
-      builder:
-          (context) => AlertWarningWidget(
-            warningMessage:
-                "Anda harus menambahkan setidaknya satu plot sebelum menambahkan $target.",
-            backgroundColor: Colors.lightGreen.shade200,
-          ),
-    );
+    if (confirm != true) return;
+
+    try {
+      await _debugDataService.clearAllData();
+      if (!mounted) return;
+      await _showAlert(
+        message: "Semua data berhasil dihapus",
+        backgroundColor: Colors.lightGreen.shade200,
+      );
+    } catch (e) {
+      if (!mounted) return;
+      await _showAlert(
+        message: "Gagal menghapus data: $e",
+        backgroundColor: Colors.red.shade200,
+      );
+    }
   }
 
   Future<void> _generateRandomData() async {
     try {
       await _debugDataService.seedRandomData();
-      _showSnackBar("Berhasil generate data random");
+      if (!mounted) return;
+      await _showAlert(
+        message: "Data acak berhasil dibuat",
+        backgroundColor: Colors.lightGreen.shade200,
+      );
     } catch (e) {
-      _showSnackBar("Gagal generate data: $e");
+      if (!mounted) return;
+      await _showAlert(
+        message: "Gagal membuat data acak: $e",
+        backgroundColor: Colors.red.shade200,
+      );
     }
   }
 
-  Future<void> _clearAllData() async {
-    try {
-      await _debugDataService.clearAllData();
-      _showSnackBar("Semua data berhasil dihapus");
-    } catch (e) {
-      _showSnackBar("Gagal menghapus data: $e");
-    }
+  Future<void> _showAlert({
+    String title = 'Warning!',
+    required String message,
+    required Color backgroundColor,
+  }) {
+    return showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder:
+          (_) => AlertWarningWidget(
+            title: title,
+            warningMessage: message,
+            backgroundColor: backgroundColor,
+          ),
+    );
   }
 
-  void _showSnackBar(String message) {
+  Future<void> _showWarningNeedCluster({required String target}) async {
     if (!mounted) return;
-    ScaffoldMessenger.of(
-      context,
-    ).showSnackBar(SnackBar(content: Text(message)));
+    await showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder:
+          (_) => AlertWarningWidget(
+            warningMessage:
+                'Harap tambahkan klaster terlebih dahulu sebelum menambahkan $target.',
+            backgroundColor: Colors.orange.shade200,
+          ),
+    );
+  }
+
+  Future<void> _showWarningNeedPlot({required String target}) async {
+    if (!mounted) return;
+    await showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder:
+          (_) => AlertWarningWidget(
+            warningMessage:
+                'Harap tambahkan plot terlebih dahulu sebelum menambahkan $target.',
+            backgroundColor: Colors.orange.shade200,
+          ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return DraggableScrollableSheet(
       controller: _draggableScrollableController,
-      initialChildSize: 0.1,
+      initialChildSize: 0.03,
       minChildSize: _minChildSize,
       maxChildSize: _maxChildSize,
       builder: (context, scrollController) {
@@ -132,16 +204,48 @@ class _BottomsheetManageDataWidgetState
             child: ListView(
               controller: scrollController,
               children: [
-                ListTile(
-                  title: TextButton(
-                    onPressed: _expandBottomSheet,
-                    child: const Text(
-                      'Menu Kelola Data',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
+                // Header with drag handle and a rounded button to expand sheet
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // subtle drag handle
+                      Container(
+                        width: 48,
+                        height: 6,
+                        margin: const EdgeInsets.only(bottom: 8.0),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.shade400,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                      Center(
+                        child: OutlinedButton.icon(
+                          onPressed: _expandBottomSheet,
+                          icon: const Icon(Icons.menu, size: 18),
+                          label: const Text(
+                            'Menu Kelola Data',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            foregroundColor: Colors.black87,
+                            side: BorderSide.none,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 18.0,
+                              vertical: 12.0,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24.0),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
+                SizedBox(height: 30),
                 const Text(
                   'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor data untuk menambahkan data dari file eksternal (sheet), ekspor data untuk menyimpan salinan data Anda, atau unduh template untuk format data (sheet) yang benar.',
                   textAlign: TextAlign.justify,
@@ -156,14 +260,249 @@ class _BottomsheetManageDataWidgetState
                       label: "Ekspor Data",
                       icon: Icons.file_upload,
                       onPressed: () {
-                        //? TODO: Handle export data action
+                        showDialog<void>(
+                          barrierDismissible: false,
+                          context: context,
+                          builder: (dialogContext) {
+                            final clusters = widget.clusterNotifier.value;
+                            String? selectedKode;
+                            if (clusters.isNotEmpty) {
+                              selectedKode = clusters.first.kodeCluster;
+                            }
+                            String? selectedDirectoryPath;
+
+                            return StatefulBuilder(
+                              builder: (builderContext, setState) {
+                                return AlertDialog(
+                                  title: const Text('Ekspor Data ke Excel'),
+                                  content: SizedBox(
+                                    width: double.maxFinite,
+                                    child: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (clusters.isEmpty) ...[
+                                          const Text(
+                                            'Belum ada klaster tersedia.',
+                                          ),
+                                        ] else ...[
+                                          const Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text('Pilih klaster:'),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          DropdownButton<String>(
+                                            isExpanded: true,
+                                            value: selectedKode,
+                                            items:
+                                                clusters
+                                                    .map(
+                                                      (c) => DropdownMenuItem(
+                                                        value: c.kodeCluster,
+                                                        child: Text(
+                                                          c.kodeCluster +
+                                                              (c.namaPengukur !=
+                                                                      null
+                                                                  ? ' - ${c.namaPengukur}'
+                                                                  : ''),
+                                                        ),
+                                                      ),
+                                                    )
+                                                    .toList(),
+                                            onChanged:
+                                                (v) => setState(
+                                                  () => selectedKode = v,
+                                                ),
+                                          ),
+                                          const SizedBox(height: 12),
+                                          const Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text('Simpan ke folder:'),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Align(
+                                            alignment: Alignment.centerLeft,
+                                            child: Text(
+                                              selectedDirectoryPath == null
+                                                  ? 'Default: Download'
+                                                  : selectedDirectoryPath!,
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          OutlinedButton(
+                                            onPressed: () async {
+                                              final picked =
+                                                  await FilePicker.platform
+                                                      .getDirectoryPath();
+                                              if (!builderContext.mounted) {
+                                                return;
+                                              }
+                                              if (picked == null ||
+                                                  picked.trim().isEmpty) {
+                                                return;
+                                              }
+                                              setState(
+                                                () =>
+                                                    selectedDirectoryPath =
+                                                        picked,
+                                              );
+                                            },
+                                            child: const Text(
+                                              'Pilih Folder Simpan',
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed:
+                                          () =>
+                                              Navigator.of(dialogContext).pop(),
+                                      child: const Text('Batal'),
+                                    ),
+                                    ElevatedButton(
+                                      onPressed:
+                                          clusters.isEmpty
+                                              ? null
+                                              : () async {
+                                                final cluster = clusters
+                                                    .firstWhere(
+                                                      (c) =>
+                                                          c.kodeCluster ==
+                                                          selectedKode,
+                                                      orElse:
+                                                          () => clusters.first,
+                                                    );
+
+                                                // Close selection dialog (no async gap before using dialogContext)
+                                                Navigator.of(
+                                                  dialogContext,
+                                                ).pop();
+
+                                                // Show progress dialog on root navigator
+                                                showDialog<void>(
+                                                  barrierDismissible: false,
+                                                  context: this.context,
+                                                  useRootNavigator: true,
+                                                  builder:
+                                                      (_) => const Center(
+                                                        child:
+                                                            CircularProgressIndicator(),
+                                                      ),
+                                                );
+
+                                                try {
+                                                  final path =
+                                                      await ExcelExportService.exportClusterToExcel(
+                                                        cluster: cluster,
+                                                        directoryPath:
+                                                            selectedDirectoryPath,
+                                                        preferDownloads:
+                                                            selectedDirectoryPath ==
+                                                            null,
+                                                      );
+
+                                                  if (!mounted) return;
+                                                  // Close progress dialog (root)
+                                                  Navigator.of(
+                                                    this.context,
+                                                    rootNavigator: true,
+                                                  ).pop();
+                                                  await _showAlert(
+                                                    title: 'Sukses',
+                                                    message:
+                                                        'Ekspor selesai. File disimpan di:\n$path',
+                                                    backgroundColor:
+                                                        Colors
+                                                            .lightGreen
+                                                            .shade200,
+                                                  );
+                                                } catch (e) {
+                                                  if (!mounted) return;
+                                                  Navigator.of(
+                                                    this.context,
+                                                    rootNavigator: true,
+                                                  ).pop();
+                                                  await _showAlert(
+                                                    title: 'Gagal',
+                                                    message:
+                                                        'Ekspor gagal: ${e.toString()}',
+                                                    backgroundColor:
+                                                        Colors.red.shade200,
+                                                  );
+                                                }
+                                              },
+                                      child: const Text('Ekspor'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        );
                       },
                     ),
                     BtmButtonManageDataWidget(
                       label: "Impor Data",
                       icon: Icons.file_download,
-                      onPressed: () {
-                        //? TODO: Handle import data action
+                      onPressed: () async {
+                        final result = await showDialog(
+                          barrierDismissible: false,
+                          context: context,
+                          builder:
+                              (context) => DialogImportDataWidget(
+                                clusterNotifier: widget.clusterNotifier,
+                              ),
+                        );
+
+                        if (result != null) {
+                          try {
+                            final cluster = ClusterModel(
+                              kodeCluster: result['kodeCluster'] as String,
+                              namaPengukur: result['namaPengukur'] as String?,
+                              tanggalPengukuran:
+                                  (result['tanggalPengukuran'] as String?)
+                                              ?.isNotEmpty ==
+                                          true
+                                      ? DateTime.tryParse(
+                                        result['tanggalPengukuran'] as String,
+                                      )
+                                      : null,
+                            );
+
+                            // Use file uploaded by user (picked in dialog)
+                            final uploadedPath = result['filePath'] as String;
+                            final importResult =
+                                await ExcelImportService.importFile(
+                                  filePath: uploadedPath,
+                                  cluster: cluster,
+                                );
+
+                            // reload notifiers
+                            await widget.clusterNotifier.loadClusters();
+                            await widget.plotNotifier.loadPlots();
+                            await widget.treeNotifier.loadTrees();
+
+                            if (!mounted) return;
+                            await _showAlert(
+                              title: 'Sukses',
+                              message:
+                                  'Impor selesai. Plots: ${importResult['plots']}, Trees: ${importResult['trees']}',
+                              backgroundColor: Colors.lightGreen.shade200,
+                            );
+                          } catch (e) {
+                            if (!context.mounted) return;
+                            await _showAlert(
+                              title: 'Gagal',
+                              message: 'Impor gagal: ${e.toString()}',
+                              backgroundColor: Colors.red.shade200,
+                            );
+                          }
+                        }
                       },
                     ),
                     BtmButtonManageDataWidget(
@@ -289,23 +628,37 @@ class _BottomsheetManageDataWidgetState
                   },
                 ),
                 const SizedBox(height: 20),
-                if (kDebugMode) ...[
-                  const Text("Debug options:"),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: _generateRandomData,
-                    child: const Text("Generate Data Random"),
-                  ),
-                  const SizedBox(height: 8),
-                  ElevatedButton(
-                    onPressed: _clearAllData,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color.fromARGB(255, 131, 30, 23),
-                      foregroundColor: Colors.white,
-                    ),
-                    child: const Text("Hapus Semua Data"),
-                  ),
-                ],
+                ValueListenableBuilder<bool>(
+                  valueListenable: DebugModeService.instance.enabled,
+                  builder: (context, enabled, _) {
+                    if (!enabled) return const SizedBox.shrink();
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text("Debug options:"),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: _generateRandomData,
+                          child: const Text("Generate Data Random"),
+                        ),
+                        const SizedBox(height: 8),
+                        ElevatedButton(
+                          onPressed: _clearAllData,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              131,
+                              30,
+                              23,
+                            ),
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text("Hapus Semua Data"),
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ],
             ),
           ),
