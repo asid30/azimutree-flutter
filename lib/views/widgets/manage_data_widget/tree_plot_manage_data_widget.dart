@@ -55,6 +55,10 @@ class TreePlotManageDataWidget extends StatelessWidget {
 
             final subtitleText = "Kode pohon: ${tree.kodePohon}";
             final hasImage = tree.urlFoto != null && tree.urlFoto!.isNotEmpty;
+            final heroTag =
+                hasImage
+                    ? 'tree_photo_${tree.id ?? '${tree.plotId}_${tree.kodePohon}'}_${tree.urlFoto.hashCode}'
+                    : null;
 
             final List<TableRow> tableRows = [];
             if (hasImage) {
@@ -66,7 +70,18 @@ class TreePlotManageDataWidget extends StatelessWidget {
                       height: 120,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: _buildTreeImage(tree),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              _openTreePhotoPreview(context, tree, heroTag);
+                            },
+                            child: Hero(
+                              tag: heroTag!,
+                              child: _buildTreeImage(tree),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 120),
@@ -189,12 +204,12 @@ class TreePlotManageDataWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildTreeImage(TreeModel tree) {
+  Widget _buildTreeImage(TreeModel tree, {BoxFit fit = BoxFit.cover}) {
     final url = tree.urlFoto!;
 
     return CachedNetworkImage(
       imageUrl: url,
-      fit: BoxFit.cover,
+      fit: fit,
       placeholder:
           (context, _) => const Center(
             child: SizedBox(
@@ -206,6 +221,22 @@ class TreePlotManageDataWidget extends StatelessWidget {
       errorWidget:
           (context, _, __) =>
               const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
+    );
+  }
+
+  void _openTreePhotoPreview(
+    BuildContext context,
+    TreeModel tree,
+    String heroTag,
+  ) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (_) => _TreePhotoPreviewPage(
+              imageUrl: tree.urlFoto!,
+              heroTag: heroTag,
+            ),
+      ),
     );
   }
 
@@ -256,5 +287,52 @@ class TreePlotManageDataWidget extends StatelessWidget {
         context,
       ).showSnackBar(const SnackBar(content: Text("Pohon dihapus")));
     }
+  }
+}
+
+class _TreePhotoPreviewPage extends StatelessWidget {
+  final String imageUrl;
+  final String heroTag;
+
+  const _TreePhotoPreviewPage({required this.imageUrl, required this.heroTag});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => Navigator.of(context).pop(),
+          child: Center(
+            child: InteractiveViewer(
+              minScale: 1.0,
+              maxScale: 5.0,
+              child: Hero(
+                tag: heroTag,
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.contain,
+                  placeholder:
+                      (context, _) => const Center(
+                        child: SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: CircularProgressIndicator(strokeWidth: 2.5),
+                        ),
+                      ),
+                  errorWidget:
+                      (context, _, __) => const Icon(
+                        Icons.broken_image,
+                        color: Colors.white70,
+                        size: 48,
+                      ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
