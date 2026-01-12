@@ -10,3 +10,12 @@ ValueNotifier<List<Map<String, dynamic>>> resultSearchLocationNotifier =
 ValueNotifier<bool> isSearchingNotifier = ValueNotifier(false);
 ValueNotifier<Position?> selectedLocationNotifier = ValueNotifier(null);
 ValueNotifier<String?> selectedDropdownClusterNotifier = ValueNotifier(null);
+
+/// Latest user location (live). Used for centering and optional UI.
+ValueNotifier<Position?> userLocationNotifier = ValueNotifier(null);
+
+/// True when the map should keep following the user's live location.
+ValueNotifier<bool> isFollowingUserLocationNotifier = ValueNotifier(false);
+
+/// Increment this value to request the map camera to reset bearing to north.
+ValueNotifier<int> northResetRequestNotifier = ValueNotifier(0);

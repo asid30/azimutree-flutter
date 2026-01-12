@@ -26,6 +26,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   MapboxMap? _mapboxMap;
   CircleAnnotationManager? _circleManager;
   late final VoidCallback _styleListener;
+  late final VoidCallback _northResetListener;
 
   @override
   void initState() {
@@ -43,12 +44,18 @@ class _MapboxWidgetState extends State<MapboxWidget> {
 
     selectedMenuBottomSheetNotifier.addListener(_styleListener);
     selectedLocationNotifier.addListener(_onLocationChanged);
+
+    _northResetListener = () {
+      _resetBearingToNorth();
+    };
+    northResetRequestNotifier.addListener(_northResetListener);
   }
 
   @override
   void dispose() {
     selectedMenuBottomSheetNotifier.removeListener(_styleListener);
     selectedLocationNotifier.removeListener(_onLocationChanged);
+    northResetRequestNotifier.removeListener(_northResetListener);
     super.dispose();
   }
 
@@ -56,11 +63,22 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     final pos = selectedLocationNotifier.value;
     if (!mounted) return;
     if (pos != null && _mapboxMap != null) {
+      final follow = isFollowingUserLocationNotifier.value;
       _mapboxMap!.easeTo(
         CameraOptions(center: Point(coordinates: pos), zoom: 14),
-        MapAnimationOptions(duration: 5000),
+        MapAnimationOptions(duration: follow ? 800 : 1500),
       );
     }
+  }
+
+  void _resetBearingToNorth() {
+    if (!mounted) return;
+    if (_mapboxMap == null) return;
+
+    _mapboxMap!.easeTo(
+      CameraOptions(bearing: 0),
+      MapAnimationOptions(duration: 500),
+    );
   }
 
   @override
@@ -76,6 +94,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                     ? widget.standardStyleUri
                     : widget.sateliteStyleUri;
             _applyStyleAndMarkers(style);
+            _enableUserLocationPuck();
             // If a target location was set before the map was created
             // (e.g., via "Tracking Data"), center the camera immediately.
             _onLocationChanged();
@@ -92,6 +111,15 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           ),
         );
       },
+    );
+  }
+
+  Future<void> _enableUserLocationPuck() async {
+    if (_mapboxMap == null) return;
+    // Shows the user's location indicator (puck/pin) on the map.
+    // Permission is handled by geolocator; if not granted, it simply won't show.
+    await _mapboxMap!.location.updateSettings(
+      LocationComponentSettings(enabled: true, pulsingEnabled: true),
     );
   }
 
