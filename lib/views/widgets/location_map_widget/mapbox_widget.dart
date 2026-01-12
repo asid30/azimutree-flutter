@@ -76,6 +76,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                     ? widget.standardStyleUri
                     : widget.sateliteStyleUri;
             _applyStyleAndMarkers(style);
+            // If a target location was set before the map was created
+            // (e.g., via "Tracking Data"), center the camera immediately.
+            _onLocationChanged();
           },
           styleUri:
               selectedMenuBottomSheet == 0

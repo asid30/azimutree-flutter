@@ -18,6 +18,7 @@ class _SuggestionSearchbarWidgetState extends State<SuggestionSearchbarWidget> {
   void initState() {
     super.initState();
     _searchingListener = () {
+      if (!mounted) return;
       setState(() {});
     };
     isSearchingNotifier.addListener(_searchingListener);
@@ -25,7 +26,7 @@ class _SuggestionSearchbarWidgetState extends State<SuggestionSearchbarWidget> {
 
   @override
   void dispose() {
-    selectedMenuBottomSheetNotifier.removeListener(_searchingListener);
+    isSearchingNotifier.removeListener(_searchingListener);
     super.dispose();
   }
 
