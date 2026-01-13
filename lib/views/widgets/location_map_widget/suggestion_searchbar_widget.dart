@@ -35,14 +35,17 @@ class _SuggestionSearchbarWidgetState extends State<SuggestionSearchbarWidget> {
     return ValueListenableBuilder(
       valueListenable: userInputSearchBarNotifier,
       builder: (context, userInputSearchBar, child) {
-        if (userInputSearchBar.isEmpty) {
+        // Use a trimmed version of the input for filtering so that "jakarta "
+        // matches the same results as "jakarta".
+        final query = userInputSearchBar.trim();
+        if (query.isEmpty) {
           return const SizedBox();
         }
         final filteredSearch =
             resultSearchLocationNotifier.value
                 .where(
                   (place) => place['name']!.toLowerCase().contains(
-                    userInputSearchBar.toLowerCase(),
+                    query.toLowerCase(),
                   ),
                 )
                 .toList();
@@ -54,7 +57,9 @@ class _SuggestionSearchbarWidgetState extends State<SuggestionSearchbarWidget> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              SuggestionHeaderWidget(query: userInputSearchBar),
+              // Pass the trimmed query to the header so displayed text is
+              // consistent with search results.
+              SuggestionHeaderWidget(query: query),
               SuggestionBodyWidget(
                 isSearching: isSearchingNotifier.value,
                 results: filteredSearch,

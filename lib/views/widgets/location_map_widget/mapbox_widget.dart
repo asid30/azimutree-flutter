@@ -25,6 +25,7 @@ class MapboxWidget extends StatefulWidget {
 class _MapboxWidgetState extends State<MapboxWidget> {
   MapboxMap? _mapboxMap;
   CircleAnnotationManager? _circleManager;
+  CircleAnnotationManager? _searchResultManager;
   late final VoidCallback _styleListener;
   late final VoidCallback _northResetListener;
 
@@ -68,6 +69,15 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         CameraOptions(center: Point(coordinates: pos), zoom: 14),
         MapAnimationOptions(duration: follow ? 800 : 1500),
       );
+      // Show a search result pin so user can see selected location.
+      // Do not show the search pin when the map is following the user's live
+      // location (it would overlap the user puck).
+      if (!isFollowingUserLocationNotifier.value) {
+        _showSearchResultMarker(pos);
+      } else {
+        // Ensure any previous search result marker is removed.
+        _removeSearchResultMarker();
+      }
     }
   }
 
@@ -135,6 +145,54 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         await _mapboxMap!.annotations.createCircleAnnotationManager();
   }
 
+  Future<void> _ensureSearchManager() async {
+    if (_mapboxMap == null) return;
+    // Create a separate manager for the search result so it can be
+    // manipulated independently from the database markers.
+    _searchResultManager ??=
+        await _mapboxMap!.annotations.createCircleAnnotationManager();
+  }
+
+  Future<void> _removeSearchResultMarker() async {
+    // Remove any search result markers (circle manager)
+    try {
+      if (_searchResultManager != null) {
+        await _searchResultManager!.deleteAll();
+      }
+    } catch (_) {}
+    // (no symbol manager supported in this plugin version)
+  }
+
+  Future<void> _showSearchResultMarker(Position pos) async {
+    if (_mapboxMap == null) return;
+    // If the app is currently following the user's live location, do not
+    // show a search result marker (it would overlap the user location puck).
+    if (isFollowingUserLocationNotifier.value) {
+      await _removeSearchResultMarker();
+      return;
+    }
+
+    // Create a circle-style search result marker. We avoid showing this
+    // when the map is following user's live location (handled above).
+    await _ensureSearchManager();
+    if (_searchResultManager == null) return;
+    try {
+      await _searchResultManager!.deleteAll();
+    } catch (_) {}
+    await _searchResultManager!.create(
+      CircleAnnotationOptions(
+        geometry: Point(coordinates: pos),
+        circleColor: 0xFFFF5252,
+        // Slightly smaller so it doesn't obscure nearby objects or the
+        // user location puck.
+        circleRadius: 8,
+        circleStrokeColor: 0xFFFFFFFF,
+        circleStrokeWidth: 1.5,
+        circleOpacity: 1.0,
+      ),
+    );
+  }
+
   Future<void> _loadMarkers() async {
     if (_mapboxMap == null) return;
     await _ensureManager();
@@ -149,6 +207,11 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     await _addClusterMarkers(clusters, plots);
     await _addPlotMarkers(plots);
     await _addTreeMarkers(trees);
+    // If there's an active selected location (from search), show its pin.
+    final sel = selectedLocationNotifier.value;
+    if (sel != null) {
+      await _showSearchResultMarker(sel);
+    }
   }
 
   Future<void> _addClusterMarkers(

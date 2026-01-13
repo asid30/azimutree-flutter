@@ -19,3 +19,6 @@ ValueNotifier<bool> isFollowingUserLocationNotifier = ValueNotifier(false);
 
 /// Increment this value to request the map camera to reset bearing to north.
 ValueNotifier<int> northResetRequestNotifier = ValueNotifier(0);
+
+/// True when the search input inside the bottom sheet has focus.
+ValueNotifier<bool> isSearchFieldFocusedNotifier = ValueNotifier(false);
