@@ -16,6 +16,7 @@ import 'package:azimutree/services/excel_import_service.dart';
 import 'package:azimutree/services/excel_export_service.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class BottomsheetManageDataWidget extends StatefulWidget {
   final ClusterNotifier clusterNotifier;
@@ -181,6 +182,54 @@ class _BottomsheetManageDataWidgetState
             backgroundColor: Colors.orange.shade200,
           ),
     );
+  }
+
+  Future<void> _confirmAndOpenTemplate() async {
+    const templateUrl =
+        'https://docs.google.com/spreadsheets/d/1EN-vjd3Tn1Q1wAyW599V07c_YIaMHK4fgSvLvuOS3pI/edit?usp=sharing';
+
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder:
+          (_) => AlertDialog(
+            title: const Text('Unduh Template'),
+            content: const Text(
+              'Apakah Anda ingin membuka browser untuk mengunduh template?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: const Text('Buka'),
+              ),
+            ],
+          ),
+    );
+
+    if (confirm != true) return;
+
+    final uri = Uri.parse(templateUrl);
+    try {
+      if (!await canLaunchUrl(uri)) {
+        await _showAlert(
+          title: 'Gagal',
+          message: 'Tidak dapat membuka browser pada perangkat ini.',
+          backgroundColor: Colors.red.shade200,
+        );
+        return;
+      }
+
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      await _showAlert(
+        title: 'Gagal',
+        message: 'Terjadi kesalahan saat membuka tautan: $e',
+        backgroundColor: Colors.red.shade200,
+      );
+    }
   }
 
   @override
@@ -509,7 +558,7 @@ class _BottomsheetManageDataWidgetState
                       label: "Unduh Template",
                       icon: Icons.description,
                       onPressed: () {
-                        //? TODO: Handle download template action
+                        _confirmAndOpenTemplate();
                       },
                     ),
                   ],
