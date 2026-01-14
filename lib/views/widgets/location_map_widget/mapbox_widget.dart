@@ -201,7 +201,21 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     if (nearest != null && minDist <= threshold && mounted) {
       // Clear any search focus to avoid conflicting sheet animations.
       isSearchFieldFocusedNotifier.value = false;
+      // Select the tree so bottomsheet shows details.
       selectedTreeNotifier.value = nearest;
+      // Center the camera on the selected tree (same behavior as the
+      // 'center on tree' button in the bottomsheet): disable following
+      // the user's live location and set the selectedLocationNotifier so
+      // the existing _onLocationChanged handler moves the camera.
+      try {
+        isFollowingUserLocationNotifier.value = false;
+        selectedLocationNotifier.value = Position(
+          nearest.longitude!,
+          nearest.latitude!,
+        );
+      } catch (_) {
+        // ignore if position construction fails for any reason
+      }
     }
   }
 

@@ -210,6 +210,8 @@ class _BottomsheetLocationMapWidgetState
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // Header and controls for the selected tree are shown
+                        // above the photo and details.
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -220,11 +222,57 @@ class _BottomsheetLocationMapWidgetState
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
-                            IconButton(
-                              onPressed: () {
-                                selectedTreeNotifier.value = null;
-                              },
-                              icon: const Icon(Icons.close),
+                            Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Center camera to this tree's location
+                                IconButton(
+                                  tooltip: 'Center on tree',
+                                  onPressed:
+                                      (tree.latitude != null &&
+                                              tree.longitude != null)
+                                          ? () async {
+                                            // Ensure we are not following the live user location
+                                            isFollowingUserLocationNotifier
+                                                .value = false;
+                                            // Force a change of the selected location notifier
+                                            // by briefly clearing it first, this avoids a
+                                            // no-op if the same Position is already set.
+                                            selectedLocationNotifier.value =
+                                                null;
+                                            // Small delay to ensure listeners receive the null
+                                            // then the new position update.
+                                            await Future.delayed(
+                                              const Duration(milliseconds: 60),
+                                            );
+                                            selectedLocationNotifier
+                                                .value = Position(
+                                              tree.longitude!,
+                                              tree.latitude!,
+                                            );
+                                            // Give quick visual feedback so user knows action ran.
+                                            if (context.mounted) {
+                                              ScaffoldMessenger.of(
+                                                context,
+                                              ).showSnackBar(
+                                                const SnackBar(
+                                                  content: Text(
+                                                    'Centering map on tree...',
+                                                  ),
+                                                ),
+                                              );
+                                            }
+                                          }
+                                          : null,
+                                  icon: const Icon(Icons.my_location_outlined),
+                                ),
+                                IconButton(
+                                  onPressed: () {
+                                    selectedTreeNotifier.value = null;
+                                  },
+                                  icon: const Icon(Icons.close),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -314,6 +362,7 @@ class _BottomsheetLocationMapWidgetState
                               ),
                           ],
                         ),
+                        // header moved above
                       ],
                     );
                   },
