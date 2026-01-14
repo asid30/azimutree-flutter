@@ -16,24 +16,34 @@ class _SearchbarBottomsheetWidgetState
     extends State<SearchbarBottomsheetWidget> {
   late final TextEditingController _searchController;
   late final DebouncerService _debouncer;
+  late final FocusNode _focusNode;
 
   @override
   void initState() {
     super.initState();
     _searchController = TextEditingController();
     _debouncer = DebouncerService(delay: Duration(seconds: 1));
+    _focusNode = FocusNode();
+    _focusNode.addListener(() {
+      isSearchFieldFocusedNotifier.value = _focusNode.hasFocus;
+    });
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     _debouncer.dispose();
+    _focusNode.removeListener(() {});
+    _focusNode.dispose();
     super.dispose();
   }
 
   void _onSearchChanged(String value) {
+    // Keep the raw input visible in the text field, but use a trimmed
+    // value for search so leading/trailing spaces don't change results.
     userInputSearchBarNotifier.value = value;
-    if (value.trim().isEmpty) {
+    final trimmed = value.trim();
+    if (trimmed.isEmpty) {
       resultSearchLocationNotifier.value = [];
       isSearchingNotifier.value = false;
       return;
@@ -41,7 +51,7 @@ class _SearchbarBottomsheetWidgetState
     isSearchingNotifier.value = true;
     _debouncer.run(() async {
       try {
-        await _search(value);
+        await _search(trimmed);
       } finally {
         isSearchingNotifier.value = false;
       }
@@ -64,6 +74,7 @@ class _SearchbarBottomsheetWidgetState
       valueListenable: userInputSearchBarNotifier,
       builder: (context, userInputSearchBar, child) {
         return TextFormField(
+          focusNode: _focusNode,
           controller: _searchController,
           decoration: InputDecoration(
             prefixIcon: const Icon(Icons.search, color: Colors.grey),

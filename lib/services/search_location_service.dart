@@ -4,8 +4,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
 Future<List<Map<String, dynamic>>> searchLocationService(String query) async {
+  // Normalize query to avoid accidental mismatches from leading/trailing
+  // whitespace (e.g., "jakarta " vs "jakarta").
+  final normalized = query.trim();
   final token = dotenv.env['MAP_BOX_ACCESS']!;
-  final encodedQuery = Uri.encodeComponent(query);
+  final encodedQuery = Uri.encodeComponent(normalized);
   final url =
       'https://api.mapbox.com/geocoding/v5/mapbox.places/$encodedQuery.json?access_token=$token&limit=5';
 

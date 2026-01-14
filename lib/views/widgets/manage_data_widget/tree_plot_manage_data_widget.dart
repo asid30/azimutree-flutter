@@ -1,11 +1,13 @@
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_tree_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 class TreePlotManageDataWidget extends StatelessWidget {
   final int plotId;
@@ -55,10 +57,9 @@ class TreePlotManageDataWidget extends StatelessWidget {
 
             final subtitleText = "Kode pohon: ${tree.kodePohon}";
             final hasImage = tree.urlFoto != null && tree.urlFoto!.isNotEmpty;
+            final hasLocation = tree.latitude != null && tree.longitude != null;
             final heroTag =
-                hasImage
-                    ? 'tree_photo_${tree.id ?? '${tree.plotId}_${tree.kodePohon}'}_${tree.urlFoto.hashCode}'
-                    : null;
+                'tree_photo_${tree.id ?? '${tree.plotId}_${tree.kodePohon}'}_${tree.urlFoto?.hashCode ?? 0}';
 
             final List<TableRow> tableRows = [];
             if (hasImage) {
@@ -77,7 +78,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
                               _openTreePhotoPreview(context, tree, heroTag);
                             },
                             child: Hero(
-                              tag: heroTag!,
+                              tag: heroTag,
                               child: _buildTreeImage(tree),
                             ),
                           ),
@@ -170,14 +171,31 @@ class TreePlotManageDataWidget extends StatelessWidget {
                           horizontal: 12.0,
                           vertical: 8,
                         ),
-                        child: Table(
-                          columnWidths: const {
-                            0: FlexColumnWidth(2),
-                            1: FlexColumnWidth(3),
-                          },
-                          defaultVerticalAlignment:
-                              TableCellVerticalAlignment.middle,
-                          children: tableRows,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Table(
+                              columnWidths: const {
+                                0: FlexColumnWidth(2),
+                                1: FlexColumnWidth(3),
+                              },
+                              defaultVerticalAlignment:
+                                  TableCellVerticalAlignment.middle,
+                              children: tableRows,
+                            ),
+                            if (hasLocation) ...[
+                              const SizedBox(height: 10),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: OutlinedButton.icon(
+                                  onPressed:
+                                      () => _trackTreeLocation(context, tree),
+                                  icon: const Icon(Icons.my_location),
+                                  label: const Text('Tracking Data'),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ],
@@ -238,6 +256,14 @@ class TreePlotManageDataWidget extends StatelessWidget {
             ),
       ),
     );
+  }
+
+  void _trackTreeLocation(BuildContext context, TreeModel tree) {
+    if (tree.latitude == null || tree.longitude == null) return;
+
+    selectedPageNotifier.value = 'location_map_page';
+    selectedLocationNotifier.value = Position(tree.longitude!, tree.latitude!);
+    Navigator.pushNamed(context, 'location_map_page');
   }
 
   Future<void> _editTree(BuildContext context, TreeModel tree) async {
