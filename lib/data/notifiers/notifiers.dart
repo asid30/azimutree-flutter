@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:azimutree/data/models/tree_model.dart';
 
 ValueNotifier<bool> isLightModeNotifier = ValueNotifier(true);
 ValueNotifier<String> selectedPageNotifier = ValueNotifier("home");
@@ -22,3 +23,6 @@ ValueNotifier<int> northResetRequestNotifier = ValueNotifier(0);
 
 /// True when the search input inside the bottom sheet has focus.
 ValueNotifier<bool> isSearchFieldFocusedNotifier = ValueNotifier(false);
+
+/// Holds the currently-selected tree (when a marker is tapped on the map).
+ValueNotifier<TreeModel?> selectedTreeNotifier = ValueNotifier(null);

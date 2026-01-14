@@ -6,6 +6,8 @@ import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
+import 'dart:math' as math;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 class MapboxWidget extends StatefulWidget {
@@ -28,6 +30,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   CircleAnnotationManager? _searchResultManager;
   late final VoidCallback _styleListener;
   late final VoidCallback _northResetListener;
+  // Cache of tree models currently displayed on the map.
+  final List<TreeModel> _treesCache = [];
+  // Timer used to differentiate single-tap from double-tap (double-tap = zoom).
+  Timer? _singleTapTimer;
 
   @override
   void initState() {
@@ -96,32 +102,131 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     return ValueListenableBuilder<int>(
       valueListenable: selectedMenuBottomSheetNotifier,
       builder: (context, selectedMenuBottomSheet, child) {
-        return MapWidget(
-          onMapCreated: (map) {
-            _mapboxMap = map;
-            final style =
-                selectedMenuBottomSheetNotifier.value == 0
-                    ? widget.standardStyleUri
-                    : widget.sateliteStyleUri;
-            _applyStyleAndMarkers(style);
-            _enableUserLocationPuck();
-            // If a target location was set before the map was created
-            // (e.g., via "Tracking Data"), center the camera immediately.
-            _onLocationChanged();
-          },
-          styleUri:
-              selectedMenuBottomSheet == 0
-                  ? widget.standardStyleUri
-                  : widget.sateliteStyleUri,
-          cameraOptions: CameraOptions(
-            center: Point(
-              coordinates: Position(105.09049300503469, -5.508241749086075),
+        // Wrap the MapWidget in a Stack so we can listen for pointer ups and
+        // detect taps on tree markers without blocking the map's native
+        // gesture handling (we use a delayed single-tap handler to avoid
+        // interfering with double-tap-to-zoom).
+        return Stack(
+          children: [
+            MapWidget(
+              onMapCreated: (map) {
+                _mapboxMap = map;
+                final style =
+                    selectedMenuBottomSheetNotifier.value == 0
+                        ? widget.standardStyleUri
+                        : widget.sateliteStyleUri;
+                _applyStyleAndMarkers(style);
+                _enableUserLocationPuck();
+                // If a target location was set before the map was created
+                // (e.g., via "Tracking Data"), center the camera immediately.
+                _onLocationChanged();
+              },
+              styleUri:
+                  selectedMenuBottomSheet == 0
+                      ? widget.standardStyleUri
+                      : widget.sateliteStyleUri,
+              cameraOptions: CameraOptions(
+                center: Point(
+                  coordinates: Position(105.09049300503469, -5.508241749086075),
+                ),
+                zoom: 10,
+              ),
             ),
-            zoom: 10,
-          ),
+            // Fullscreen listener that captures pointer ups. We purposely do
+            // not block gestures; instead we use a short-delay single-tap
+            // recognition so double-tap (zoom) is allowed by the map.
+            Positioned.fill(
+              child: Listener(
+                behavior: HitTestBehavior.translucent,
+                onPointerUp: (event) {
+                  // If there's an existing timer, this is the second tap
+                  // (double-tap). Cancel the pending single-tap action and
+                  // let the map handle the gesture (zoom).
+                  if (_singleTapTimer != null) {
+                    _singleTapTimer!.cancel();
+                    _singleTapTimer = null;
+                    return;
+                  }
+
+                  // Start a short timer; if no second tap comes, treat as
+                  // single tap and handle it.
+                  _singleTapTimer = Timer(
+                    const Duration(milliseconds: 250),
+                    () async {
+                      _singleTapTimer = null;
+                      final local = event.localPosition;
+                      await _handleMapSingleTap(local);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
         );
       },
     );
+  }
+
+  Future<void> _handleMapSingleTap(Offset localPosition) async {
+    if (_mapboxMap == null) return;
+    if (_treesCache.isEmpty) return;
+
+    // Convert each tree coordinate to screen pixel and find nearest to tap.
+    double minDist = double.infinity;
+    TreeModel? nearest;
+
+    for (final tree in _treesCache) {
+      if (tree.latitude == null || tree.longitude == null) continue;
+      try {
+        final scr = await _mapboxMap!.pixelForCoordinate(
+          Point(coordinates: Position(tree.longitude!, tree.latitude!)),
+        );
+        final off = _extractScreenOffset(scr);
+        if (off == null) continue;
+        final dx = off.dx - localPosition.dx;
+        final dy = off.dy - localPosition.dy;
+        final dist = math.sqrt(dx * dx + dy * dy);
+        if (dist < minDist) {
+          minDist = dist;
+          nearest = tree;
+        }
+      } catch (_) {
+        // ignore
+      }
+    }
+
+    // If nearest marker within threshold (pixels), set selected tree so the
+    // existing bottomsheet will display its information.
+    const threshold = 28.0; // pixels
+    if (nearest != null && minDist <= threshold && mounted) {
+      // Clear any search focus to avoid conflicting sheet animations.
+      isSearchFieldFocusedNotifier.value = false;
+      selectedTreeNotifier.value = nearest;
+    }
+  }
+
+  Offset? _extractScreenOffset(dynamic scr) {
+    if (scr == null) return null;
+    try {
+      if (scr is Map) {
+        final x = scr['x'] ?? scr['X'];
+        final y = scr['y'] ?? scr['Y'];
+        if (x is num && y is num) return Offset(x.toDouble(), y.toDouble());
+      }
+    } catch (_) {}
+    try {
+      final dyn = scr as dynamic;
+      final x = dyn.x;
+      final y = dyn.y;
+      if (x is num && y is num) return Offset(x.toDouble(), y.toDouble());
+    } catch (_) {}
+    try {
+      final json = (scr as dynamic).toJson();
+      final x = json['x'];
+      final y = json['y'];
+      if (x is num && y is num) return Offset(x.toDouble(), y.toDouble());
+    } catch (_) {}
+    return null;
   }
 
   Future<void> _enableUserLocationPuck() async {
@@ -139,6 +244,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     await _loadMarkers();
   }
 
+  // The bottomsheet now listens to `selectedTreeNotifier` and
+  // will display the tree info there. We keep the original
+  // full-screen modal helper above for backward compatibility.
   Future<void> _ensureManager() async {
     if (_mapboxMap == null) return;
     _circleManager ??=
@@ -203,6 +311,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     final clusters = await ClusterDao.getAllClusters();
     final plots = await PlotDao.getAllPlots();
     final trees = await TreeDao.getAllTrees();
+
+    // Populate cache for quick access during tap hit-testing.
+    _treesCache.clear();
+    _treesCache.addAll(trees);
 
     await _addClusterMarkers(clusters, plots);
     await _addPlotMarkers(plots);
