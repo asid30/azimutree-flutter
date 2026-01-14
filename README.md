@@ -22,13 +22,10 @@
     <li><strong>Flutter</strong> (Frontend App Development)</li>
     <li><strong>SQL Lite</strong> (Local database untuk penyimpanan data offline)</li>
     <li><strong>MapBox</strong> (Platform peta digital untuk menampilkan dan mengelola data lokasi berbasis koordinat secara interaktif)</li>
-    <li><strong>
   </ul>
 
  <h2>Tujuan Proyek</h2>
-  <p>
-  Proyek ini bertujuan untuk membantu kegiatan survei lapangan kehutanan dengan menyediakan alat digital yang memudahkan pencatatan lokasi klaster, plot, dan pohon secara langsung di lapangan tanpa bergantung pada pencatatan manual.
-  </p>
+  <p>Proyek ini bertujuan untuk membantu kegiatan survei lapangan kehutanan dengan menyediakan alat digital yang memudahkan pencatatan lokasi klaster, plot, dan pohon secara langsung di lapangan tanpa bergantung pada pencatatan manual.</p>
 
   <h2>Instalasi</h2>
   <ol>

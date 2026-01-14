@@ -29,7 +29,6 @@ class _LocationMapPageState extends State<LocationMapPage> {
       child: Scaffold(
         appBar: AppbarWidget(title: "Peta Lokasi Cluster Plot"),
         drawer: SidebarWidget(),
-        bottomSheet: BottomsheetLocationMapWidget(),
         body: Stack(
           alignment: Alignment.topCenter,
           children: [
@@ -40,6 +39,10 @@ class _LocationMapPageState extends State<LocationMapPage> {
             ),
             MapboxWidget(),
             SuggestionSearchbarWidget(),
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: BottomsheetLocationMapWidget(),
+            ),
           ],
         ),
       ),

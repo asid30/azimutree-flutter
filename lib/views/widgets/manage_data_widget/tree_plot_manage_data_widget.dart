@@ -1,11 +1,13 @@
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_tree_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 class TreePlotManageDataWidget extends StatelessWidget {
   final int plotId;
@@ -55,6 +57,9 @@ class TreePlotManageDataWidget extends StatelessWidget {
 
             final subtitleText = "Kode pohon: ${tree.kodePohon}";
             final hasImage = tree.urlFoto != null && tree.urlFoto!.isNotEmpty;
+            final hasLocation = tree.latitude != null && tree.longitude != null;
+            final heroTag =
+                'tree_photo_${tree.id ?? '${tree.plotId}_${tree.kodePohon}'}_${tree.urlFoto?.hashCode ?? 0}';
 
             final List<TableRow> tableRows = [];
             if (hasImage) {
@@ -66,7 +71,18 @@ class TreePlotManageDataWidget extends StatelessWidget {
                       height: 120,
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
-                        child: _buildTreeImage(tree),
+                        child: Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              _openTreePhotoPreview(context, tree, heroTag);
+                            },
+                            child: Hero(
+                              tag: heroTag,
+                              child: _buildTreeImage(tree),
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 120),
@@ -155,14 +171,31 @@ class TreePlotManageDataWidget extends StatelessWidget {
                           horizontal: 12.0,
                           vertical: 8,
                         ),
-                        child: Table(
-                          columnWidths: const {
-                            0: FlexColumnWidth(2),
-                            1: FlexColumnWidth(3),
-                          },
-                          defaultVerticalAlignment:
-                              TableCellVerticalAlignment.middle,
-                          children: tableRows,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Table(
+                              columnWidths: const {
+                                0: FlexColumnWidth(2),
+                                1: FlexColumnWidth(3),
+                              },
+                              defaultVerticalAlignment:
+                                  TableCellVerticalAlignment.middle,
+                              children: tableRows,
+                            ),
+                            if (hasLocation) ...[
+                              const SizedBox(height: 10),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: OutlinedButton.icon(
+                                  onPressed:
+                                      () => _trackTreeLocation(context, tree),
+                                  icon: const Icon(Icons.my_location),
+                                  label: const Text('Tracking Data'),
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ),
                     ],
@@ -189,12 +222,12 @@ class TreePlotManageDataWidget extends StatelessWidget {
     );
   }
 
-  Widget _buildTreeImage(TreeModel tree) {
+  Widget _buildTreeImage(TreeModel tree, {BoxFit fit = BoxFit.cover}) {
     final url = tree.urlFoto!;
 
     return CachedNetworkImage(
       imageUrl: url,
-      fit: BoxFit.cover,
+      fit: fit,
       placeholder:
           (context, _) => const Center(
             child: SizedBox(
@@ -207,6 +240,30 @@ class TreePlotManageDataWidget extends StatelessWidget {
           (context, _, __) =>
               const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
     );
+  }
+
+  void _openTreePhotoPreview(
+    BuildContext context,
+    TreeModel tree,
+    String heroTag,
+  ) {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder:
+            (_) => _TreePhotoPreviewPage(
+              imageUrl: tree.urlFoto!,
+              heroTag: heroTag,
+            ),
+      ),
+    );
+  }
+
+  void _trackTreeLocation(BuildContext context, TreeModel tree) {
+    if (tree.latitude == null || tree.longitude == null) return;
+
+    selectedPageNotifier.value = 'location_map_page';
+    selectedLocationNotifier.value = Position(tree.longitude!, tree.latitude!);
+    Navigator.pushNamed(context, 'location_map_page');
   }
 
   Future<void> _editTree(BuildContext context, TreeModel tree) async {
@@ -256,5 +313,52 @@ class TreePlotManageDataWidget extends StatelessWidget {
         context,
       ).showSnackBar(const SnackBar(content: Text("Pohon dihapus")));
     }
+  }
+}
+
+class _TreePhotoPreviewPage extends StatelessWidget {
+  final String imageUrl;
+  final String heroTag;
+
+  const _TreePhotoPreviewPage({required this.imageUrl, required this.heroTag});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: SafeArea(
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTap: () => Navigator.of(context).pop(),
+          child: Center(
+            child: InteractiveViewer(
+              minScale: 1.0,
+              maxScale: 5.0,
+              child: Hero(
+                tag: heroTag,
+                child: CachedNetworkImage(
+                  imageUrl: imageUrl,
+                  fit: BoxFit.contain,
+                  placeholder:
+                      (context, _) => const Center(
+                        child: SizedBox(
+                          width: 36,
+                          height: 36,
+                          child: CircularProgressIndicator(strokeWidth: 2.5),
+                        ),
+                      ),
+                  errorWidget:
+                      (context, _, __) => const Icon(
+                        Icons.broken_image,
+                        color: Colors.white70,
+                        size: 48,
+                      ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 }
