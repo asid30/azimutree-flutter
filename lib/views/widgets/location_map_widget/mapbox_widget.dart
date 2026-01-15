@@ -465,11 +465,20 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     await _addClusterMarkers(clusters, plots);
     await _addPlotMarkers(plots);
     await _addTreeMarkers(trees);
-    // If there's an active selected location (from search), show its pin.
+    // If there's an active selected location that originated from a search,
+    // show its pin. Other flows that set `selectedLocationNotifier` (e.g.
+    // tracking, map marker taps) should set
+    // `selectedLocationFromSearchNotifier.value = false` so no duplicate
+    // search pin appears on top of the map markers.
     final sel = selectedLocationNotifier.value;
-    if (sel != null) {
+    if (sel != null && selectedLocationFromSearchNotifier.value) {
       await _showSearchResultMarker(sel);
     }
+    // Ensure that if a tree was selected before the map was created (for
+    // example when navigating from Manage Data's Tracking action), we draw
+    // the dashed connection now that markers are loaded and the connection
+    // manager is available.
+    await _updateConnectionForSelectedTree();
   }
 
   Future<void> _addClusterMarkers(

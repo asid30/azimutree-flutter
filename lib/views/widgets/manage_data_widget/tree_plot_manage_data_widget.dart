@@ -264,6 +264,13 @@ class TreePlotManageDataWidget extends StatelessWidget {
     selectedPageNotifier.value = 'location_map_page';
     // Navigating to the map to track a tree is not a search result selection.
     selectedLocationFromSearchNotifier.value = false;
+    // Disable following the user's live location so the map centers on the tree.
+    isFollowingUserLocationNotifier.value = false;
+    // Preserve the current zoom level when centering (same as tapping a marker).
+    preserveZoomOnNextCenterNotifier.value = true;
+    // Make the tree the selected tree so the map will render it as active
+    // and trigger the dashed connection to the plot center.
+    selectedTreeNotifier.value = tree;
     selectedLocationNotifier.value = Position(tree.longitude!, tree.latitude!);
     Navigator.pushNamed(context, 'location_map_page');
   }
