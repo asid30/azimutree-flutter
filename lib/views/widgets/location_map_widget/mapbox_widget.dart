@@ -55,7 +55,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   MapboxMap? _mapboxMap;
   CircleAnnotationManager? _circleManager;
   CircleAnnotationManager? _searchResultManager;
-  CircleAnnotationManager? _connectionManager;
+  // Use dynamic so we can support line annotation manager when available
+  // while avoiding static analyzer errors on plugin API mismatches.
+  dynamic _connectionManager;
   // Track current zoom locally so zoom buttons can apply relative changes.
   double _currentZoom = 10.0;
   late final VoidCallback _styleListener;
@@ -424,17 +426,23 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         await _mapboxMap!.annotations.createCircleAnnotationManager();
   }
 
-  Future<void> _ensureConnectionManager() async {
-    if (_mapboxMap == null) return;
-    _connectionManager ??=
-        await _mapboxMap!.annotations.createCircleAnnotationManager();
-  }
-
   Future<void> _removeConnectionMarkers() async {
     try {
+      // Remove any native annotation-based connections
       if (_connectionManager != null) {
-        await _connectionManager!.deleteAll();
+        try {
+          await (_connectionManager as dynamic).deleteAll();
+        } catch (_) {}
       }
+      // Also remove any style-based GeoJSON source/layer we may have added
+      try {
+        final style = (_mapboxMap as dynamic).style;
+        await style.removeLayer('connection-line-layer');
+      } catch (_) {}
+      try {
+        final style = (_mapboxMap as dynamic).style;
+        await style.removeSource('connection-line-source');
+      } catch (_) {}
     } catch (_) {}
   }
 
@@ -444,33 +452,81 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     double lonB,
     double latB,
   ) async {
-    // Draw dashed line by placing small red circle annotations at intervals
-    // along the straight interpolation between two coordinates.
     if (_mapboxMap == null) return;
-    await _ensureConnectionManager();
-    if (_connectionManager == null) return;
-    try {
-      await _connectionManager!.deleteAll();
-    } catch (_) {}
+    // Do not pre-create managers here; prefer creating a native polyline
+    // manager below. Remove any previous connection visuals first.
+    await _removeConnectionMarkers();
 
-    // Number of segments; larger = smoother line. We'll create small dots
-    // for a continuous (solid) line by creating a dot for every segment.
-    final segments = kConnectionSegments;
+    // Build list of coordinates for the line (both as raw pairs for GeoJSON
+    // and as Position objects for potential fallback annotation creation).
+    final segments = math.max(8, (kConnectionSegments / 6).round());
+    final coordsPairs = <List<double>>[];
+    final coordsPositions = <Position>[];
     for (int i = 0; i <= segments; i++) {
       final t = i / segments;
       final lon = lonA + (lonB - lonA) * t;
       final lat = latA + (latB - latA) * t;
-      try {
-        await _connectionManager!.create(
-          _buildCircleOptions(
-            Position(lon, lat),
-            circleColor: kConnectionColor,
-            circleRadius: kConnectionRadius,
-            circleOpacity: 1.0,
-          ),
-        );
-      } catch (_) {}
+      coordsPairs.add([lon, lat]);
+      coordsPositions.add(Position(lon, lat));
     }
+
+    // Preferred approach: add a GeoJSON source + LineLayer to the map style
+    // so a single vector line is rendered (best performance). We use the
+    // map's style API via dynamic calls to avoid static type issues.
+    // First try native PolylineAnnotationManager (best - single native polyline)
+    try {
+      _connectionManager ??=
+          await (_mapboxMap!.annotations as dynamic)
+              .createPolylineAnnotationManager();
+      if (_connectionManager != null) {
+        final polylineOptions = PolylineAnnotationOptions(
+          geometry: LineString(coordinates: coordsPositions),
+          lineColor: kConnectionColor,
+          lineWidth: 2.0,
+          lineOpacity: 1.0,
+        );
+        await (_connectionManager as dynamic).create(polylineOptions);
+        return;
+      }
+    } catch (_) {}
+
+    try {
+      final style = (_mapboxMap as dynamic).style;
+      // Remove existing layer/source if present.
+      try {
+        await style.removeLayer('connection-line-layer');
+      } catch (_) {}
+      try {
+        await style.removeSource('connection-line-source');
+      } catch (_) {}
+
+      final coordinates = coordsPairs;
+
+      final geojson = {
+        'type': 'geojson',
+        'data': {
+          'type': 'Feature',
+          'geometry': {'type': 'LineString', 'coordinates': coordinates},
+        },
+      };
+
+      await style.addSource('connection-line-source', geojson);
+
+      final colorHex =
+          '#${(kConnectionColor & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+
+      final layer = {
+        'id': 'connection-line-layer',
+        'type': 'line',
+        'source': 'connection-line-source',
+        'paint': {'line-color': colorHex, 'line-width': 2, 'line-opacity': 1.0},
+      };
+
+      await style.addLayer(layer);
+      return;
+    } catch (_) {}
+
+    // No circle-annotation fallback: prefer native polyline or style layer only.
   }
 
   Future<void> _zoomBy(double delta) async {
@@ -636,11 +692,18 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     if (sel != null && selectedLocationFromSearchNotifier.value) {
       await _showSearchResultMarker(sel);
     }
-    // Ensure that if a tree was selected before the map was created (for
-    // example when navigating from Manage Data's Tracking action), we draw
-    // the dashed connection now that markers are loaded and the connection
-    // manager is available.
-    await _updateConnectionForSelectedTree();
+    // Ensure that if a tree or plot was selected before the map was created
+    // (for example when navigating from Manage Data's Tracking action),
+    // we draw the appropriate connection now that markers are loaded and
+    // the connection manager is available. Prefer tree over plot.
+    if (selectedTreeNotifier.value != null) {
+      await _updateConnectionForSelectedTree();
+    } else if (selectedPlotNotifier.value != null) {
+      await _updateConnectionForSelectedPlot();
+    } else {
+      // No selection: ensure no stale connection remains.
+      await _removeConnectionMarkers();
+    }
   }
 
   Future<void> _addClusterMarkers(

@@ -22,7 +22,7 @@ dependencies:
   sqflite: ^2.4.2 # SQLite database
   logger: ^2.5.0 # Logging utility
   url_launcher: ^6.3.1 # URL launcher for opening links
-  mapbox_maps_flutter: ^2.10.0 # Mapbox Maps SDK for Flutter
+  mapbox_maps_flutter: ^2.17.0 # Bumped to enable LineAnnotationManager/native polyline support
   flutter_dotenv: ^6.0.0 # Environment variables
   cached_network_image: ^3.4.1 # Cached images for network photos
   flutter_slidable: ^3.1.0 # Swipeable action panes
