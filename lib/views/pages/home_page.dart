@@ -6,6 +6,7 @@ import 'package:azimutree/views/widgets/core_widget/menu_button_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -24,22 +25,15 @@ class _HomePageState extends State<HomePage> {
           final shouldExit = await showDialog<bool>(
             context: context,
             builder:
-                (context) => AlertDialog(
-                  title: Text("Keluar Aplikasi"),
-                  content: Text("Apa kamu yakin mau keluar?"),
-                  backgroundColor: Colors.lightGreen.shade200,
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: Text("Cancel"),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: Text("Exit"),
-                    ),
-                  ],
+                (context) => AlertConfirmationWidget(
+                  title: 'Keluar Aplikasi',
+                  message: 'Apa kamu yakin mau keluar?',
+                  confirmText: 'Exit',
+                  cancelText: 'Cancel',
+                  // keep default background color from the widget
                 ),
           );
+
           if (shouldExit == true && context.mounted) {
             SystemNavigator.pop();
           }
