@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:azimutree/data/models/tree_model.dart';
+import 'package:azimutree/data/models/plot_model.dart';
 
 ValueNotifier<bool> isLightModeNotifier = ValueNotifier(true);
 ValueNotifier<String> selectedPageNotifier = ValueNotifier("home");
@@ -26,6 +27,9 @@ ValueNotifier<bool> isSearchFieldFocusedNotifier = ValueNotifier(false);
 
 /// Holds the currently-selected tree (when a marker is tapped on the map).
 ValueNotifier<TreeModel?> selectedTreeNotifier = ValueNotifier(null);
+
+/// Holds the currently-selected plot (when a plot marker is tapped on the map).
+ValueNotifier<PlotModel?> selectedPlotNotifier = ValueNotifier(null);
 
 /// When true, the next `selectedLocationNotifier` update will preserve the
 /// current map zoom instead of forcing a fixed zoom level. This is used when

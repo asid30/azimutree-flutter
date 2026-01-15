@@ -4,6 +4,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/database/plot_dao.dart';
 import 'package:azimutree/data/database/cluster_dao.dart';
+import 'package:azimutree/data/database/tree_dao.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:flutter/material.dart';
@@ -32,6 +33,8 @@ class _BottomsheetLocationMapWidgetState
   // Cached plot/cluster info for the currently-selected tree.
   PlotModel? _selectedPlot;
   ClusterModel? _selectedCluster;
+  List<TreeModel> _treesForSelectedPlot = [];
+  late final VoidCallback _selectedPlotListener;
   late final VoidCallback _selectedTreeListener;
 
   @override
@@ -105,6 +108,53 @@ class _BottomsheetLocationMapWidgetState
     if (selectedTreeNotifier.value != null) {
       _selectedTreeListener();
     }
+
+    _selectedPlotListener = () {
+      final plot = selectedPlotNotifier.value;
+      if (plot == null) {
+        setState(() {
+          _selectedPlot = null;
+          _selectedCluster = null;
+          _treesForSelectedPlot = [];
+        });
+        return;
+      }
+
+      // Fetch cluster and trees for the selected plot asynchronously.
+      ClusterDao.getClusterById(plot.idCluster)
+          .then((cluster) {
+            if (!mounted) return;
+            TreeDao.getAllTrees()
+                .then((allTrees) {
+                  if (!mounted) return;
+                  final trees =
+                      allTrees.where((t) => t.plotId == plot.id).toList();
+                  setState(() {
+                    _selectedPlot = plot;
+                    _selectedCluster = cluster;
+                    _treesForSelectedPlot = trees;
+                  });
+                })
+                .catchError((_) {
+                  if (!mounted) return;
+                  setState(() {
+                    _selectedPlot = plot;
+                    _selectedCluster = cluster;
+                    _treesForSelectedPlot = [];
+                  });
+                });
+          })
+          .catchError((_) {
+            if (!mounted) return;
+            setState(() {
+              _selectedPlot = plot;
+              _selectedCluster = null;
+              _treesForSelectedPlot = [];
+            });
+          });
+    };
+    selectedPlotNotifier.addListener(_selectedPlotListener);
+    if (selectedPlotNotifier.value != null) _selectedPlotListener();
   }
 
   @override
@@ -113,6 +163,7 @@ class _BottomsheetLocationMapWidgetState
     isSearchFieldFocusedNotifier.removeListener(_searchFocusListener);
     _draggableController.dispose();
     selectedTreeNotifier.removeListener(_selectedTreeListener);
+    selectedPlotNotifier.removeListener(_selectedPlotListener);
     super.dispose();
   }
 
@@ -334,7 +385,158 @@ class _BottomsheetLocationMapWidgetState
                 ValueListenableBuilder<TreeModel?>(
                   valueListenable: selectedTreeNotifier,
                   builder: (context, tree, child) {
+                    // If a tree is selected, show tree detail UI (existing behavior).
                     if (tree == null) {
+                      // If no tree selected but a plot is selected, show plot summary
+                      if (_selectedPlot != null) {
+                        final plot = _selectedPlot!;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Plot ${plot.kodePlot}',
+                                  style: const TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    IconButton(
+                                      tooltip: 'Center on plot',
+                                      onPressed: () async {
+                                        isFollowingUserLocationNotifier.value =
+                                            false;
+                                        selectedLocationNotifier.value = null;
+                                        await Future.delayed(
+                                          const Duration(milliseconds: 60),
+                                        );
+                                        preserveZoomOnNextCenterNotifier.value =
+                                            true;
+                                        selectedLocationFromSearchNotifier
+                                            .value = false;
+                                        selectedLocationNotifier
+                                            .value = Position(
+                                          plot.longitude,
+                                          plot.latitude,
+                                        );
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Centering map on plot...',
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      icon: const Icon(
+                                        Icons.my_location_outlined,
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () {
+                                        selectedPlotNotifier.value = null;
+                                      },
+                                      icon: const Icon(Icons.close),
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            // Plot and Cluster summary
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Row(
+                                children: [
+                                  Text(
+                                    'Cluster: ${_selectedCluster?.kodeCluster ?? '-'}',
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Text(
+                                    'Plot: ${_selectedPlot?.kodePlot ?? '-'}',
+                                  ),
+                                ],
+                              ),
+                            ),
+
+                            const SizedBox(height: 8),
+
+                            const Text(
+                              'Pohon dalam plot ini:',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            if (_treesForSelectedPlot.isEmpty)
+                              const Text('Tidak ada pohon di plot ini')
+                            else
+                              Column(
+                                children:
+                                    _treesForSelectedPlot.map((t) {
+                                      final title =
+                                          (t.namaPohon?.trim().isNotEmpty ??
+                                                  false)
+                                              ? (t.namaPohon ?? 'Pohon')
+                                              : (t.namaIlmiah
+                                                      ?.trim()
+                                                      .isNotEmpty ??
+                                                  false)
+                                              ? t.namaIlmiah!
+                                              : 'Pohon ${t.kodePohon}';
+
+                                      return ListTile(
+                                        contentPadding: EdgeInsets.zero,
+                                        title: Text(title),
+                                        subtitle: Text('Kode: ${t.kodePohon}'),
+                                        trailing: IconButton(
+                                          tooltip: 'Center to this tree',
+                                          icon: const Icon(Icons.my_location),
+                                          onPressed:
+                                              (t.latitude != null &&
+                                                      t.longitude != null)
+                                                  ? () async {
+                                                    // Select the tree and center
+                                                    selectedTreeNotifier.value =
+                                                        t;
+                                                    await Future.delayed(
+                                                      const Duration(
+                                                        milliseconds: 40,
+                                                      ),
+                                                    );
+                                                    isFollowingUserLocationNotifier
+                                                        .value = false;
+                                                    preserveZoomOnNextCenterNotifier
+                                                        .value = true;
+                                                    selectedLocationFromSearchNotifier
+                                                        .value = false;
+                                                    selectedLocationNotifier
+                                                        .value = Position(
+                                                      t.longitude!,
+                                                      t.latitude!,
+                                                    );
+                                                  }
+                                                  : null,
+                                        ),
+                                        onTap: () {
+                                          // Show tree details in bottomsheet
+                                          selectedTreeNotifier.value = t;
+                                        },
+                                      );
+                                    }).toList(),
+                              ),
+                          ],
+                        );
+                      }
+
                       return const Padding(
                         padding: EdgeInsets.symmetric(vertical: 12),
                         child: Text(
