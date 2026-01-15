@@ -110,12 +110,14 @@ class _BottomsheetManageDataWidgetState
       await _debugDataService.clearAllData();
       if (!mounted) return;
       await _showAlert(
+        title: 'Sukses',
         message: "Semua data berhasil dihapus",
         backgroundColor: Colors.lightGreen.shade200,
       );
     } catch (e) {
       if (!mounted) return;
       await _showAlert(
+        title: 'Gagal',
         message: "Gagal menghapus data: $e",
         backgroundColor: Colors.red.shade200,
       );
@@ -127,12 +129,14 @@ class _BottomsheetManageDataWidgetState
       await _debugDataService.seedRandomData();
       if (!mounted) return;
       await _showAlert(
+        title: 'Sukses',
         message: "Data acak berhasil dibuat",
         backgroundColor: Colors.lightGreen.shade200,
       );
     } catch (e) {
       if (!mounted) return;
       await _showAlert(
+        title: 'Gagal',
         message: "Gagal membuat data acak: $e",
         backgroundColor: Colors.red.shade200,
       );
