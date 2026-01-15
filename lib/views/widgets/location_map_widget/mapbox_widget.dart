@@ -29,6 +29,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   CircleAnnotationManager? _circleManager;
   CircleAnnotationManager? _searchResultManager;
   CircleAnnotationManager? _connectionManager;
+  // Track current zoom locally so zoom buttons can apply relative changes.
+  double _currentZoom = 10.0;
   late final VoidCallback _styleListener;
   late final VoidCallback _northResetListener;
   late final VoidCallback _selectedTreeListener;
@@ -65,6 +67,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           CameraOptions(center: Point(coordinates: pos), zoom: 14),
           MapAnimationOptions(duration: 800),
         );
+        _currentZoom = 14.0;
         // Keep selectedLocationNotifier in sync so other UI can react
         selectedLocationNotifier.value = pos;
         // Ensure any search result marker does not conflict with the user puck
@@ -117,6 +120,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           CameraOptions(center: Point(coordinates: pos), zoom: 14),
           MapAnimationOptions(duration: follow ? 800 : 1500),
         );
+        _currentZoom = 14.0;
       }
       // Show a search result pin only when the selected location was set
       // as a search result. Other actions that set `selectedLocationNotifier`
@@ -157,6 +161,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             MapWidget(
               onMapCreated: (map) {
                 _mapboxMap = map;
+                // Initial zoom matches the MapWidget cameraOptions below.
+                _currentZoom = 10.0;
                 final style =
                     // Use satellite as the default for menu index 0
                     selectedMenuBottomSheetNotifier.value == 0
@@ -207,6 +213,32 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                     },
                   );
                 },
+              ),
+            ),
+            // Zoom controls (inset on top of the map).
+            Positioned(
+              right: 12,
+              // Compute a dynamic bottom offset so the controls sit above
+              // the bottomsheet on most device sizes rather than being
+              // occluded. This uses a fraction of the screen height.
+              bottom: MediaQuery.of(context).size.height * 0.28,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  FloatingActionButton.small(
+                    heroTag: 'zoom_in_btn',
+                    onPressed: () async => _zoomBy(1.0),
+                    backgroundColor: Colors.white,
+                    child: const Icon(Icons.add, color: Colors.green),
+                  ),
+                  const SizedBox(height: 8),
+                  FloatingActionButton.small(
+                    heroTag: 'zoom_out_btn',
+                    onPressed: () async => _zoomBy(-1.0),
+                    backgroundColor: Colors.white,
+                    child: const Icon(Icons.remove, color: Colors.green),
+                  ),
+                ],
               ),
             ),
           ],
@@ -377,6 +409,18 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         );
       } catch (_) {}
     }
+  }
+
+  Future<void> _zoomBy(double delta) async {
+    if (_mapboxMap == null) return;
+    final newZoom = (_currentZoom + delta).clamp(1.0, 22.0);
+    try {
+      await _mapboxMap!.easeTo(
+        CameraOptions(zoom: newZoom),
+        MapAnimationOptions(duration: 300),
+      );
+      _currentZoom = newZoom;
+    } catch (_) {}
   }
 
   Future<void> _updateConnectionForSelectedTree() async {
