@@ -302,7 +302,12 @@ class _BottomsheetLocationMapWidgetState
                                       WidgetStateProperty.resolveWith(
                                         (states) =>
                                             states.contains(WidgetState.pressed)
-                                                ? Colors.lightGreen.shade200
+                                                ? const Color.fromARGB(
+                                                  255,
+                                                  197,
+                                                  225,
+                                                  165,
+                                                )
                                                 : null,
                                       ),
                                   overlayColor: WidgetStateProperty.resolveWith(

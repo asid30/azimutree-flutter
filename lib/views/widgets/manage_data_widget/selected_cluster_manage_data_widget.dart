@@ -6,6 +6,7 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_cluster_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:flutter/material.dart';
 
 class SelectedClusterManageDataWidget extends StatelessWidget {
@@ -233,21 +234,11 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     final confirm = await showDialog<bool>(
       context: context,
       builder:
-          (_) => AlertDialog(
-            title: const Text("Hapus klaster?"),
-            content: const Text(
-              "Semua plot dan pohon di klaster ini akan ikut terhapus.",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("Batal"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text("Hapus"),
-              ),
-            ],
+          (_) => AlertConfirmationWidget(
+            title: 'Hapus klaster?',
+            message: 'Semua plot dan pohon di klaster ini akan ikut terhapus.',
+            confirmText: 'Hapus',
+            cancelText: 'Batal',
           ),
     );
 

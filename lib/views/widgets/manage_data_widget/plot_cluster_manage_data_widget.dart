@@ -4,6 +4,7 @@ import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_plot_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/tree_plot_manage_data_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -130,8 +131,9 @@ class _PlotClusterManageDataWidgetState
                             Expanded(
                               child: Text(
                                 "Plot ${plot.kodePlot}",
-                                style:
-                                    const TextStyle(fontWeight: FontWeight.w600),
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                             IconButton(
@@ -204,7 +206,9 @@ class _PlotClusterManageDataWidgetState
                                   "Jumlah Pohon",
                                   plot.id != null
                                       ? widget.treeData
-                                          .where((tree) => tree.plotId == plot.id)
+                                          .where(
+                                            (tree) => tree.plotId == plot.id,
+                                          )
                                           .length
                                           .toString()
                                       : "0",
@@ -284,19 +288,11 @@ class _PlotClusterManageDataWidgetState
     final confirm = await showDialog<bool>(
       context: context,
       builder:
-          (_) => AlertDialog(
-            title: const Text("Hapus plot?"),
-            content: const Text("Semua pohon di plot ini akan ikut terhapus."),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("Batal"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text("Hapus"),
-              ),
-            ],
+          (_) => AlertConfirmationWidget(
+            title: 'Hapus plot?',
+            message: 'Semua pohon di plot ini akan ikut terhapus.',
+            confirmText: 'Hapus',
+            cancelText: 'Batal',
           ),
     );
 

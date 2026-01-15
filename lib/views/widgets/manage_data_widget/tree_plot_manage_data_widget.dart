@@ -4,6 +4,7 @@ import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_tree_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -299,19 +300,11 @@ class TreePlotManageDataWidget extends StatelessWidget {
     final confirm = await showDialog<bool>(
       context: context,
       builder:
-          (_) => AlertDialog(
-            title: const Text("Hapus pohon?"),
-            content: const Text("Data pohon akan dihapus permanen."),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("Batal"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text("Hapus"),
-              ),
-            ],
+          (_) => AlertConfirmationWidget(
+            title: 'Hapus pohon?',
+            message: 'Data pohon akan dihapus permanen.',
+            confirmText: 'Hapus',
+            cancelText: 'Batal',
           ),
     );
     if (confirm != true) return;

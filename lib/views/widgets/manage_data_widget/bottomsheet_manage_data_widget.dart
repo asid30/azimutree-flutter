@@ -8,6 +8,7 @@ import 'package:azimutree/services/debug_mode_service.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_import_data_widget.dart';
@@ -86,21 +87,11 @@ class _BottomsheetManageDataWidgetState
     final confirm = await showDialog<bool>(
       context: context,
       builder:
-          (_) => AlertDialog(
-            title: const Text("Hapus semua data?"),
-            content: const Text(
-              "Semua klaster, plot, dan pohon akan dihapus permanen.",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("Batal"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text("Hapus"),
-              ),
-            ],
+          (_) => AlertConfirmationWidget(
+            title: 'Hapus semua data?',
+            message: 'Semua klaster, plot, dan pohon akan dihapus permanen.',
+            confirmText: 'Hapus',
+            cancelText: 'Batal',
           ),
     );
 
@@ -195,21 +186,13 @@ class _BottomsheetManageDataWidgetState
     final confirm = await showDialog<bool>(
       context: context,
       builder:
-          (_) => AlertDialog(
-            title: const Text('Unduh Template'),
-            content: const Text(
-              'Apakah Anda ingin membuka browser untuk mengunduh template?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text('Batal'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text('Buka'),
-              ),
-            ],
+          (_) => AlertConfirmationWidget(
+            title: 'Unduh Template',
+            message:
+                'Apakah Anda ingin membuka browser untuk mengunduh template?',
+            confirmText: 'Buka',
+            cancelText: 'Batal',
+            copyableLink: templateUrl,
           ),
     );
 
