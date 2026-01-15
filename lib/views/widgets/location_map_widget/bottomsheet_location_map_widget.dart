@@ -23,10 +23,36 @@ class _BottomsheetLocationMapWidgetState
   final double _minChildSize = 0.25;
   final DraggableScrollableController _draggableController =
       DraggableScrollableController();
+  late final VoidCallback _searchFocusListener;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchFocusListener = () {
+      // When the search field is focused (keyboard visible), expand the
+      // bottom sheet a bit so tooltips below the search results are not cut.
+      if (isSearchFieldFocusedNotifier.value) {
+        _draggableController.animateTo(
+          (_maxChildSize * 0.75).clamp(_minChildSize, _maxChildSize),
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+        );
+      } else {
+        // Return to the minimal size when search loses focus.
+        _draggableController.animateTo(
+          _minChildSize,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+        );
+      }
+    };
+    isSearchFieldFocusedNotifier.addListener(_searchFocusListener);
+  }
 
   @override
   void dispose() {
     _positionSub?.cancel();
+    isSearchFieldFocusedNotifier.removeListener(_searchFocusListener);
     _draggableController.dispose();
     super.dispose();
   }
