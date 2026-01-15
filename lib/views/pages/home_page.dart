@@ -78,16 +78,7 @@ class _HomePageState extends State<HomePage> {
                       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       mainAxisSize: MainAxisSize.max,
                       children: [
-                        MenuButtonWidget(
-                          label: "Scan\nKode Label",
-                          icon: Icons.photo_camera,
-                          onPressed: () {
-                            Navigator.popAndPushNamed(
-                              context,
-                              "scan_label_page",
-                            );
-                          },
-                        ),
+                        SizedBox(width: 150, height: 100),
                         MenuButtonWidget(
                           label: "Kelola Data\nCluster Plot",
                           icon: Icons.storage,

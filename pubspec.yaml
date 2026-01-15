@@ -11,8 +11,7 @@ dependencies:
     sdk: flutter
   flutter_lorem: ^2.0.0 # Lorem ipsum text generator
   flutter_native_splash: ^2.4.4 # Native splash screen (downgraded to resolve archive/excel conflict)
-  camera: ^0.10.5+9 # camera plugin
-  google_mlkit_text_recognition: ^0.11.0 # ML Kit for text recognition
+  # camera and ML Kit removed
   http: ^1.4.0 # http services
   image_picker: ^1.1.2 # Image picker
   intl: ^0.20.2 # Internationalization support

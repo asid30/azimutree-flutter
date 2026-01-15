@@ -45,11 +45,7 @@ class SidebarWidget extends StatelessWidget {
 
               const Divider(color: Color(0xFF1F4226)),
 
-              ListTile(
-                leading: const Icon(Icons.qr_code_scanner),
-                title: const Text('Scan Kode Label'),
-                onTap: () => _selectPage(context, "scan_label_page"),
-              ),
+              // Scan feature removed
               ListTile(
                 leading: const Icon(Icons.storage),
                 title: const Text('Kelola Data Cluster Plot'),
