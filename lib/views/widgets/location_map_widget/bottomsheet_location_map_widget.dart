@@ -2,6 +2,10 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/views/widgets/location_map_widget/searchbar_bottomsheet_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:azimutree/data/models/tree_model.dart';
+import 'package:azimutree/data/database/plot_dao.dart';
+import 'package:azimutree/data/database/cluster_dao.dart';
+import 'package:azimutree/data/models/plot_model.dart';
+import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'dart:async';
@@ -25,12 +29,15 @@ class _BottomsheetLocationMapWidgetState
       DraggableScrollableController();
   late final VoidCallback _searchFocusListener;
 
+  // Cached plot/cluster info for the currently-selected tree.
+  PlotModel? _selectedPlot;
+  ClusterModel? _selectedCluster;
+  late final VoidCallback _selectedTreeListener;
+
   @override
   void initState() {
     super.initState();
     _searchFocusListener = () {
-      // When the search field is focused (keyboard visible), expand the
-      // bottom sheet a bit so tooltips below the search results are not cut.
       if (isSearchFieldFocusedNotifier.value) {
         _draggableController.animateTo(
           (_maxChildSize * 0.75).clamp(_minChildSize, _maxChildSize),
@@ -38,7 +45,6 @@ class _BottomsheetLocationMapWidgetState
           curve: Curves.easeOutCubic,
         );
       } else {
-        // Return to the minimal size when search loses focus.
         _draggableController.animateTo(
           _minChildSize,
           duration: const Duration(milliseconds: 220),
@@ -47,6 +53,52 @@ class _BottomsheetLocationMapWidgetState
       }
     };
     isSearchFieldFocusedNotifier.addListener(_searchFocusListener);
+
+    _selectedTreeListener = () {
+      final tree = selectedTreeNotifier.value;
+      if (tree == null) {
+        setState(() {
+          _selectedPlot = null;
+          _selectedCluster = null;
+        });
+        return;
+      }
+      // Fetch plot and cluster for the selected tree asynchronously.
+      PlotDao.getPlotById(tree.plotId)
+          .then((plot) {
+            if (!mounted) return;
+            if (plot == null) {
+              setState(() {
+                _selectedPlot = null;
+                _selectedCluster = null;
+              });
+              return;
+            }
+            ClusterDao.getClusterById(plot.idCluster)
+                .then((cluster) {
+                  if (!mounted) return;
+                  setState(() {
+                    _selectedPlot = plot;
+                    _selectedCluster = cluster;
+                  });
+                })
+                .catchError((_) {
+                  if (!mounted) return;
+                  setState(() {
+                    _selectedPlot = plot;
+                    _selectedCluster = null;
+                  });
+                });
+          })
+          .catchError((_) {
+            if (!mounted) return;
+            setState(() {
+              _selectedPlot = null;
+              _selectedCluster = null;
+            });
+          });
+    };
+    selectedTreeNotifier.addListener(_selectedTreeListener);
   }
 
   @override
@@ -54,6 +106,7 @@ class _BottomsheetLocationMapWidgetState
     _positionSub?.cancel();
     isSearchFieldFocusedNotifier.removeListener(_searchFocusListener);
     _draggableController.dispose();
+    selectedTreeNotifier.removeListener(_selectedTreeListener);
     super.dispose();
   }
 
@@ -116,12 +169,9 @@ class _BottomsheetLocationMapWidgetState
         distanceFilter: 5,
       ),
     ).listen((pos) {
-      // mapbox Position expects (longitude, latitude) as positional args
       try {
         userLocationNotifier.value = Position(pos.longitude, pos.latitude);
-      } catch (_) {
-        // ignore if Position cannot be created; map widget may handle null
-      }
+      } catch (_) {}
     });
 
     return true;
@@ -130,10 +180,10 @@ class _BottomsheetLocationMapWidgetState
   void _centerToMyLocation(BuildContext context) async {
     final ok = await _ensureUserLocationStreamStarted(context);
     if (!ok) return;
-    // Start following the user's live location and immediately center if available
     isFollowingUserLocationNotifier.value = true;
     final pos = userLocationNotifier.value;
     if (pos != null) {
+      selectedLocationFromSearchNotifier.value = false;
       selectedLocationNotifier.value = pos;
     }
   }
@@ -285,8 +335,6 @@ class _BottomsheetLocationMapWidgetState
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // Header and controls for the selected tree are shown
-                        // above the photo and details.
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -300,36 +348,28 @@ class _BottomsheetLocationMapWidgetState
                             Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Center camera to this tree's location
                                 IconButton(
                                   tooltip: 'Center on tree',
                                   onPressed:
                                       (tree.latitude != null &&
                                               tree.longitude != null)
                                           ? () async {
-                                            // Ensure we are not following the live user location
                                             isFollowingUserLocationNotifier
                                                 .value = false;
-                                            // Force a change of the selected location notifier
-                                            // by briefly clearing it first, this avoids a
-                                            // no-op if the same Position is already set.
                                             selectedLocationNotifier.value =
                                                 null;
-                                            // Small delay to ensure listeners receive the null
-                                            // then the new position update.
                                             await Future.delayed(
                                               const Duration(milliseconds: 60),
                                             );
-                                            // Preserve the current zoom when centering
-                                            // on a tree so we don't unexpectedly zoom out.
                                             preserveZoomOnNextCenterNotifier
                                                 .value = true;
+                                            selectedLocationFromSearchNotifier
+                                                .value = false;
                                             selectedLocationNotifier
                                                 .value = Position(
                                               tree.longitude!,
                                               tree.latitude!,
                                             );
-                                            // Give quick visual feedback so user knows action ran.
                                             if (context.mounted) {
                                               ScaffoldMessenger.of(
                                                 context,
@@ -355,7 +395,23 @@ class _BottomsheetLocationMapWidgetState
                             ),
                           ],
                         ),
+
                         const SizedBox(height: 8),
+
+                        // Plot and Cluster summary (loaded asynchronously in initState listener)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 8.0),
+                          child: Row(
+                            children: [
+                              Text(
+                                'Cluster: ${_selectedCluster?.kodeCluster ?? '-'}',
+                              ),
+                              const SizedBox(width: 12),
+                              Text('Plot: ${_selectedPlot?.kodePlot ?? '-'}'),
+                            ],
+                          ),
+                        ),
+
                         if (tree.urlFoto != null)
                           GestureDetector(
                             onTap: () {
@@ -400,6 +456,7 @@ class _BottomsheetLocationMapWidgetState
                               ),
                             ),
                           ),
+
                         const SizedBox(height: 8),
                         Table(
                           columnWidths: const {
@@ -441,7 +498,6 @@ class _BottomsheetLocationMapWidgetState
                               ),
                           ],
                         ),
-                        // header moved above
                       ],
                     );
                   },

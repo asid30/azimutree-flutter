@@ -42,6 +42,9 @@ class SuggestionBodyWidget extends StatelessWidget {
                 logger.i(
                   "Selected place: $place\n${place["longitude"]} ${place["latitude"]}",
                 );
+                // Mark this selection as originating from a search so the
+                // map shows the search-result marker.
+                selectedLocationFromSearchNotifier.value = true;
                 selectedLocationNotifier.value = Position(
                   double.parse(place["longitude"]),
                   double.parse(place["latitude"]),

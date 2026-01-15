@@ -28,8 +28,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   MapboxMap? _mapboxMap;
   CircleAnnotationManager? _circleManager;
   CircleAnnotationManager? _searchResultManager;
+  CircleAnnotationManager? _connectionManager;
   late final VoidCallback _styleListener;
   late final VoidCallback _northResetListener;
+  late final VoidCallback _selectedTreeListener;
   late final VoidCallback _userLocationListener;
   // Cache of tree models currently displayed on the map.
   final List<TreeModel> _treesCache = [];
@@ -70,6 +72,15 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       }
     };
     userLocationNotifier.addListener(_userLocationListener);
+    _selectedTreeListener = () {
+      if (!mounted) return;
+      // Recreate markers so the selected tree is rendered with the
+      // "active" style (no separate highlight annotation required).
+      if (_mapboxMap != null) _loadMarkers();
+      // Also show a dashed connection line to the plot center.
+      _updateConnectionForSelectedTree();
+    };
+    selectedTreeNotifier.addListener(_selectedTreeListener);
 
     _northResetListener = () {
       _resetBearingToNorth();
@@ -83,6 +94,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     selectedLocationNotifier.removeListener(_onLocationChanged);
     northResetRequestNotifier.removeListener(_northResetListener);
     userLocationNotifier.removeListener(_userLocationListener);
+    selectedTreeNotifier.removeListener(_selectedTreeListener);
     super.dispose();
   }
 
@@ -106,10 +118,13 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           MapAnimationOptions(duration: follow ? 800 : 1500),
         );
       }
-      // Show a search result pin so user can see selected location.
-      // Do not show the search pin when the map is following the user's live
-      // location (it would overlap the user puck).
-      if (!isFollowingUserLocationNotifier.value) {
+      // Show a search result pin only when the selected location was set
+      // as a search result. Other actions that set `selectedLocationNotifier`
+      // (map marker taps, center actions, tracking) should set
+      // `selectedLocationFromSearchNotifier` to false so no duplicate pin
+      // appears on top of the map markers.
+      if (!isFollowingUserLocationNotifier.value &&
+          selectedLocationFromSearchNotifier.value) {
         _showSearchResultMarker(pos);
       } else {
         // Ensure any previous search result marker is removed.
@@ -244,6 +259,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         isFollowingUserLocationNotifier.value = false;
         // Preserve the current zoom when centering from a map marker tap
         preserveZoomOnNextCenterNotifier.value = true;
+        // This selection came from a map-tap (not a search), ensure the
+        // search-result marker is not shown.
+        selectedLocationFromSearchNotifier.value = false;
         selectedLocationNotifier.value = Position(
           nearest.longitude!,
           nearest.latitude!,
@@ -308,6 +326,85 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     // manipulated independently from the database markers.
     _searchResultManager ??=
         await _mapboxMap!.annotations.createCircleAnnotationManager();
+  }
+
+  Future<void> _ensureConnectionManager() async {
+    if (_mapboxMap == null) return;
+    _connectionManager ??=
+        await _mapboxMap!.annotations.createCircleAnnotationManager();
+  }
+
+  Future<void> _removeConnectionMarkers() async {
+    try {
+      if (_connectionManager != null) {
+        await _connectionManager!.deleteAll();
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _showConnectionLine(
+    double lonA,
+    double latA,
+    double lonB,
+    double latB,
+  ) async {
+    // Draw dashed line by placing small red circle annotations at intervals
+    // along the straight interpolation between two coordinates.
+    if (_mapboxMap == null) return;
+    await _ensureConnectionManager();
+    if (_connectionManager == null) return;
+    try {
+      await _connectionManager!.deleteAll();
+    } catch (_) {}
+
+    // Number of segments; larger = smoother line. We'll create small dots
+    // for a dashed appearance by skipping every other segment.
+    const segments = 24;
+    for (int i = 0; i <= segments; i++) {
+      // dashed: only create on even indices
+      if (i % 2 == 1) continue;
+      final t = i / segments;
+      final lon = lonA + (lonB - lonA) * t;
+      final lat = latA + (latB - latA) * t;
+      try {
+        await _connectionManager!.create(
+          CircleAnnotationOptions(
+            geometry: Point(coordinates: Position(lon, lat)),
+            circleColor: 0xFFB71C1C, // red
+            circleRadius: 2,
+            circleOpacity: 1.0,
+          ),
+        );
+      } catch (_) {}
+    }
+  }
+
+  Future<void> _updateConnectionForSelectedTree() async {
+    final tree = selectedTreeNotifier.value;
+    if (_mapboxMap == null) return;
+    if (tree == null) {
+      await _removeConnectionMarkers();
+      return;
+    }
+    if (tree.latitude == null || tree.longitude == null) return;
+
+    // Find the plot center for this tree and draw connection.
+    try {
+      final plot = await PlotDao.getPlotById(tree.plotId);
+      if (plot == null) {
+        await _removeConnectionMarkers();
+        return;
+      }
+      await _showConnectionLine(
+        tree.longitude!,
+        tree.latitude!,
+        plot.longitude,
+        plot.latitude,
+      );
+    } catch (_) {
+      // ensure we clear markers on error
+      await _removeConnectionMarkers();
+    }
   }
 
   Future<void> _removeSearchResultMarker() async {
@@ -422,16 +519,20 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   Future<void> _addTreeMarkers(List<TreeModel> trees) async {
     for (final tree in trees) {
       if (tree.latitude == null || tree.longitude == null) continue;
+      final selected = selectedTreeNotifier.value?.id == tree.id;
       await _circleManager!.create(
         CircleAnnotationOptions(
           geometry: Point(
             coordinates: Position(tree.longitude!, tree.latitude!),
           ),
+          // Active and inactive trees share the same fill color and size.
+          // When active, render a thin white outline (stroke) so the
+          // selected marker is visible without changing shape or size.
           circleColor: 0xFFF57C00,
           circleRadius: 6,
-          circleStrokeColor: 0xFFE65100,
-          circleStrokeWidth: 1.0,
-          circleOpacity: 0.9,
+          circleStrokeColor: selected ? 0xFFFFFFFF : 0xFFE65100,
+          circleStrokeWidth: selected ? 1.6 : 1.0,
+          circleOpacity: 0.95,
         ),
       );
     }

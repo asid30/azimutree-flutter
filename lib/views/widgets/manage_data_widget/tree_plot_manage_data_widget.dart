@@ -262,6 +262,8 @@ class TreePlotManageDataWidget extends StatelessWidget {
     if (tree.latitude == null || tree.longitude == null) return;
 
     selectedPageNotifier.value = 'location_map_page';
+    // Navigating to the map to track a tree is not a search result selection.
+    selectedLocationFromSearchNotifier.value = false;
     selectedLocationNotifier.value = Position(tree.longitude!, tree.latitude!);
     Navigator.pushNamed(context, 'location_map_page');
   }

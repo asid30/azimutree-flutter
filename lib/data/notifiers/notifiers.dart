@@ -31,3 +31,8 @@ ValueNotifier<TreeModel?> selectedTreeNotifier = ValueNotifier(null);
 /// current map zoom instead of forcing a fixed zoom level. This is used when
 /// centering on a tree so the user's zoom choice isn't overridden.
 ValueNotifier<bool> preserveZoomOnNextCenterNotifier = ValueNotifier(false);
+
+/// When true, the currently set `selectedLocationNotifier` was originated
+/// from a search result selection. The map will show the special "search"
+/// marker only when this notifier is true.
+ValueNotifier<bool> selectedLocationFromSearchNotifier = ValueNotifier(false);
