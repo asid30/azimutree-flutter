@@ -30,6 +30,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   CircleAnnotationManager? _searchResultManager;
   late final VoidCallback _styleListener;
   late final VoidCallback _northResetListener;
+  late final VoidCallback _userLocationListener;
   // Cache of tree models currently displayed on the map.
   final List<TreeModel> _treesCache = [];
   // Timer used to differentiate single-tap from double-tap (double-tap = zoom).
@@ -42,15 +43,33 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       if (!mounted) return;
       if (_mapboxMap != null) {
         final style =
+            // Use satellite as the default for menu index 0
             selectedMenuBottomSheetNotifier.value == 0
-                ? widget.standardStyleUri
-                : widget.sateliteStyleUri;
+                ? widget.sateliteStyleUri
+                : widget.standardStyleUri;
         _applyStyleAndMarkers(style);
       }
     };
 
     selectedMenuBottomSheetNotifier.addListener(_styleListener);
     selectedLocationNotifier.addListener(_onLocationChanged);
+    _userLocationListener = () {
+      final pos = userLocationNotifier.value;
+      if (!mounted) return;
+      if (pos != null &&
+          _mapboxMap != null &&
+          isFollowingUserLocationNotifier.value) {
+        _mapboxMap!.easeTo(
+          CameraOptions(center: Point(coordinates: pos), zoom: 14),
+          MapAnimationOptions(duration: 800),
+        );
+        // Keep selectedLocationNotifier in sync so other UI can react
+        selectedLocationNotifier.value = pos;
+        // Ensure any search result marker does not conflict with the user puck
+        _removeSearchResultMarker();
+      }
+    };
+    userLocationNotifier.addListener(_userLocationListener);
 
     _northResetListener = () {
       _resetBearingToNorth();
@@ -63,6 +82,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     selectedMenuBottomSheetNotifier.removeListener(_styleListener);
     selectedLocationNotifier.removeListener(_onLocationChanged);
     northResetRequestNotifier.removeListener(_northResetListener);
+    userLocationNotifier.removeListener(_userLocationListener);
     super.dispose();
   }
 
@@ -71,10 +91,21 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     if (!mounted) return;
     if (pos != null && _mapboxMap != null) {
       final follow = isFollowingUserLocationNotifier.value;
-      _mapboxMap!.easeTo(
-        CameraOptions(center: Point(coordinates: pos), zoom: 14),
-        MapAnimationOptions(duration: follow ? 800 : 1500),
-      );
+      // If the UI requested preserving zoom for this center action,
+      // don't supply a zoom value so the map keeps its current zoom level.
+      if (preserveZoomOnNextCenterNotifier.value) {
+        _mapboxMap!.easeTo(
+          CameraOptions(center: Point(coordinates: pos)),
+          MapAnimationOptions(duration: follow ? 800 : 1500),
+        );
+        // Reset the flag after applying
+        preserveZoomOnNextCenterNotifier.value = false;
+      } else {
+        _mapboxMap!.easeTo(
+          CameraOptions(center: Point(coordinates: pos), zoom: 14),
+          MapAnimationOptions(duration: follow ? 800 : 1500),
+        );
+      }
       // Show a search result pin so user can see selected location.
       // Do not show the search pin when the map is following the user's live
       // location (it would overlap the user puck).
@@ -112,9 +143,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
               onMapCreated: (map) {
                 _mapboxMap = map;
                 final style =
+                    // Use satellite as the default for menu index 0
                     selectedMenuBottomSheetNotifier.value == 0
-                        ? widget.standardStyleUri
-                        : widget.sateliteStyleUri;
+                        ? widget.sateliteStyleUri
+                        : widget.standardStyleUri;
                 _applyStyleAndMarkers(style);
                 _enableUserLocationPuck();
                 // If a target location was set before the map was created
@@ -122,9 +154,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                 _onLocationChanged();
               },
               styleUri:
+                  // Show satellite by default when bottom sheet menu index is 0
                   selectedMenuBottomSheet == 0
-                      ? widget.standardStyleUri
-                      : widget.sateliteStyleUri,
+                      ? widget.sateliteStyleUri
+                      : widget.standardStyleUri,
               cameraOptions: CameraOptions(
                 center: Point(
                   coordinates: Position(105.09049300503469, -5.508241749086075),
@@ -209,6 +242,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       // the existing _onLocationChanged handler moves the camera.
       try {
         isFollowingUserLocationNotifier.value = false;
+        // Preserve the current zoom when centering from a map marker tap
+        preserveZoomOnNextCenterNotifier.value = true;
         selectedLocationNotifier.value = Position(
           nearest.longitude!,
           nearest.latitude!,

@@ -104,7 +104,12 @@ class _BottomsheetLocationMapWidgetState
   void _centerToMyLocation(BuildContext context) async {
     final ok = await _ensureUserLocationStreamStarted(context);
     if (!ok) return;
+    // Start following the user's live location and immediately center if available
     isFollowingUserLocationNotifier.value = true;
+    final pos = userLocationNotifier.value;
+    if (pos != null) {
+      selectedLocationNotifier.value = pos;
+    }
   }
 
   @override
@@ -117,7 +122,7 @@ class _BottomsheetLocationMapWidgetState
       builder: (context, scrollController) {
         return Container(
           decoration: BoxDecoration(
-            color: Theme.of(context).canvasColor,
+            color: const Color.fromARGB(255, 205, 237, 211),
             borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
             boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
           ),
@@ -144,25 +149,37 @@ class _BottomsheetLocationMapWidgetState
                       child: Row(
                         children: [
                           Expanded(
-                            child: NavigationBar(
-                              backgroundColor: Colors.transparent,
-                              elevation: 0,
-                              selectedIndex: selectedMenuBottomSheet,
-                              onDestinationSelected: (value) {
-                                selectedMenuBottomSheetNotifier.value = value;
-                              },
-                              destinations: const [
-                                NavigationDestination(
-                                  icon: Icon(Icons.map_outlined),
-                                  selectedIcon: Icon(Icons.map),
-                                  label: 'Medan',
+                            child: NavigationBarTheme(
+                              data: NavigationBarThemeData(
+                                indicatorColor: const Color.fromARGB(
+                                  255,
+                                  195,
+                                  208,
+                                  197,
                                 ),
-                                NavigationDestination(
-                                  icon: Icon(Icons.terrain_outlined),
-                                  selectedIcon: Icon(Icons.terrain),
-                                  label: 'Satelit',
-                                ),
-                              ],
+                                backgroundColor: Colors.transparent,
+                                elevation: 0,
+                              ),
+                              child: NavigationBar(
+                                backgroundColor: Colors.transparent,
+                                elevation: 0,
+                                selectedIndex: selectedMenuBottomSheet,
+                                onDestinationSelected: (value) {
+                                  selectedMenuBottomSheetNotifier.value = value;
+                                },
+                                destinations: const [
+                                  NavigationDestination(
+                                    icon: Icon(Icons.satellite),
+                                    selectedIcon: Icon(Icons.satellite),
+                                    label: 'Satelit',
+                                  ),
+                                  NavigationDestination(
+                                    icon: Icon(Icons.map_outlined),
+                                    selectedIcon: Icon(Icons.map),
+                                    label: 'Medan',
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -172,6 +189,22 @@ class _BottomsheetLocationMapWidgetState
                               IconButton(
                                 onPressed: () => _centerToMyLocation(context),
                                 icon: const Icon(Icons.my_location),
+                                style: ButtonStyle(
+                                  foregroundColor:
+                                      WidgetStateProperty.resolveWith(
+                                        (states) =>
+                                            states.contains(WidgetState.pressed)
+                                                ? Colors.lightGreen.shade200
+                                                : null,
+                                      ),
+                                  overlayColor: WidgetStateProperty.resolveWith(
+                                    (states) =>
+                                        states.contains(WidgetState.pressed)
+                                            ? Colors.lightGreen.shade100
+                                                .withAlpha((0.4 * 255).round())
+                                            : null,
+                                  ),
+                                ),
                               ),
                               IconButton(
                                 onPressed: () {
@@ -181,6 +214,22 @@ class _BottomsheetLocationMapWidgetState
                                 icon: Transform.rotate(
                                   angle: -45 * math.pi / 180,
                                   child: const Icon(Icons.explore_outlined),
+                                ),
+                                style: ButtonStyle(
+                                  foregroundColor:
+                                      WidgetStateProperty.resolveWith(
+                                        (states) =>
+                                            states.contains(WidgetState.pressed)
+                                                ? Colors.lightGreen.shade200
+                                                : null,
+                                      ),
+                                  overlayColor: WidgetStateProperty.resolveWith(
+                                    (states) =>
+                                        states.contains(WidgetState.pressed)
+                                            ? Colors.lightGreen.shade100
+                                                .withAlpha((0.4 * 255).round())
+                                            : null,
+                                  ),
                                 ),
                               ),
                             ],
@@ -245,6 +294,10 @@ class _BottomsheetLocationMapWidgetState
                                             await Future.delayed(
                                               const Duration(milliseconds: 60),
                                             );
+                                            // Preserve the current zoom when centering
+                                            // on a tree so we don't unexpectedly zoom out.
+                                            preserveZoomOnNextCenterNotifier
+                                                .value = true;
                                             selectedLocationNotifier
                                                 .value = Position(
                                               tree.longitude!,
