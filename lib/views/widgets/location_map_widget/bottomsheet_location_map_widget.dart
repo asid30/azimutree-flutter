@@ -99,6 +99,12 @@ class _BottomsheetLocationMapWidgetState
           });
     };
     selectedTreeNotifier.addListener(_selectedTreeListener);
+    // If a tree was selected before this sheet was created (e.g., via
+    // Manage Data -> Tracking), immediately run the listener so the
+    // cached plot/cluster info is loaded for display.
+    if (selectedTreeNotifier.value != null) {
+      _selectedTreeListener();
+    }
   }
 
   @override
