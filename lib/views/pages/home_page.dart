@@ -50,8 +50,10 @@ class _HomePageState extends State<HomePage> {
             //* Content
             Column(
               mainAxisSize: MainAxisSize.max,
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              crossAxisAlignment: CrossAxisAlignment.end,
               children: [
+                const SizedBox(height: 10),
                 ValueListenableBuilder(
                   valueListenable: isLightModeNotifier,
                   builder: (context, isLightMode, child) {
@@ -68,49 +70,32 @@ class _HomePageState extends State<HomePage> {
                 ),
                 Column(
                   children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        SizedBox(width: 150, height: 100),
-                        MenuButtonWidget(
-                          label: "Kelola Data\nCluster Plot",
-                          icon: Icons.storage,
-                          onPressed: () {
-                            Navigator.popAndPushNamed(
-                              context,
-                              "manage_data_page",
-                            );
-                          },
-                        ),
-                      ],
+                    MenuButtonWidget(
+                      label: "Kelola Data\nCluster Plot",
+                      icon: Icons.storage,
+                      onPressed: () {
+                        Navigator.popAndPushNamed(context, "manage_data_page");
+                      },
                     ),
-                    SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      mainAxisSize: MainAxisSize.max,
-                      children: [
-                        MenuButtonWidget(
-                          label: "Peta Lokasi\nCluster Plot",
-                          icon: Icons.map,
-                          onPressed: () {
-                            Navigator.popAndPushNamed(
-                              context,
-                              "location_map_page",
-                            );
-                          },
-                        ),
-                        MenuButtonWidget(
-                          label: "Panduan\nAplikasi",
-                          icon: Icons.book,
-                          onPressed: () {
-                            Navigator.popAndPushNamed(context, "tutorial_page");
-                          },
-                        ),
-                      ],
+                    const SizedBox(height: 10),
+                    MenuButtonWidget(
+                      label: "Peta Lokasi\nCluster Plot",
+                      icon: Icons.map,
+                      onPressed: () {
+                        Navigator.popAndPushNamed(context, "location_map_page");
+                      },
+                    ),
+                    const SizedBox(height: 10),
+                    MenuButtonWidget(
+                      label: "Panduan\nAplikasi",
+                      icon: Icons.book,
+                      onPressed: () {
+                        Navigator.popAndPushNamed(context, "tutorial_page");
+                      },
                     ),
                   ],
                 ),
+                const SizedBox(height: 10),
               ],
             ),
           ],
