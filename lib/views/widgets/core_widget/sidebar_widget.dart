@@ -57,7 +57,7 @@ class SidebarWidget extends StatelessWidget {
                 onTap: () => _selectPage(context, "location_map_page"),
               ),
               ListTile(
-                leading: const Icon(Icons.help),
+                leading: const Icon(Icons.book),
                 title: const Text('Panduan Aplikasi'),
                 onTap: () => _selectPage(context, "tutorial_page"),
               ),

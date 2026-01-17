@@ -12,6 +12,7 @@ import 'dart:math' as math;
 import 'dart:async';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:azimutree/services/gdrive_thumbnail_service.dart';
 
 class BottomsheetLocationMapWidget extends StatefulWidget {
   const BottomsheetLocationMapWidget({super.key});
@@ -632,7 +633,10 @@ class _BottomsheetLocationMapWidgetState
                                 MaterialPageRoute(
                                   builder:
                                       (_) => _TreePhotoPreviewPage(
-                                        imageUrl: tree.urlFoto!,
+                                        imageUrl:
+                                            GDriveThumbnailService.toThumbnailUrl(
+                                              tree.urlFoto!,
+                                            ),
                                         heroTag:
                                             'tree-photo-${tree.id ?? DateTime.now().millisecondsSinceEpoch}',
                                       ),
@@ -645,26 +649,38 @@ class _BottomsheetLocationMapWidgetState
                               child: SizedBox(
                                 height: 160,
                                 width: double.infinity,
-                                child: CachedNetworkImage(
-                                  imageUrl: tree.urlFoto!,
-                                  fit: BoxFit.cover,
-                                  placeholder:
-                                      (context, _) => const Center(
-                                        child: SizedBox(
-                                          width: 28,
-                                          height: 28,
-                                          child: CircularProgressIndicator(
-                                            strokeWidth: 2.5,
+                                child: Builder(
+                                  builder: (ctx) {
+                                    final url = tree.urlFoto!;
+                                    final resolved =
+                                        GDriveThumbnailService.toThumbnailUrl(
+                                          url,
+                                        );
+                                    debugPrint(
+                                      'Map sheet tree image URL: $url -> resolved: $resolved',
+                                    );
+                                    return CachedNetworkImage(
+                                      imageUrl: resolved,
+                                      fit: BoxFit.cover,
+                                      placeholder:
+                                          (context, _) => const Center(
+                                            child: SizedBox(
+                                              width: 28,
+                                              height: 28,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2.5,
+                                              ),
+                                            ),
                                           ),
-                                        ),
-                                      ),
-                                  errorWidget:
-                                      (context, _, __) => const Center(
-                                        child: Icon(
-                                          Icons.broken_image,
-                                          color: Colors.grey,
-                                        ),
-                                      ),
+                                      errorWidget:
+                                          (context, _, __) => const Center(
+                                            child: Icon(
+                                              Icons.broken_image,
+                                              color: Colors.grey,
+                                            ),
+                                          ),
+                                    );
+                                  },
                                 ),
                               ),
                             ),

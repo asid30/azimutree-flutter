@@ -9,6 +9,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:azimutree/services/gdrive_thumbnail_service.dart';
 
 class TreePlotManageDataWidget extends StatelessWidget {
   final int plotId;
@@ -225,9 +226,13 @@ class TreePlotManageDataWidget extends StatelessWidget {
 
   Widget _buildTreeImage(TreeModel tree, {BoxFit fit = BoxFit.cover}) {
     final url = tree.urlFoto!;
+    final resolved = GDriveThumbnailService.toThumbnailUrl(url);
+
+    // Debug: print the URL used for the tree image and the resolved candidate
+    debugPrint('Tree image URL: $url -> resolved: $resolved');
 
     return CachedNetworkImage(
-      imageUrl: url,
+      imageUrl: resolved,
       fit: fit,
       placeholder:
           (context, _) => const Center(
@@ -252,7 +257,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
       MaterialPageRoute(
         builder:
             (_) => _TreePhotoPreviewPage(
-              imageUrl: tree.urlFoto!,
+              imageUrl: GDriveThumbnailService.toThumbnailUrl(tree.urlFoto!),
               heroTag: heroTag,
             ),
       ),
