@@ -14,11 +14,10 @@ class GDriveThumbnailService {
   static String toThumbnailUrl(String url, {int size = 300}) {
     final id = _extractFileId(url);
     if (id == null || id.isEmpty) return url;
-    // Use the drive.usercontent download/view URL which can behave as a
-    // direct image endpoint in many cases (include authuser to match
-    // browser redirect behavior).
-    // Example: https://drive.usercontent.google.com/download?id=<id>&export=view&authuser=0
-    return 'https://drive.usercontent.google.com/download?id=$id&export=view&authuser=0';
+    // Use the Google Drive thumbnail endpoint which returns a resized
+    // image. This is faster and more suitable for small previews.
+    // Example: https://drive.google.com/thumbnail?id=<id>&sz=w300
+    return 'https://drive.google.com/thumbnail?id=$id&sz=w$size';
   }
 
   /// Return true when the provided URL looks like a Google Drive file link.

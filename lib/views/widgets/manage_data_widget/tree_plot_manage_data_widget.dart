@@ -228,8 +228,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
     final url = tree.urlFoto!;
     final resolved = GDriveThumbnailService.toThumbnailUrl(url);
 
-    // Debug: print the URL used for the tree image and the resolved candidate
-    debugPrint('Tree image URL: $url -> resolved: $resolved');
+    // (debug prints removed)
 
     return CachedNetworkImage(
       imageUrl: resolved,

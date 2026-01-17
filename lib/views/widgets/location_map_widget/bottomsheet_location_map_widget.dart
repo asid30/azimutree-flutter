@@ -656,9 +656,6 @@ class _BottomsheetLocationMapWidgetState
                                         GDriveThumbnailService.toThumbnailUrl(
                                           url,
                                         );
-                                    debugPrint(
-                                      'Map sheet tree image URL: $url -> resolved: $resolved',
-                                    );
                                     return CachedNetworkImage(
                                       imageUrl: resolved,
                                       fit: BoxFit.cover,
