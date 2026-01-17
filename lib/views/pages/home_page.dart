@@ -52,7 +52,7 @@ class _HomePageState extends State<HomePage> {
             Column(
               mainAxisSize: MainAxisSize.max,
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              crossAxisAlignment: CrossAxisAlignment.end,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 const SizedBox(height: 10),
                 ValueListenableBuilder(
@@ -69,69 +69,81 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
                 ),
-                Column(
-                  children: [
-                    MenuButtonWidget(
-                      label: "Kelola Data\nCluster Plot",
-                      icon: Icons.storage,
-                      onPressed: () {
-                        Navigator.popAndPushNamed(context, "manage_data_page");
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    MenuButtonWidget(
-                      label: "Peta Lokasi\nCluster Plot",
-                      icon: Icons.map,
-                      onPressed: () {
-                        Navigator.popAndPushNamed(context, "location_map_page");
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    MenuButtonWidget(
-                      label: "Panduan\nAplikasi",
-                      icon: Icons.book,
-                      onPressed: () {
-                        Navigator.popAndPushNamed(context, "tutorial_page");
-                      },
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      children: [
-                        SmallMenuButtonWidget(
-                          icon: Icons.settings,
-                          onPressed: () {
-                            Navigator.pushNamed(context, 'settings_page');
-                          },
-                        ),
-                        SmallMenuButtonWidget(
-                          icon: Icons.info,
-                          onPressed: () {
-                            Navigator.pushNamed(context, 'about_page');
-                          },
-                        ),
-                        SmallMenuButtonWidget(
-                          icon: Icons.exit_to_app,
-                          onPressed: () {
-                            showDialog<bool>(
-                              context: context,
-                              builder:
-                                  (context) => AlertConfirmationWidget(
-                                    title: 'Keluar Aplikasi',
-                                    message: 'Apa kamu yakin mau keluar?',
-                                    confirmText: 'Exit',
-                                    cancelText: 'Cancel',
-                                  ),
-                            ).then((shouldExit) {
-                              if (shouldExit == true && context.mounted) {
-                                SystemNavigator.pop();
-                              }
-                            });
-                          },
-                        ),
-                      ],
-                    ),
-                  ],
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.625,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      MenuButtonWidget(
+                        label: "Kelola Data\nCluster Plot",
+                        icon: Icons.storage,
+                        onPressed: () {
+                          Navigator.popAndPushNamed(
+                            context,
+                            "manage_data_page",
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      MenuButtonWidget(
+                        label: "Peta Lokasi\nCluster Plot",
+                        icon: Icons.map,
+                        onPressed: () {
+                          Navigator.popAndPushNamed(
+                            context,
+                            "location_map_page",
+                          );
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      MenuButtonWidget(
+                        label: "Panduan\nAplikasi",
+                        icon: Icons.book,
+                        onPressed: () {
+                          Navigator.popAndPushNamed(context, "tutorial_page");
+                        },
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          SmallMenuButtonWidget(
+                            icon: Icons.settings,
+                            onPressed: () {
+                              Navigator.pushNamed(context, 'settings_page');
+                            },
+                          ),
+                          SmallMenuButtonWidget(
+                            icon: Icons.info,
+                            onPressed: () {
+                              Navigator.pushNamed(context, 'about_page');
+                            },
+                          ),
+                          SmallMenuButtonWidget(
+                            icon: Icons.exit_to_app,
+                            onPressed: () {
+                              showDialog<bool>(
+                                context: context,
+                                builder:
+                                    (context) => AlertConfirmationWidget(
+                                      title: 'Keluar Aplikasi',
+                                      message: 'Apa kamu yakin mau keluar?',
+                                      confirmText: 'Exit',
+                                      cancelText: 'Cancel',
+                                    ),
+                              ).then((shouldExit) {
+                                if (shouldExit == true && context.mounted) {
+                                  SystemNavigator.pop();
+                                }
+                              });
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
                 const SizedBox(height: 10),
               ],
