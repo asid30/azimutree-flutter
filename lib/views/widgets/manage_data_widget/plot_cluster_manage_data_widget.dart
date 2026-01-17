@@ -32,7 +32,8 @@ class PlotClusterManageDataWidget extends StatefulWidget {
 }
 
 class _PlotClusterManageDataWidgetState
-    extends State<PlotClusterManageDataWidget> {
+    extends State<PlotClusterManageDataWidget>
+    with SingleTickerProviderStateMixin {
   String? _expandedKey;
 
   String _tileKey(PlotModel plot) =>
@@ -162,80 +163,86 @@ class _PlotClusterManageDataWidgetState
                           data: ThemeData().copyWith(
                             dividerColor: Colors.transparent,
                           ),
-                          child: ExpansionTile(
-                            key: ValueKey("${isExpanded}_$tileKey"),
-                            initiallyExpanded: isExpanded,
-                            onExpansionChanged: (expanded) {
-                              setState(() {
-                                if (expanded) {
-                                  _expandedKey = tileKey;
-                                } else if (_expandedKey == tileKey) {
-                                  _expandedKey = null;
-                                }
-                              });
-                            },
-                            tilePadding: EdgeInsets.zero,
-                            title: const Text(
-                              "Detail plot",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            subtitle: Table(
-                              columnWidths: const {
-                                0: FlexColumnWidth(2),
-                                1: FlexColumnWidth(3),
+                          child: AnimatedSize(
+                            duration: const Duration(milliseconds: 800),
+                            curve: Curves.easeInOut,
+                            alignment: Alignment.topCenter,
+                            child: ExpansionTile(
+                              key: ValueKey("${isExpanded}_$tileKey"),
+                              maintainState: true,
+                              initiallyExpanded: isExpanded,
+                              onExpansionChanged: (expanded) {
+                                setState(() {
+                                  if (expanded) {
+                                    _expandedKey = tileKey;
+                                  } else if (_expandedKey == tileKey) {
+                                    _expandedKey = null;
+                                  }
+                                });
                               },
+                              tilePadding: EdgeInsets.zero,
+                              title: const Text(
+                                "Detail plot",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              subtitle: Table(
+                                columnWidths: const {
+                                  0: FlexColumnWidth(2),
+                                  1: FlexColumnWidth(3),
+                                },
+                                children: [
+                                  _row(
+                                    "Latitude",
+                                    plot.latitude.toStringAsFixed(6),
+                                  ),
+                                  _row(
+                                    "Longitude",
+                                    plot.longitude.toStringAsFixed(6),
+                                  ),
+                                  _row(
+                                    "Altitude",
+                                    plot.altitude != null
+                                        ? "${plot.altitude} m"
+                                        : "-",
+                                  ),
+                                  _row(
+                                    "Jumlah Pohon",
+                                    plot.id != null
+                                        ? widget.treeData
+                                            .where(
+                                              (tree) => tree.plotId == plot.id,
+                                            )
+                                            .length
+                                            .toString()
+                                        : "0",
+                                  ),
+                                ],
+                              ),
                               children: [
-                                _row(
-                                  "Latitude",
-                                  plot.latitude.toStringAsFixed(6),
-                                ),
-                                _row(
-                                  "Longitude",
-                                  plot.longitude.toStringAsFixed(6),
-                                ),
-                                _row(
-                                  "Altitude",
-                                  plot.altitude != null
-                                      ? "${plot.altitude} m"
-                                      : "-",
-                                ),
-                                _row(
-                                  "Jumlah Pohon",
-                                  plot.id != null
-                                      ? widget.treeData
-                                          .where(
-                                            (tree) => tree.plotId == plot.id,
-                                          )
-                                          .length
-                                          .toString()
-                                      : "0",
-                                ),
+                                const Divider(height: 1),
+                                if (plot.id != null)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                    ),
+                                    child: TreePlotManageDataWidget(
+                                      plotId: plot.id!,
+                                      treeData: widget.treeData,
+                                      plots: widget.plotData,
+                                      clusters: widget.clustersData,
+                                      treeNotifier: widget.treeNotifier,
+                                    ),
+                                  )
+                                else
+                                  const Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text("ID plot tidak tersedia"),
+                                  ),
                               ],
                             ),
-                            children: [
-                              const Divider(height: 1),
-                              if (plot.id != null)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0,
-                                  ),
-                                  child: TreePlotManageDataWidget(
-                                    plotId: plot.id!,
-                                    treeData: widget.treeData,
-                                    plots: widget.plotData,
-                                    clusters: widget.clustersData,
-                                    treeNotifier: widget.treeNotifier,
-                                  ),
-                                )
-                              else
-                                const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text("ID plot tidak tersedia"),
-                                ),
-                            ],
                           ),
                         ),
                       ],
