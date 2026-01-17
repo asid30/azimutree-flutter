@@ -3,6 +3,9 @@
 import 'package:http/http.dart' as http;
 
 class GDriveThumbnailService {
+  // Simple in-memory cache mapping Drive file id -> resolved URL
+  static final Map<String, String> _cache = <String, String>{};
+
   /// Convert a Google Drive URL to a thumbnail URL with given size (width).
   ///
   /// If the input URL doesn't look like a Google Drive file link, the
@@ -14,10 +17,15 @@ class GDriveThumbnailService {
   static String toThumbnailUrl(String url, {int size = 300}) {
     final id = _extractFileId(url);
     if (id == null || id.isEmpty) return url;
+    // If we previously resolved a working URL for this id, return it.
+    if (_cache.containsKey(id)) return _cache[id]!;
+
     // Use the Google Drive thumbnail endpoint which returns a resized
-    // image. This is faster and more suitable for small previews.
+    // image. This is fast and suitable for small previews and is used
+    // as the immediate (synchronous) URL returned to image widgets.
     // Example: https://drive.google.com/thumbnail?id=<id>&sz=w300
-    return 'https://drive.google.com/thumbnail?id=$id&sz=w$size';
+    final thumb = 'https://drive.google.com/thumbnail?id=$id&sz=w$size';
+    return thumb;
   }
 
   /// Return true when the provided URL looks like a Google Drive file link.
@@ -59,6 +67,9 @@ class GDriveThumbnailService {
   }) async {
     final candidates = candidateUrls(url, size: size);
 
+    final id = _extractFileId(url);
+    if (id != null && _cache.containsKey(id)) return _cache[id]!;
+
     for (final c in candidates) {
       try {
         final uri = Uri.parse(c);
@@ -66,6 +77,8 @@ class GDriveThumbnailService {
         if (resp.statusCode == 200) {
           final ct = resp.headers['content-type'] ?? '';
           if (ct.startsWith('image/') || c.contains('thumbnail')) {
+            // store into cache
+            if (id != null) _cache[id] = c;
             return c;
           }
         }
@@ -75,6 +88,7 @@ class GDriveThumbnailService {
         if (respGet.statusCode == 200) {
           final ct = respGet.headers['content-type'] ?? '';
           if (ct.startsWith('image/') || c.contains('thumbnail')) {
+            if (id != null) _cache[id] = c;
             return c;
           }
         }
