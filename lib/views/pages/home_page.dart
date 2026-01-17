@@ -4,6 +4,7 @@ import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/menu_button_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
+import 'package:azimutree/views/widgets/core_widget/small_menu_button_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
@@ -92,6 +93,43 @@ class _HomePageState extends State<HomePage> {
                       onPressed: () {
                         Navigator.popAndPushNamed(context, "tutorial_page");
                       },
+                    ),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [
+                        SmallMenuButtonWidget(
+                          icon: Icons.settings,
+                          onPressed: () {
+                            Navigator.pushNamed(context, 'settings_page');
+                          },
+                        ),
+                        SmallMenuButtonWidget(
+                          icon: Icons.info,
+                          onPressed: () {
+                            Navigator.pushNamed(context, 'about_page');
+                          },
+                        ),
+                        SmallMenuButtonWidget(
+                          icon: Icons.exit_to_app,
+                          onPressed: () {
+                            showDialog<bool>(
+                              context: context,
+                              builder:
+                                  (context) => AlertConfirmationWidget(
+                                    title: 'Keluar Aplikasi',
+                                    message: 'Apa kamu yakin mau keluar?',
+                                    confirmText: 'Exit',
+                                    cancelText: 'Cancel',
+                                  ),
+                            ).then((shouldExit) {
+                              if (shouldExit == true && context.mounted) {
+                                SystemNavigator.pop();
+                              }
+                            });
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
