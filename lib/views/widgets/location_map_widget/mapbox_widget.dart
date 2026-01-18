@@ -69,7 +69,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   // Cache of plot models currently displayed on the map.
   final List<PlotModel> _plotsCache = [];
   // Timer used to differentiate single-tap from double-tap (double-tap = zoom).
-  Timer? _singleTapTimer;
+  // Timer used to detect a short hold (long-press) before activating markers.
+  Timer? _holdTimer;
+  // Whether a long-press was recognized for the current pointer sequence.
+  bool _longPressRecognized = false;
 
   @override
   void initState() {
@@ -218,8 +221,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                       ? widget.sateliteStyleUri
                       : widget.standardStyleUri,
               cameraOptions: CameraOptions(
+                // Center the initial camera on Bandar Lampung (Lampung province)
                 center: Point(
-                  coordinates: Position(105.09049300503469, -5.508241749086075),
+                  // Longitude, Latitude for Bandar Lampung
+                  coordinates: Position(105.2626, -5.4297),
                 ),
                 zoom: 10,
               ),
@@ -230,26 +235,35 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             Positioned.fill(
               child: Listener(
                 behavior: HitTestBehavior.translucent,
-                onPointerUp: (event) {
-                  // If there's an existing timer, this is the second tap
-                  // (double-tap). Cancel the pending single-tap action and
-                  // let the map handle the gesture (zoom).
-                  if (_singleTapTimer != null) {
-                    _singleTapTimer!.cancel();
-                    _singleTapTimer = null;
-                    return;
+                onPointerDown: (event) {
+                  // Start a short hold timer; only if this fires do we
+                  // consider the subsequent pointer up as an activation.
+                  _holdTimer?.cancel();
+                  _longPressRecognized = false;
+                  _holdTimer = Timer(const Duration(milliseconds: 400), () {
+                    _longPressRecognized = true;
+                  });
+                },
+                onPointerUp: (event) async {
+                  // Cancel any pending hold timer.
+                  if (_holdTimer != null) {
+                    _holdTimer!.cancel();
+                    _holdTimer = null;
                   }
 
-                  // Start a short timer; if no second tap comes, treat as
-                  // single tap and handle it.
-                  _singleTapTimer = Timer(
-                    const Duration(milliseconds: 250),
-                    () async {
-                      _singleTapTimer = null;
-                      final local = event.localPosition;
-                      await _handleMapSingleTap(local);
-                    },
-                  );
+                  if (_longPressRecognized) {
+                    // A long-press was recognized: activate marker selection.
+                    _longPressRecognized = false;
+                    final local = event.localPosition;
+                    await _handleMapSingleTap(local);
+                  }
+                  // Quick taps (including double-tap) are ignored here so the
+                  // native map gestures (zoom, etc.) continue to work.
+                },
+                onPointerCancel: (event) {
+                  _holdTimer?.cancel();
+                  _holdTimer = null;
+                  _longPressRecognized = false;
                 },
               ),
             ),

@@ -37,6 +37,8 @@ class _BottomsheetLocationMapWidgetState
   List<TreeModel> _treesForSelectedPlot = [];
   late final VoidCallback _selectedPlotListener;
   late final VoidCallback _selectedTreeListener;
+  // Whether the local database contains any cluster/plot/tree data.
+  bool _hasAnyData = false;
 
   @override
   void initState() {
@@ -156,6 +158,9 @@ class _BottomsheetLocationMapWidgetState
     };
     selectedPlotNotifier.addListener(_selectedPlotListener);
     if (selectedPlotNotifier.value != null) _selectedPlotListener();
+
+    // Check whether the DB has any data so we can show contextual help text.
+    _checkDatabaseHasData();
   }
 
   @override
@@ -166,6 +171,21 @@ class _BottomsheetLocationMapWidgetState
     selectedTreeNotifier.removeListener(_selectedTreeListener);
     selectedPlotNotifier.removeListener(_selectedPlotListener);
     super.dispose();
+  }
+
+  Future<void> _checkDatabaseHasData() async {
+    try {
+      final clusters = await ClusterDao.getAllClusters();
+      final plots = await PlotDao.getAllPlots();
+      final trees = await TreeDao.getAllTrees();
+      final has = (clusters.isNotEmpty || plots.isNotEmpty || trees.isNotEmpty);
+      if (!mounted) return;
+      setState(() {
+        _hasAnyData = has;
+      });
+    } catch (_) {
+      // If any error occurs, keep _hasAnyData as false.
+    }
   }
 
   TableRow _row(String label, String value) {
@@ -538,10 +558,12 @@ class _BottomsheetLocationMapWidgetState
                         );
                       }
 
-                      return const Padding(
-                        padding: EdgeInsets.symmetric(vertical: 12),
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 12),
                         child: Text(
-                          'Tap a tree marker on the map to see details.',
+                          _hasAnyData
+                              ? 'Pilih marker di peta untuk menampilkan informasi.'
+                              : 'Kamu tidak memiliki data, silahkan tambah data terlebih dahulu.',
                         ),
                       );
                     }
