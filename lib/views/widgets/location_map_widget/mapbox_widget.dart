@@ -779,14 +779,55 @@ class _MapboxWidgetState extends State<MapboxWidget> {
 
   Future<void> _addTreeMarkers(List<TreeModel> trees) async {
     final futures = <Future>[];
+    final selTree = selectedTreeNotifier.value;
+    int? selPlotId = selTree?.plotId;
+    int? selClusterId;
+    if (selTree != null) {
+      try {
+        final selPlot = _plotsCache.firstWhere((p) => p.id == selTree.plotId);
+        selClusterId = selPlot.idCluster;
+      } catch (_) {
+        selClusterId = null;
+      }
+    }
+
     for (final tree in trees) {
       if (tree.latitude == null || tree.longitude == null) continue;
-      final selected = selectedTreeNotifier.value?.id == tree.id;
+      final selected = selTree?.id == tree.id;
+
+      // Determine cluster for this tree via its plot.
+      int? treeClusterId;
+      try {
+        final treePlot = _plotsCache.firstWhere((p) => p.id == tree.plotId);
+        treeClusterId = treePlot.idCluster;
+      } catch (_) {
+        treeClusterId = null;
+      }
+
+      // Coloring rules:
+      // - If no tree is selected: normal tree color.
+      // - If a tree is selected:
+      //   * trees in the same plot as the selected tree -> normal color
+      //   * trees in the same cluster but different plot -> gray
+      //   * all others -> normal color
+      int circleColor = kTreeColor;
+      if (selTree != null && !selected) {
+        if (tree.plotId == selPlotId) {
+          circleColor = kTreeColor;
+        } else if (selClusterId != null &&
+            treeClusterId == selClusterId &&
+            tree.plotId != selPlotId) {
+          circleColor = 0xFFBDBDBD; // neutral gray
+        } else {
+          circleColor = kTreeColor;
+        }
+      }
+
       futures.add(
         _circleManager!.create(
           _buildCircleOptions(
             Position(tree.longitude!, tree.latitude!),
-            circleColor: kTreeColor,
+            circleColor: circleColor,
             circleRadius: kTreeRadius,
             circleStrokeColor:
                 selected ? kTreeSelectedStrokeColor : kTreeStrokeColor,
