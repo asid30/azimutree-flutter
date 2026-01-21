@@ -215,11 +215,19 @@ class _EndDrawerToggleRowState extends State<_EndDrawerToggleRow> {
   Future<void> _loadPref() async {
     final prefs = await SharedPreferences.getInstance();
     final dismissed = prefs.getBool(widget.prefKey) ?? false;
+    final valueKey = '${widget.prefKey}_value';
+    final persistedValue = prefs.getBool(valueKey);
     if (!mounted) return;
     setState(() {
       _dismissed = dismissed;
       _loading = false;
     });
+    // If a persisted toggle value exists, apply it to the provided
+    // ValueListenable by calling the onChanged callback so the global
+    // notifier is updated accordingly.
+    if (persistedValue != null) {
+      widget.onChanged(persistedValue);
+    }
   }
 
   Future<void> _dismiss() async {
@@ -229,6 +237,12 @@ class _EndDrawerToggleRowState extends State<_EndDrawerToggleRow> {
     setState(() {
       _dismissed = true;
     });
+  }
+
+  Future<void> _persistValue(bool v) async {
+    final prefs = await SharedPreferences.getInstance();
+    final valueKey = '${widget.prefKey}_value';
+    await prefs.setBool(valueKey, v);
   }
 
   @override
@@ -266,7 +280,11 @@ class _EndDrawerToggleRowState extends State<_EndDrawerToggleRow> {
                   activeTrackColor: const Color(0xFF1F4226),
                   activeThumbColor: Color.fromARGB(255, 205, 237, 211),
                   value: enabled,
-                  onChanged: widget.onChanged,
+                  onChanged: (v) {
+                    // Persist and propagate the change
+                    _persistValue(v);
+                    widget.onChanged(v);
+                  },
                 ),
                 if (!_dismissed)
                   IconButton(
