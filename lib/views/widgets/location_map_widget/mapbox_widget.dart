@@ -38,6 +38,8 @@ const double kConnectionRadius = 2.0;
 const int kConnectionSegments = 120;
 // Light green for inspected trees (visually distinct from normal tree color)
 const int kTreeInspectedColor = 0xFF8BC34A;
+// Light blue for plot-to-plot cluster connection lines
+const int kPlotConnectionColor = 0xFF81D4FA;
 
 class MapboxWidget extends StatefulWidget {
   final String standardStyleUri;
@@ -761,7 +763,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             geometry: LineString(
               coordinates: [Position(lonA, latA), Position(lonB, latB)],
             ),
-            lineColor: kConnectionColor,
+            lineColor: kPlotConnectionColor,
             lineWidth: 2.0,
             lineOpacity: 1.0,
           );
@@ -804,7 +806,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       await style.addSource('connection-line-source', geojson);
 
       final colorHex =
-          '#${(kConnectionColor & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+          '#${(kPlotConnectionColor & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
 
       final layer = {
         'id': 'connection-line-layer',
