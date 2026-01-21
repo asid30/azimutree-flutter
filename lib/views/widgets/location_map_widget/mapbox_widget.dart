@@ -337,10 +337,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                               () =>
                                   isMarkerActivationEnabledNotifier.value =
                                       !enabled,
-                          backgroundColor: Colors.white,
+                          backgroundColor: Color.fromARGB(255, 205, 237, 211),
                           child: Icon(
                             enabled ? Icons.touch_app : Icons.block,
-                            color: Colors.green,
+                            color: Color(0xFF1F4226),
                           ),
                         ),
                       );
@@ -350,15 +350,15 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                   FloatingActionButton.small(
                     heroTag: 'zoom_in_btn',
                     onPressed: () async => _zoomBy(1.0),
-                    backgroundColor: Colors.white,
-                    child: const Icon(Icons.add, color: Colors.green),
+                    backgroundColor: Color.fromARGB(255, 205, 237, 211),
+                    child: const Icon(Icons.add, color: Color(0xFF1F4226)),
                   ),
                   const SizedBox(height: 8),
                   FloatingActionButton.small(
                     heroTag: 'zoom_out_btn',
                     onPressed: () async => _zoomBy(-1.0),
-                    backgroundColor: Colors.white,
-                    child: const Icon(Icons.remove, color: Colors.green),
+                    backgroundColor: Color.fromARGB(255, 205, 237, 211),
+                    child: const Icon(Icons.remove, color: Color(0xFF1F4226)),
                   ),
                 ],
               ),

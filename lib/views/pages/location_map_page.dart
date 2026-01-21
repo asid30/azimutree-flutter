@@ -47,6 +47,7 @@ class _LocationMapPageState extends State<LocationMapPage> {
         drawer: SidebarWidget(),
         endDrawerEnableOpenDragGesture: false,
         endDrawer: Drawer(
+          backgroundColor: Color.fromARGB(255, 205, 237, 211),
           child: SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(12.0),
@@ -54,18 +55,13 @@ class _LocationMapPageState extends State<LocationMapPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      const Text(
+                    children: const [
+                      Text(
                         'Map Tools',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                         ),
-                      ),
-                      IconButton(
-                        onPressed: () => Navigator.of(context).maybePop(),
-                        icon: const Icon(Icons.close),
                       ),
                     ],
                   ),
@@ -74,13 +70,34 @@ class _LocationMapPageState extends State<LocationMapPage> {
                     message: 'Nyalakan/Matikan klik marker',
                     child: Row(
                       children: [
-                        const Icon(Icons.touch_app),
+                        const Icon(Icons.touch_app, color: Color(0xFF1F4226)),
                         const SizedBox(width: 8),
-                        const Expanded(child: Text('Klik marker')),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Klik marker',
+                                style: TextStyle(color: Color(0xFF1F4226)),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Aktifkan untuk memilih marker dengan menahan sebentar',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         ValueListenableBuilder<bool>(
                           valueListenable: isMarkerActivationEnabledNotifier,
                           builder: (context, enabled, child) {
                             return Switch(
+                              activeTrackColor: Color(0xFF1F4226),
+                              activeThumbColor: Color(0xFF1F4226),
                               value: enabled,
                               onChanged:
                                   (v) =>
@@ -97,15 +114,34 @@ class _LocationMapPageState extends State<LocationMapPage> {
                     message: 'Tampilkan / Sembunyikan legenda di peta',
                     child: Row(
                       children: [
-                        const Icon(Icons.list),
+                        const Icon(Icons.list, color: Color(0xFF1F4226)),
                         const SizedBox(width: 8),
                         const Expanded(
-                          child: Text('Tampilkan legenda di peta'),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Tampilkan legenda di peta',
+                                style: TextStyle(color: Color(0xFF1F4226)),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Menampilkan keterangan warna marker di pojok kiri atas',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                         ValueListenableBuilder<bool>(
                           valueListenable: isMapLegendVisibleNotifier,
                           builder: (context, visible, child) {
                             return Switch(
+                              activeTrackColor: Color(0xFF1F4226),
+                              activeThumbColor: Color(0xFF1F4226),
                               value: visible,
                               onChanged:
                                   (v) => isMapLegendVisibleNotifier.value = v,
@@ -121,13 +157,34 @@ class _LocationMapPageState extends State<LocationMapPage> {
                     message: 'Aktifkan workflow inspeksi lapangan',
                     child: Row(
                       children: [
-                        const Icon(Icons.checklist),
+                        const Icon(Icons.checklist, color: Color(0xFF1F4226)),
                         const SizedBox(width: 8),
-                        const Expanded(child: Text('Workflow inspeksi')),
+                        const Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Workflow inspeksi',
+                                style: TextStyle(color: Color(0xFF1F4226)),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                'Aktifkan untuk menandai pohon sebagai "Done" saat inspeksi',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black54,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                         ValueListenableBuilder<bool>(
                           valueListenable: isInspectionWorkflowEnabledNotifier,
                           builder: (context, enabled, child) {
                             return Switch(
+                              activeTrackColor: Color(0xFF1F4226),
+                              activeThumbColor: Color(0xFF1F4226),
                               value: enabled,
                               onChanged:
                                   (v) =>

@@ -746,6 +746,75 @@ class _BottomsheetLocationMapWidgetState
                               ),
                           ],
                         ),
+                        const SizedBox(height: 8),
+                        // Mark/Done button for inspection workflow (bottomsheet)
+                        Row(
+                          children: [
+                            const Spacer(),
+                            ValueListenableBuilder<bool>(
+                              valueListenable:
+                                  isInspectionWorkflowEnabledNotifier,
+                              builder: (context, workflowEnabled, child) {
+                                if (!workflowEnabled)
+                                  return const SizedBox.shrink();
+                                return ValueListenableBuilder<Set<int>>(
+                                  valueListenable: inspectedTreeIdsNotifier,
+                                  builder: (context, inspectedSet, child) {
+                                    final inspected =
+                                        (tree.id != null &&
+                                            inspectedSet.contains(tree.id));
+                                    return ConstrainedBox(
+                                      constraints: const BoxConstraints(
+                                        minWidth: 72,
+                                      ),
+                                      child: ElevatedButton.icon(
+                                        style: ElevatedButton.styleFrom(
+                                          elevation: 0,
+                                          backgroundColor:
+                                              inspected
+                                                  ? Colors.green
+                                                  : Colors.orange,
+                                          foregroundColor: const Color(
+                                            0xFF1F4226,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 8,
+                                            vertical: 8,
+                                          ),
+                                        ),
+                                        onPressed: () {
+                                          final setCopy = Set<int>.from(
+                                            inspectedSet,
+                                          );
+                                          if (inspected) {
+                                            setCopy.remove(tree.id);
+                                          } else {
+                                            if (tree.id != null)
+                                              setCopy.add(tree.id!);
+                                          }
+                                          inspectedTreeIdsNotifier.value =
+                                              setCopy;
+                                        },
+                                        icon: Icon(
+                                          inspected
+                                              ? Icons.check
+                                              : Icons.checklist,
+                                          size: 16,
+                                        ),
+                                        label: FittedBox(
+                                          fit: BoxFit.scaleDown,
+                                          child: Text(
+                                            inspected ? 'Done' : 'Mark',
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ],
                     );
                   },
