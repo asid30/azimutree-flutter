@@ -98,11 +98,27 @@ class MapLegendWidget extends StatelessWidget {
                   Container(
                     width: 18,
                     height: 3,
+                    color: Color(kPlotConnectionColor),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'Koneksi Plot→Plot',
+                    style: TextStyle(color: textColor, fontSize: 12),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    width: 18,
+                    height: 3,
                     color: Color(kConnectionColor),
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'Connection',
+                    'Koneksi Plot→Pohon',
                     style: TextStyle(color: textColor, fontSize: 12),
                   ),
                 ],

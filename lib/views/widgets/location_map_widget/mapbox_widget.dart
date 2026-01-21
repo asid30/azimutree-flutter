@@ -733,20 +733,62 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       // Build lines from every plot in the cluster to the representative
       // cluster center (plot 1 preferred). This draws multiple straight
       // connections from each plot marker (blue) to plot1.
-      final segments = <List<double>>[];
+      final plotSegments = <List<double>>[];
       for (final p in plotsForCluster) {
-        segments.add([p.longitude, p.latitude, clusterLon, clusterLat]);
+        plotSegments.add([p.longitude, p.latitude, clusterLon, clusterLat]);
       }
-      await _showConnectionLines(segments);
+      // Draw plot->plot lines in light-blue, remove existing visuals first.
+      if (plotSegments.isNotEmpty) {
+        await _showConnectionLines(
+          plotSegments,
+          color: kPlotConnectionColor,
+          removeExisting: true,
+        );
+      }
+
+      // Additionally, draw connections from the selected plot to each of its
+      // child trees (plot -> tree). These should use the original
+      // connection color (red).
+      final allTrees = await TreeDao.getAllTrees();
+      final treesForPlot =
+          allTrees
+              .where(
+                (t) =>
+                    t.plotId == plot.id &&
+                    t.latitude != null &&
+                    t.longitude != null,
+              )
+              .toList();
+      final treeSegments = <List<double>>[];
+      for (final t in treesForPlot) {
+        treeSegments.add([
+          plot.longitude,
+          plot.latitude,
+          t.longitude!,
+          t.latitude!,
+        ]);
+      }
+      if (treeSegments.isNotEmpty) {
+        // Add tree connection lines without removing the plot->plot lines.
+        await _showConnectionLines(
+          treeSegments,
+          color: kConnectionColor,
+          removeExisting: false,
+        );
+      }
     } catch (_) {
       await _removeConnectionMarkers();
     }
   }
 
-  Future<void> _showConnectionLines(List<List<double>> segments) async {
+  Future<void> _showConnectionLines(
+    List<List<double>> segments, {
+    int color = kPlotConnectionColor,
+    bool removeExisting = true,
+  }) async {
     if (_mapboxMap == null) return;
-    // Remove previous visuals
-    await _removeConnectionMarkers();
+    // Optionally remove previous visuals
+    if (removeExisting) await _removeConnectionMarkers();
 
     // Try native polyline manager: create one polyline per segment
     try {
@@ -763,7 +805,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             geometry: LineString(
               coordinates: [Position(lonA, latA), Position(lonB, latB)],
             ),
-            lineColor: kPlotConnectionColor,
+            lineColor: color,
             lineWidth: 2.0,
             lineOpacity: 1.0,
           );
@@ -796,22 +838,26 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       };
 
       final style = (_mapboxMap as dynamic).style;
-      try {
-        await style.removeLayer('connection-line-layer');
-      } catch (_) {}
-      try {
-        await style.removeSource('connection-line-source');
-      } catch (_) {}
-
-      await style.addSource('connection-line-source', geojson);
-
       final colorHex =
-          '#${(kPlotConnectionColor & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+          '#${(color & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+
+      // Use unique source/layer ids per color so multiple calls can coexist.
+      final sourceId = 'connection-line-source-$colorHex';
+      final layerId = 'connection-line-layer-$colorHex';
+
+      try {
+        await style.removeLayer(layerId);
+      } catch (_) {}
+      try {
+        await style.removeSource(sourceId);
+      } catch (_) {}
+
+      await style.addSource(sourceId, geojson);
 
       final layer = {
-        'id': 'connection-line-layer',
+        'id': layerId,
         'type': 'line',
-        'source': 'connection-line-source',
+        'source': sourceId,
         'paint': {'line-color': colorHex, 'line-width': 2, 'line-opacity': 1.0},
       };
 
@@ -949,6 +995,20 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         selClusterId = null;
       }
     }
+    // Also consider selected plot context: when a plot is selected, all trees
+    // in the same cluster should be muted (gray) except trees belonging to
+    // the selected plot.
+    final selPlotModel = selectedPlotNotifier.value;
+    int? selPlotSelectedId = selPlotModel?.id;
+    int? selPlotClusterId;
+    if (selPlotModel != null) {
+      try {
+        final sp = _plotsCache.firstWhere((p) => p.id == selPlotModel.id);
+        selPlotClusterId = sp.idCluster;
+      } catch (_) {
+        selPlotClusterId = null;
+      }
+    }
 
     for (final tree in trees) {
       if (tree.latitude == null || tree.longitude == null) continue;
@@ -967,10 +1027,11 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       }
 
       // Coloring rules (priority):
-      // 1) If a tree is selected and this tree is in the same cluster but a
-      //    different plot -> neutral gray (keeps distant plots visually muted).
-      // 2) Otherwise, if the tree is marked inspected -> inspected color.
-      // 3) Fallback -> normal tree color.
+      // - If a tree is selected: other trees in the same cluster but different
+      //   plot are muted (gray).
+      // - Else if a plot is selected: trees in the same cluster but not in the
+      //   selected plot are muted (gray).
+      // - Otherwise, inspected trees show inspected color; else normal color.
       int circleColor = kTreeColor;
       if (selTree != null && !selected) {
         if (selClusterId != null &&
@@ -983,8 +1044,19 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         } else {
           circleColor = kTreeColor;
         }
+      } else if (selPlotModel != null) {
+        // Plot selection context
+        if (selPlotClusterId != null &&
+            treeClusterId == selPlotClusterId &&
+            tree.plotId != selPlotSelectedId) {
+          circleColor = 0xFFBDBDBD; // neutral gray for other plots in cluster
+        } else if (inspected) {
+          circleColor = kTreeInspectedColor;
+        } else {
+          circleColor = kTreeColor;
+        }
       } else {
-        // No selected tree context: inspected still shows inspected color.
+        // No selection context: inspected still shows inspected color.
         if (inspected) circleColor = kTreeInspectedColor;
       }
 
