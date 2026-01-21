@@ -4,6 +4,7 @@ import 'package:azimutree/views/widgets/location_map_widget/bottomsheet_location
 import 'package:azimutree/views/widgets/location_map_widget/mapbox_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:azimutree/views/widgets/location_map_widget/suggestion_searchbar_widget.dart';
+import 'package:azimutree/views/widgets/location_map_widget/map_legend_widget.dart';
 import 'package:flutter/material.dart';
 
 class LocationMapPage extends StatefulWidget {
@@ -38,6 +39,7 @@ class _LocationMapPageState extends State<LocationMapPage> {
               darkBackgroundImage: "assets/images/dark-bg-plain.png",
             ),
             MapboxWidget(),
+            Positioned(top: 35, left: 12, child: MapLegendWidget()),
             SuggestionSearchbarWidget(),
             Align(
               alignment: Alignment.bottomCenter,
