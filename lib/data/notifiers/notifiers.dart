@@ -45,3 +45,6 @@ ValueNotifier<bool> selectedLocationFromSearchNotifier = ValueNotifier(false);
 /// This lets the user temporarily disable marker activation to avoid accidental
 /// selections while panning.
 ValueNotifier<bool> isMarkerActivationEnabledNotifier = ValueNotifier(true);
+
+/// Controls whether the on-map legend (top-left) is visible.
+ValueNotifier<bool> isMapLegendVisibleNotifier = ValueNotifier(true);
