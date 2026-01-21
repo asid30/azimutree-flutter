@@ -5,6 +5,7 @@ import 'package:azimutree/views/widgets/location_map_widget/mapbox_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:azimutree/views/widgets/location_map_widget/suggestion_searchbar_widget.dart';
 import 'package:azimutree/views/widgets/location_map_widget/map_legend_widget.dart';
+import 'package:azimutree/views/widgets/location_map_widget/marker_info_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 
@@ -69,7 +70,6 @@ class _LocationMapPageState extends State<LocationMapPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  // Only provide the marker-activation toggle here as a tooltip
                   Tooltip(
                     message: 'Nyalakan/Matikan klik marker',
                     child: Row(
@@ -93,7 +93,6 @@ class _LocationMapPageState extends State<LocationMapPage> {
                     ),
                   ),
                   const SizedBox(height: 12),
-                  // Show/hide on-map legend
                   Tooltip(
                     message: 'Tampilkan / Sembunyikan legenda di peta',
                     child: Row(
@@ -130,16 +129,26 @@ class _LocationMapPageState extends State<LocationMapPage> {
               darkBackgroundImage: "assets/images/dark-bg-plain.png",
             ),
             MapboxWidget(),
+            // Top row: legend (optional) and marker info. Marker info
+            // expands to fill the remaining width between the legend
+            // and the right edge.
             ValueListenableBuilder<bool>(
               valueListenable: isMapLegendVisibleNotifier,
               builder: (context, visible, child) {
-                return visible
-                    ? const Positioned(
-                      top: 35,
-                      left: 12,
-                      child: MapLegendWidget(),
-                    )
-                    : const SizedBox.shrink();
+                return Positioned(
+                  top: 35,
+                  left: 12,
+                  right: 12,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      if (visible) const MapLegendWidget(),
+                      if (visible) const SizedBox(width: 8),
+                      // Marker info takes the remaining space
+                      const Expanded(child: MarkerInfoWidget()),
+                    ],
+                  ),
+                );
               },
             ),
             SuggestionSearchbarWidget(),

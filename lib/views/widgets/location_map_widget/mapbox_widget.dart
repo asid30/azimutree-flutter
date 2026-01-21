@@ -382,6 +382,11 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         final selTree = nearestTree;
         selectedPlotNotifier.value = null;
         selectedTreeNotifier.value = selTree;
+        // Position the floating info near the pointer (slightly above)
+        selectedMarkerScreenOffsetNotifier.value = Offset(
+          localPosition.dx,
+          localPosition.dy - 48,
+        );
         try {
           isFollowingUserLocationNotifier.value = false;
           preserveZoomOnNextCenterNotifier.value = true;
@@ -398,6 +403,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         final selPlot = nearestPlot;
         selectedTreeNotifier.value = null;
         selectedPlotNotifier.value = selPlot;
+        selectedMarkerScreenOffsetNotifier.value = Offset(
+          localPosition.dx,
+          localPosition.dy - 48,
+        );
         try {
           isFollowingUserLocationNotifier.value = false;
           preserveZoomOnNextCenterNotifier.value = true;

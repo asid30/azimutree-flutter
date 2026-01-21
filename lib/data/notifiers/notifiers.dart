@@ -48,3 +48,7 @@ ValueNotifier<bool> isMarkerActivationEnabledNotifier = ValueNotifier(true);
 
 /// Controls whether the on-map legend (top-left) is visible.
 ValueNotifier<bool> isMapLegendVisibleNotifier = ValueNotifier(true);
+
+/// Latest screen offset (in logical pixels) where a selected marker was tapped.
+/// Used to position floating marker info near the tapped marker.
+ValueNotifier<Offset?> selectedMarkerScreenOffsetNotifier = ValueNotifier(null);
