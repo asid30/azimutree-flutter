@@ -60,6 +60,41 @@ class MarkerInfoWidget extends StatelessWidget {
                 selectedTreeClusterNotifier.value = null;
               },
             ),
+            const SizedBox(width: 6),
+            // Mark done / Re-add button (only enabled when inspection workflow active)
+            ValueListenableBuilder<bool>(
+              valueListenable: isInspectionWorkflowEnabledNotifier,
+              builder: (context, workflowEnabled, child) {
+                if (!workflowEnabled) return const SizedBox.shrink();
+                return ValueListenableBuilder<Set<int>>(
+                  valueListenable: inspectedTreeIdsNotifier,
+                  builder: (context, inspectedSet, child) {
+                    final inspected = inspectedSet.contains(tree.id);
+                    return ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        elevation: 0,
+                        backgroundColor:
+                            inspected ? Colors.green : Colors.orange,
+                      ),
+                      onPressed: () {
+                        final setCopy = Set<int>.from(inspectedSet);
+                        if (inspected) {
+                          setCopy.remove(tree.id);
+                        } else {
+                          if (tree.id != null) setCopy.add(tree.id!);
+                        }
+                        inspectedTreeIdsNotifier.value = setCopy;
+                      },
+                      icon: Icon(
+                        inspected ? Icons.check : Icons.checklist,
+                        size: 16,
+                      ),
+                      label: Text(inspected ? 'Done' : 'Mark'),
+                    );
+                  },
+                );
+              },
+            ),
           ],
         ),
       ),

@@ -115,6 +115,30 @@ class _LocationMapPageState extends State<LocationMapPage> {
                       ],
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  // Inspection workflow toggle
+                  Tooltip(
+                    message: 'Aktifkan workflow inspeksi lapangan',
+                    child: Row(
+                      children: [
+                        const Icon(Icons.checklist),
+                        const SizedBox(width: 8),
+                        const Expanded(child: Text('Workflow inspeksi')),
+                        ValueListenableBuilder<bool>(
+                          valueListenable: isInspectionWorkflowEnabledNotifier,
+                          builder: (context, enabled, child) {
+                            return Switch(
+                              value: enabled,
+                              onChanged:
+                                  (v) =>
+                                      isInspectionWorkflowEnabledNotifier
+                                          .value = v,
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
                 ],
               ),
             ),

@@ -59,3 +59,9 @@ ValueNotifier<Offset?> selectedMarkerScreenOffsetNotifier = ValueNotifier(null);
 ValueNotifier<PlotModel?> selectedTreePlotNotifier = ValueNotifier(null);
 ValueNotifier<ClusterModel?> selectedTreeClusterNotifier = ValueNotifier(null);
 ValueNotifier<ClusterModel?> selectedPlotClusterNotifier = ValueNotifier(null);
+
+/// Enable/disable the simple inspection workflow (toggle in drawer).
+ValueNotifier<bool> isInspectionWorkflowEnabledNotifier = ValueNotifier(false);
+
+/// Set of tree IDs that have been marked as inspected/done.
+ValueNotifier<Set<int>> inspectedTreeIdsNotifier = ValueNotifier({});

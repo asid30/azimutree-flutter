@@ -36,6 +36,8 @@ const double kTreeOpacity = 0.95;
 const int kConnectionColor = 0xFFB71C1C;
 const double kConnectionRadius = 2.0;
 const int kConnectionSegments = 120;
+// Light green for inspected trees (visually distinct from normal tree color)
+const int kTreeInspectedColor = 0xFF8BC34A;
 
 class MapboxWidget extends StatefulWidget {
   final String standardStyleUri;
@@ -63,6 +65,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   late final VoidCallback _styleListener;
   late final VoidCallback _northResetListener;
   late final VoidCallback _selectedTreeListener;
+  late final VoidCallback _inspectedListener;
   late final VoidCallback _userLocationListener;
   // Cache of tree models currently displayed on the map.
   final List<TreeModel> _treesCache = [];
@@ -119,6 +122,33 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     };
     selectedTreeNotifier.addListener(_selectedTreeListener);
 
+    _inspectedListener = () {
+      if (!mounted) return;
+      // Run asynchronously so the notifier call doesn't block the UI.
+      Future.microtask(() async {
+        try {
+          if (_mapboxMap == null) return;
+          // If we have a circle manager and cached trees, update only tree
+          // annotations for a faster, more reliable visual update.
+          if (_circleManager != null && _treesCache.isNotEmpty) {
+            try {
+              await _circleManager!.deleteAll();
+            } catch (_) {}
+            await _addClusterMarkers(
+              await ClusterDao.getAllClusters(),
+              await PlotDao.getAllPlots(),
+            );
+            await _addPlotMarkers(_plotsCache);
+            await _addTreeMarkers(_treesCache);
+          } else {
+            // Fallback: reload everything.
+            await _loadMarkers();
+          }
+        } catch (_) {}
+      });
+    };
+    inspectedTreeIdsNotifier.addListener(_inspectedListener);
+
     // React to plot selection (marker taps).
     selectedPlotNotifier.addListener(() {
       if (!mounted) return;
@@ -139,6 +169,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     northResetRequestNotifier.removeListener(_northResetListener);
     userLocationNotifier.removeListener(_userLocationListener);
     selectedTreeNotifier.removeListener(_selectedTreeListener);
+    inspectedTreeIdsNotifier.removeListener(_inspectedListener);
     super.dispose();
   }
 
@@ -854,6 +885,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       if (tree.latitude == null || tree.longitude == null) continue;
       final selected = selTree?.id == tree.id;
 
+      // If the tree is marked as inspected, show it with the inspected color.
+      final inspected = inspectedTreeIdsNotifier.value.contains(tree.id);
+
       // Determine cluster for this tree via its plot.
       int? treeClusterId;
       try {
@@ -870,7 +904,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       //   * trees in the same cluster but different plot -> gray
       //   * all others -> normal color
       int circleColor = kTreeColor;
-      if (selTree != null && !selected) {
+      if (inspected) {
+        circleColor = kTreeInspectedColor;
+      } else if (selTree != null && !selected) {
         if (tree.plotId == selPlotId) {
           circleColor = kTreeColor;
         } else if (selClusterId != null &&
