@@ -242,6 +242,17 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                         : widget.standardStyleUri;
                 _applyStyleAndMarkers(style);
                 _enableUserLocationPuck();
+                // Hide the native Mapbox compass so it won't overlap marker
+                // info on some devices (we keep a small right gap too).
+                try {
+                  final dyn = _mapboxMap as dynamic;
+                  try {
+                    dyn.uiSettings?.setCompassEnabled(false);
+                  } catch (_) {
+                    dyn.setCompassEnabled?.call(false);
+                  }
+                } catch (_) {}
+                // Keep the Mapbox built-in compass enabled (use default UI).
                 // If a target location was set before the map was created
                 // (e.g., via "Tracking Data"), center the camera immediately.
                 _onLocationChanged();
@@ -311,6 +322,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  // (Using built-in Mapbox compass; no custom compass here.)
                   ValueListenableBuilder<bool>(
                     valueListenable: isMarkerActivationEnabledNotifier,
                     builder: (context, enabled, child) {
@@ -897,25 +909,26 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         treeClusterId = null;
       }
 
-      // Coloring rules:
-      // - If no tree is selected: normal tree color.
-      // - If a tree is selected:
-      //   * trees in the same plot as the selected tree -> normal color
-      //   * trees in the same cluster but different plot -> gray
-      //   * all others -> normal color
+      // Coloring rules (priority):
+      // 1) If a tree is selected and this tree is in the same cluster but a
+      //    different plot -> neutral gray (keeps distant plots visually muted).
+      // 2) Otherwise, if the tree is marked inspected -> inspected color.
+      // 3) Fallback -> normal tree color.
       int circleColor = kTreeColor;
-      if (inspected) {
-        circleColor = kTreeInspectedColor;
-      } else if (selTree != null && !selected) {
-        if (tree.plotId == selPlotId) {
-          circleColor = kTreeColor;
-        } else if (selClusterId != null &&
+      if (selTree != null && !selected) {
+        if (selClusterId != null &&
             treeClusterId == selClusterId &&
             tree.plotId != selPlotId) {
-          circleColor = 0xFFBDBDBD; // neutral gray
+          circleColor =
+              0xFFBDBDBD; // neutral gray (different plot in same cluster)
+        } else if (inspected) {
+          circleColor = kTreeInspectedColor;
         } else {
           circleColor = kTreeColor;
         }
+      } else {
+        // No selected tree context: inspected still shows inspected color.
+        if (inspected) circleColor = kTreeInspectedColor;
       }
 
       futures.add(

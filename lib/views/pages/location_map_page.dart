@@ -160,6 +160,9 @@ class _LocationMapPageState extends State<LocationMapPage> {
               valueListenable: isMapLegendVisibleNotifier,
               builder: (context, visible, child) {
                 return Positioned(
+                  // Restore previous vertical offset so the card sits above
+                  // the camera zoom indicators. Use full width between left
+                  // and right margins so legend + marker info consume width.
                   top: 35,
                   left: 12,
                   right: 12,
