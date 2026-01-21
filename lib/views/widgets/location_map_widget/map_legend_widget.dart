@@ -33,7 +33,9 @@ class MapLegendWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bgColor =
-        isDark ? Colors.black.withOpacity(0.6) : Colors.white.withOpacity(0.95);
+        isDark
+            ? Colors.black.withAlpha((0.6 * 255).round())
+            : Colors.white.withAlpha((0.95 * 255).round());
     final textColor = isDark ? Colors.white : Colors.black87;
 
     return Material(
@@ -45,7 +47,7 @@ class MapLegendWidget extends StatelessWidget {
           borderRadius: BorderRadius.circular(8),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.15),
+              color: Colors.black.withAlpha((0.15 * 255).round()),
               blurRadius: 6,
               offset: const Offset(0, 2),
             ),
