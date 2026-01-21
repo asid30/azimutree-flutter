@@ -75,6 +75,7 @@ class MarkerInfoWidget extends StatelessWidget {
                         elevation: 0,
                         backgroundColor:
                             inspected ? Colors.green : Colors.orange,
+                        foregroundColor: Color(0xFF1F4226),
                       ),
                       onPressed: () {
                         final setCopy = Set<int>.from(inspectedSet);
