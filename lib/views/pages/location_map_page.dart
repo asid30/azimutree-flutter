@@ -7,7 +7,9 @@ import 'package:azimutree/views/widgets/location_map_widget/suggestion_searchbar
 import 'package:azimutree/views/widgets/location_map_widget/map_legend_widget.dart';
 import 'package:azimutree/views/widgets/location_map_widget/marker_info_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LocationMapPage extends StatefulWidget {
   const LocationMapPage({super.key});
@@ -18,6 +20,31 @@ class LocationMapPage extends StatefulWidget {
 
 class _LocationMapPageState extends State<LocationMapPage> {
   bool defaultStyleMap = true;
+
+  // Helper widget: persistent toggle row for the end-drawer that
+  // shows a Tooltip until the user dismisses it. Dismissal is
+  // persisted via SharedPreferences under the provided key.
+  // This is defined as an inner class to keep usage local.
+
+  Widget _endDrawerToggleRow({
+    required String prefKey,
+    required String tooltipMessage,
+    required Icon icon,
+    required String title,
+    required String subtitle,
+    required ValueListenable<bool> valueListenable,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return _EndDrawerToggleRow(
+      prefKey: prefKey,
+      tooltipMessage: tooltipMessage,
+      icon: icon,
+      title: title,
+      subtitle: subtitle,
+      valueListenable: valueListenable,
+      onChanged: onChanged,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -66,135 +93,40 @@ class _LocationMapPageState extends State<LocationMapPage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Tooltip(
-                    message: 'Nyalakan/Matikan klik marker',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.touch_app, color: Color(0xFF1F4226)),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Klik marker',
-                                style: TextStyle(color: Color(0xFF1F4226)),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Aktifkan untuk memilih marker dengan menahan sebentar',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        ValueListenableBuilder<bool>(
-                          valueListenable: isMarkerActivationEnabledNotifier,
-                          builder: (context, enabled, child) {
-                            return Switch(
-                              activeTrackColor: Color(0xFF1F4226),
-                              activeThumbColor: Color(0xFF1F4226),
-                              value: enabled,
-                              onChanged:
-                                  (v) =>
-                                      isMarkerActivationEnabledNotifier.value =
-                                          v,
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                  _endDrawerToggleRow(
+                    prefKey: 'enddrawer_tooltip_marker_click_dismissed',
+                    tooltipMessage: 'Nyalakan/Matikan klik marker',
+                    icon: const Icon(Icons.touch_app, color: Color(0xFF1F4226)),
+                    title: 'Klik marker',
+                    subtitle:
+                        'Aktifkan untuk memilih marker dengan menahan sebentar',
+                    valueListenable: isMarkerActivationEnabledNotifier,
+                    onChanged:
+                        (v) => isMarkerActivationEnabledNotifier.value = v,
                   ),
                   const SizedBox(height: 12),
-                  Tooltip(
-                    message: 'Tampilkan / Sembunyikan legenda di peta',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.list, color: Color(0xFF1F4226)),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Tampilkan legenda di peta',
-                                style: TextStyle(color: Color(0xFF1F4226)),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Menampilkan keterangan warna marker di pojok kiri atas',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        ValueListenableBuilder<bool>(
-                          valueListenable: isMapLegendVisibleNotifier,
-                          builder: (context, visible, child) {
-                            return Switch(
-                              activeTrackColor: Color(0xFF1F4226),
-                              activeThumbColor: Color(0xFF1F4226),
-                              value: visible,
-                              onChanged:
-                                  (v) => isMapLegendVisibleNotifier.value = v,
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                  _endDrawerToggleRow(
+                    prefKey: 'enddrawer_tooltip_legend_dismissed',
+                    tooltipMessage: 'Tampilkan / Sembunyikan legenda di peta',
+                    icon: const Icon(Icons.list, color: Color(0xFF1F4226)),
+                    title: 'Tampilkan legenda di peta',
+                    subtitle:
+                        'Menampilkan keterangan warna marker di pojok kiri atas',
+                    valueListenable: isMapLegendVisibleNotifier,
+                    onChanged: (v) => isMapLegendVisibleNotifier.value = v,
                   ),
                   const SizedBox(height: 12),
                   // Inspection workflow toggle
-                  Tooltip(
-                    message: 'Aktifkan workflow inspeksi lapangan',
-                    child: Row(
-                      children: [
-                        const Icon(Icons.checklist, color: Color(0xFF1F4226)),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Text(
-                                'Workflow inspeksi',
-                                style: TextStyle(color: Color(0xFF1F4226)),
-                              ),
-                              SizedBox(height: 4),
-                              Text(
-                                'Aktifkan untuk menandai pohon sebagai "Done" saat inspeksi',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  color: Colors.black54,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                        ValueListenableBuilder<bool>(
-                          valueListenable: isInspectionWorkflowEnabledNotifier,
-                          builder: (context, enabled, child) {
-                            return Switch(
-                              activeTrackColor: Color(0xFF1F4226),
-                              activeThumbColor: Color(0xFF1F4226),
-                              value: enabled,
-                              onChanged:
-                                  (v) =>
-                                      isInspectionWorkflowEnabledNotifier
-                                          .value = v,
-                            );
-                          },
-                        ),
-                      ],
-                    ),
+                  _endDrawerToggleRow(
+                    prefKey: 'enddrawer_tooltip_inspection_dismissed',
+                    tooltipMessage: 'Aktifkan workflow inspeksi lapangan',
+                    icon: const Icon(Icons.checklist, color: Color(0xFF1F4226)),
+                    title: 'Workflow inspeksi',
+                    subtitle:
+                        'Aktifkan untuk menandai pohon sebagai "Done" saat inspeksi',
+                    valueListenable: isInspectionWorkflowEnabledNotifier,
+                    onChanged:
+                        (v) => isInspectionWorkflowEnabledNotifier.value = v,
                   ),
                 ],
               ),
@@ -244,5 +176,113 @@ class _LocationMapPageState extends State<LocationMapPage> {
         ),
       ),
     );
+  }
+}
+
+class _EndDrawerToggleRow extends StatefulWidget {
+  final String prefKey;
+  final String tooltipMessage;
+  final Icon icon;
+  final String title;
+  final String subtitle;
+  final ValueListenable<bool> valueListenable;
+  final ValueChanged<bool> onChanged;
+
+  const _EndDrawerToggleRow({
+    required this.prefKey,
+    required this.tooltipMessage,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.valueListenable,
+    required this.onChanged,
+  });
+
+  @override
+  State<_EndDrawerToggleRow> createState() => _EndDrawerToggleRowState();
+}
+
+class _EndDrawerToggleRowState extends State<_EndDrawerToggleRow> {
+  bool _dismissed = false;
+  bool _loading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPref();
+  }
+
+  Future<void> _loadPref() async {
+    final prefs = await SharedPreferences.getInstance();
+    final dismissed = prefs.getBool(widget.prefKey) ?? false;
+    if (!mounted) return;
+    setState(() {
+      _dismissed = dismissed;
+      _loading = false;
+    });
+  }
+
+  Future<void> _dismiss() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(widget.prefKey, true);
+    if (!mounted) return;
+    setState(() {
+      _dismissed = true;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) return const SizedBox.shrink();
+
+    final row = Row(
+      children: [
+        widget.icon,
+        const SizedBox(width: 8),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                widget.title,
+                style: const TextStyle(color: Color(0xFF1F4226)),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                widget.subtitle,
+                style: const TextStyle(fontSize: 12, color: Colors.black54),
+              ),
+            ],
+          ),
+        ),
+        ValueListenableBuilder<bool>(
+          valueListenable: widget.valueListenable,
+          builder: (context, enabled, child) {
+            return Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Switch(
+                  activeTrackColor: const Color(0xFF1F4226),
+                  activeThumbColor: Color.fromARGB(255, 205, 237, 211),
+                  value: enabled,
+                  onChanged: widget.onChanged,
+                ),
+                if (!_dismissed)
+                  IconButton(
+                    tooltip: 'Tutup bantuan',
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: _dismiss,
+                  ),
+              ],
+            );
+          },
+        ),
+      ],
+    );
+
+    if (_dismissed) return row;
+
+    return Tooltip(message: widget.tooltipMessage, child: row);
   }
 }
