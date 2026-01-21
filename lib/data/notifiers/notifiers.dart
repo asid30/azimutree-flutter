@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
+import 'package:azimutree/data/models/cluster_model.dart';
 
 ValueNotifier<bool> isLightModeNotifier = ValueNotifier(true);
 ValueNotifier<String> selectedPageNotifier = ValueNotifier("home");
@@ -52,3 +53,9 @@ ValueNotifier<bool> isMapLegendVisibleNotifier = ValueNotifier(true);
 /// Latest screen offset (in logical pixels) where a selected marker was tapped.
 /// Used to position floating marker info near the tapped marker.
 ValueNotifier<Offset?> selectedMarkerScreenOffsetNotifier = ValueNotifier(null);
+
+// When a tree is selected, these hold the resolved plot and cluster models
+// to avoid doing DB lookups in UI widgets.
+ValueNotifier<PlotModel?> selectedTreePlotNotifier = ValueNotifier(null);
+ValueNotifier<ClusterModel?> selectedTreeClusterNotifier = ValueNotifier(null);
+ValueNotifier<ClusterModel?> selectedPlotClusterNotifier = ValueNotifier(null);

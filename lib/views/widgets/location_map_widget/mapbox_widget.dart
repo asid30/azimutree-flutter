@@ -382,6 +382,20 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         final selTree = nearestTree;
         selectedPlotNotifier.value = null;
         selectedTreeNotifier.value = selTree;
+        // Resolve plot and cluster for UI consumption
+        try {
+          final plot = await PlotDao.getPlotById(selTree!.plotId);
+          selectedTreePlotNotifier.value = plot;
+          if (plot != null) {
+            final cluster = await ClusterDao.getClusterById(plot.idCluster);
+            selectedTreeClusterNotifier.value = cluster;
+          } else {
+            selectedTreeClusterNotifier.value = null;
+          }
+        } catch (_) {
+          selectedTreePlotNotifier.value = null;
+          selectedTreeClusterNotifier.value = null;
+        }
         // Position the floating info near the pointer (slightly above)
         selectedMarkerScreenOffsetNotifier.value = Offset(
           localPosition.dx,
@@ -402,7 +416,16 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       if (nearestPlot != null) {
         final selPlot = nearestPlot;
         selectedTreeNotifier.value = null;
+        selectedTreePlotNotifier.value = null;
+        selectedTreeClusterNotifier.value = null;
         selectedPlotNotifier.value = selPlot;
+        // Resolve cluster for selected plot to allow showing kodeCluster
+        try {
+          final cluster = await ClusterDao.getClusterById(selPlot!.idCluster);
+          selectedPlotClusterNotifier.value = cluster;
+        } catch (_) {
+          selectedPlotClusterNotifier.value = null;
+        }
         selectedMarkerScreenOffsetNotifier.value = Offset(
           localPosition.dx,
           localPosition.dy - 48,

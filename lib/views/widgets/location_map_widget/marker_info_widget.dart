@@ -3,11 +3,12 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
+import 'package:azimutree/data/models/cluster_model.dart';
 
 class MarkerInfoWidget extends StatelessWidget {
   const MarkerInfoWidget({super.key});
 
-  Widget _cardForTree(TreeModel tree) {
+  Widget _cardForTree(TreeModel tree, PlotModel? plot, ClusterModel? cluster) {
     return Card(
       elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -33,6 +34,20 @@ class MarkerInfoWidget extends StatelessWidget {
                         color: Colors.black54,
                       ),
                     ),
+                  const SizedBox(height: 4),
+                  if (plot != null)
+                    Text(
+                      'Plot ${plot.kodePlot}',
+                      style: const TextStyle(fontSize: 12),
+                    ),
+                  if (cluster != null)
+                    Text(
+                      'Cluster ${cluster.kodeCluster}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -41,6 +56,8 @@ class MarkerInfoWidget extends StatelessWidget {
               onPressed: () {
                 selectedTreeNotifier.value = null;
                 selectedMarkerScreenOffsetNotifier.value = null;
+                selectedTreePlotNotifier.value = null;
+                selectedTreeClusterNotifier.value = null;
               },
             ),
           ],
@@ -49,7 +66,7 @@ class MarkerInfoWidget extends StatelessWidget {
     );
   }
 
-  Widget _cardForPlot(PlotModel plot) {
+  Widget _cardForPlot(PlotModel plot, ClusterModel? cluster) {
     return Card(
       elevation: 6,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
@@ -67,10 +84,14 @@ class MarkerInfoWidget extends StatelessWidget {
                     'Plot ${plot.kodePlot}',
                     style: const TextStyle(fontWeight: FontWeight.w600),
                   ),
-                  Text(
-                    'Cluster ${plot.idCluster}',
-                    style: const TextStyle(fontSize: 12, color: Colors.black54),
-                  ),
+                  if (cluster != null)
+                    Text(
+                      'Cluster ${cluster.kodeCluster}',
+                      style: const TextStyle(
+                        fontSize: 12,
+                        color: Colors.black54,
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -96,14 +117,29 @@ class MarkerInfoWidget extends StatelessWidget {
           valueListenable: selectedTreeNotifier,
           builder: (context, tree, child) {
             if (tree == null) return const SizedBox.shrink();
-            return _cardForTree(tree);
+            return ValueListenableBuilder<PlotModel?>(
+              valueListenable: selectedTreePlotNotifier,
+              builder: (context, plot, child) {
+                return ValueListenableBuilder<ClusterModel?>(
+                  valueListenable: selectedTreeClusterNotifier,
+                  builder: (context, cluster, child) {
+                    return _cardForTree(tree, plot, cluster);
+                  },
+                );
+              },
+            );
           },
         ),
         ValueListenableBuilder<PlotModel?>(
           valueListenable: selectedPlotNotifier,
           builder: (context, plot, child) {
             if (plot == null) return const SizedBox.shrink();
-            return _cardForPlot(plot);
+            return ValueListenableBuilder<ClusterModel?>(
+              valueListenable: selectedPlotClusterNotifier,
+              builder: (context, cluster, child) {
+                return _cardForPlot(plot, cluster);
+              },
+            );
           },
         ),
       ],
