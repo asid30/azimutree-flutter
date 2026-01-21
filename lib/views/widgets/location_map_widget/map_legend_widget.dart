@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:azimutree/views/widgets/location_map_widget/mapbox_widget.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 
 class MapLegendWidget extends StatelessWidget {
   const MapLegendWidget({super.key});
@@ -59,17 +60,13 @@ class MapLegendWidget extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _legendItem(
-                fill: Color(kClusterColor),
-                stroke: Color(kClusterStrokeColor),
-                label: 'Cluster',
-              ),
-              const SizedBox(height: 6),
+              // Cluster center marker removed from map; omit legend entry.
               _legendItem(
                 fill: Color(kPlotColor),
                 stroke: Color(kPlotStrokeColor),
                 label: 'Plot',
               ),
+              const SizedBox(height: 6),
               const SizedBox(height: 6),
               _legendItem(
                 fill: Color(kTreeColor),
@@ -77,6 +74,24 @@ class MapLegendWidget extends StatelessWidget {
                 label: 'Tree',
               ),
               const SizedBox(height: 6),
+              // Inspection workflow: show Done marker color when enabled
+              ValueListenableBuilder<bool>(
+                valueListenable: isInspectionWorkflowEnabledNotifier,
+                builder: (context, enabled, child) {
+                  if (!enabled) return const SizedBox.shrink();
+                  return Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _legendItem(
+                        fill: Color(kTreeInspectedColor),
+                        stroke: Colors.white,
+                        label: 'Inspected (Done)',
+                      ),
+                      const SizedBox(height: 6),
+                    ],
+                  );
+                },
+              ),
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

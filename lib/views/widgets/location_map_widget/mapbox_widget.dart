@@ -728,15 +728,94 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             plotsForCluster.length;
       }
 
-      await _showConnectionLine(
-        plot.longitude,
-        plot.latitude,
-        clusterLon,
-        clusterLat,
-      );
+      // Build lines from every plot in the cluster to the representative
+      // cluster center (plot 1 preferred). This draws multiple straight
+      // connections from each plot marker (blue) to plot1.
+      final segments = <List<double>>[];
+      for (final p in plotsForCluster) {
+        segments.add([p.longitude, p.latitude, clusterLon, clusterLat]);
+      }
+      await _showConnectionLines(segments);
     } catch (_) {
       await _removeConnectionMarkers();
     }
+  }
+
+  Future<void> _showConnectionLines(List<List<double>> segments) async {
+    if (_mapboxMap == null) return;
+    // Remove previous visuals
+    await _removeConnectionMarkers();
+
+    // Try native polyline manager: create one polyline per segment
+    try {
+      _connectionManager ??=
+          await (_mapboxMap!.annotations as dynamic)
+              .createPolylineAnnotationManager();
+      if (_connectionManager != null) {
+        for (final seg in segments) {
+          final lonA = seg[0];
+          final latA = seg[1];
+          final lonB = seg[2];
+          final latB = seg[3];
+          final options = PolylineAnnotationOptions(
+            geometry: LineString(
+              coordinates: [Position(lonA, latA), Position(lonB, latB)],
+            ),
+            lineColor: kConnectionColor,
+            lineWidth: 2.0,
+            lineOpacity: 1.0,
+          );
+          await (_connectionManager as dynamic).create(options);
+        }
+        return;
+      }
+    } catch (_) {}
+
+    // Fallback to a GeoJSON feature collection containing multiple LineString
+    // features so the style layer can render all segments at once.
+    try {
+      final features =
+          segments.map((seg) {
+            return {
+              'type': 'Feature',
+              'geometry': {
+                'type': 'LineString',
+                'coordinates': [
+                  [seg[0], seg[1]],
+                  [seg[2], seg[3]],
+                ],
+              },
+            };
+          }).toList();
+
+      final geojson = {
+        'type': 'geojson',
+        'data': {'type': 'FeatureCollection', 'features': features},
+      };
+
+      final style = (_mapboxMap as dynamic).style;
+      try {
+        await style.removeLayer('connection-line-layer');
+      } catch (_) {}
+      try {
+        await style.removeSource('connection-line-source');
+      } catch (_) {}
+
+      await style.addSource('connection-line-source', geojson);
+
+      final colorHex =
+          '#${(kConnectionColor & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
+
+      final layer = {
+        'id': 'connection-line-layer',
+        'type': 'line',
+        'source': 'connection-line-source',
+        'paint': {'line-color': colorHex, 'line-width': 2, 'line-opacity': 1.0},
+      };
+
+      await style.addLayer(layer);
+      return;
+    } catch (_) {}
   }
 
   Future<void> _removeSearchResultMarker() async {
@@ -826,34 +905,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     List<ClusterModel> clusters,
     List<PlotModel> plots,
   ) async {
-    final futures = <Future>[];
-    for (final cluster in clusters) {
-      final clusterPlots =
-          plots.where((p) => p.idCluster == cluster.id).toList();
-      if (clusterPlots.isEmpty) continue;
-
-      final avgLat =
-          clusterPlots.map((p) => p.latitude).reduce((a, b) => a + b) /
-          clusterPlots.length;
-      final avgLon =
-          clusterPlots.map((p) => p.longitude).reduce((a, b) => a + b) /
-          clusterPlots.length;
-
-      futures.add(
-        _circleManager!.create(
-          _buildCircleOptions(
-            Position(avgLon, avgLat),
-            circleColor: kClusterColor,
-            circleRadius: kClusterRadius,
-            circleStrokeColor: kClusterStrokeColor,
-            circleStrokeWidth: kClusterStrokeWidth,
-            circleOpacity: kClusterOpacity,
-          ),
-        ),
-      );
-    }
-
-    if (futures.isNotEmpty) await Future.wait(futures);
+    // Cluster center markers removed per UX update - cluster center
+    // indicator (green) is no longer rendered. Keep function as a
+    // no-op to avoid changing call sites.
+    return;
   }
 
   Future<void> _addPlotMarkers(List<PlotModel> plots) async {
