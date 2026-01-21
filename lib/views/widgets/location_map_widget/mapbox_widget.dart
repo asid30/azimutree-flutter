@@ -240,7 +240,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                   // consider the subsequent pointer up as an activation.
                   _holdTimer?.cancel();
                   _longPressRecognized = false;
-                  _holdTimer = Timer(const Duration(milliseconds: 400), () {
+                  _holdTimer = Timer(const Duration(milliseconds: 200), () {
                     _longPressRecognized = true;
                   });
                 },
@@ -254,6 +254,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                   if (_longPressRecognized) {
                     // A long-press was recognized: activate marker selection.
                     _longPressRecognized = false;
+                    // Respect the global toggle: if marker activation is
+                    // disabled, skip handling the tap.
+                    if (!isMarkerActivationEnabledNotifier.value) return;
                     final local = event.localPosition;
                     await _handleMapSingleTap(local);
                   }
@@ -277,6 +280,30 @@ class _MapboxWidgetState extends State<MapboxWidget> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  ValueListenableBuilder<bool>(
+                    valueListenable: isMarkerActivationEnabledNotifier,
+                    builder: (context, enabled, child) {
+                      return Tooltip(
+                        message:
+                            enabled
+                                ? 'Klik marker: Aktif'
+                                : 'Klik marker: Nonaktif',
+                        child: FloatingActionButton.small(
+                          heroTag: 'toggle_marker_activation',
+                          onPressed:
+                              () =>
+                                  isMarkerActivationEnabledNotifier.value =
+                                      !enabled,
+                          backgroundColor: Colors.white,
+                          child: Icon(
+                            enabled ? Icons.touch_app : Icons.block,
+                            color: Colors.green,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
                   FloatingActionButton.small(
                     heroTag: 'zoom_in_btn',
                     onPressed: () async => _zoomBy(1.0),

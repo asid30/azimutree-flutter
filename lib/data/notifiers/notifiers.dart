@@ -40,3 +40,8 @@ ValueNotifier<bool> preserveZoomOnNextCenterNotifier = ValueNotifier(false);
 /// from a search result selection. The map will show the special "search"
 /// marker only when this notifier is true.
 ValueNotifier<bool> selectedLocationFromSearchNotifier = ValueNotifier(false);
+
+/// When true, tapping (via the short hold activation) on markers is allowed.
+/// This lets the user temporarily disable marker activation to avoid accidental
+/// selections while panning.
+ValueNotifier<bool> isMarkerActivationEnabledNotifier = ValueNotifier(true);
