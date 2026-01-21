@@ -70,7 +70,7 @@ class _SettingsPageState extends State<SettingsPage> {
                             title: const Text('Tema'),
                             activeTrackColor: Color(0xFF1F4226),
                             subtitle: Text(
-                              isLightMode ? 'Light Theme' : 'Dark Theme',
+                              isLightMode ? 'Tema Terang' : 'Tema Gelap',
                             ),
                             value: isLightMode,
                             onChanged: (value) {

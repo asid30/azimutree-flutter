@@ -76,7 +76,7 @@ class AboutPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Azimutree - Forest Health Monitoring',
+                              'Azimutree - Pemantauan Kesehatan Hutan',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
@@ -136,7 +136,7 @@ class AboutPage extends StatelessWidget {
 
                     const Center(
                       child: Text(
-                        'Developed by Asid30 © 2026',
+                        'Dikembangkan oleh Asid30 © 2026',
                         style: TextStyle(
                           fontSize: 12,
                           backgroundColor: Color.fromARGB(240, 180, 216, 187),

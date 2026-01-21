@@ -67,34 +67,44 @@ class _BottomsheetLocationMapWidgetState
           _selectedPlot = null;
           _selectedCluster = null;
         });
+        // Ensure global selected tree plot/cluster notifiers are cleared
+        selectedTreePlotNotifier.value = null;
+        selectedTreeClusterNotifier.value = null;
         return;
       }
       // Fetch plot and cluster for the selected tree asynchronously.
       PlotDao.getPlotById(tree.plotId)
-          .then((plot) {
+          .then((plot) async {
             if (!mounted) return;
             if (plot == null) {
               setState(() {
                 _selectedPlot = null;
                 _selectedCluster = null;
               });
+              // clear global notifiers as well
+              selectedTreePlotNotifier.value = null;
+              selectedTreeClusterNotifier.value = null;
               return;
             }
-            ClusterDao.getClusterById(plot.idCluster)
-                .then((cluster) {
-                  if (!mounted) return;
-                  setState(() {
-                    _selectedPlot = plot;
-                    _selectedCluster = cluster;
-                  });
-                })
-                .catchError((_) {
-                  if (!mounted) return;
-                  setState(() {
-                    _selectedPlot = plot;
-                    _selectedCluster = null;
-                  });
-                });
+            try {
+              final cluster = await ClusterDao.getClusterById(plot.idCluster);
+              if (!mounted) return;
+              setState(() {
+                _selectedPlot = plot;
+                _selectedCluster = cluster;
+              });
+              // update global notifiers so other widgets (map overlay) can consume
+              selectedTreePlotNotifier.value = plot;
+              selectedTreeClusterNotifier.value = cluster;
+            } catch (_) {
+              if (!mounted) return;
+              setState(() {
+                _selectedPlot = plot;
+                _selectedCluster = null;
+              });
+              selectedTreePlotNotifier.value = plot;
+              selectedTreeClusterNotifier.value = null;
+            }
           })
           .catchError((_) {
             if (!mounted) return;
@@ -102,6 +112,8 @@ class _BottomsheetLocationMapWidgetState
               _selectedPlot = null;
               _selectedCluster = null;
             });
+            selectedTreePlotNotifier.value = null;
+            selectedTreeClusterNotifier.value = null;
           });
     };
     selectedTreeNotifier.addListener(_selectedTreeListener);
@@ -755,8 +767,9 @@ class _BottomsheetLocationMapWidgetState
                               valueListenable:
                                   isInspectionWorkflowEnabledNotifier,
                               builder: (context, workflowEnabled, child) {
-                                if (!workflowEnabled)
+                                if (!workflowEnabled) {
                                   return const SizedBox.shrink();
+                                }
                                 return ValueListenableBuilder<Set<int>>(
                                   valueListenable: inspectedTreeIdsNotifier,
                                   builder: (context, inspectedSet, child) {
@@ -789,8 +802,9 @@ class _BottomsheetLocationMapWidgetState
                                           if (inspected) {
                                             setCopy.remove(tree.id);
                                           } else {
-                                            if (tree.id != null)
+                                            if (tree.id != null) {
                                               setCopy.add(tree.id!);
+                                            }
                                           }
                                           inspectedTreeIdsNotifier.value =
                                               setCopy;

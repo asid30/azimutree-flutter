@@ -39,7 +39,7 @@ class SidebarWidget extends StatelessWidget {
 
               ListTile(
                 leading: const Icon(Icons.home),
-                title: const Text('Home'),
+                title: const Text('Beranda'),
                 onTap: () => _selectPage(context, "home"),
               ),
 
@@ -66,13 +66,13 @@ class SidebarWidget extends StatelessWidget {
 
               ListTile(
                 leading: const Icon(Icons.settings),
-                title: const Text('Settings'),
+                title: const Text('Pengaturan'),
                 onTap: () => _selectPage(context, "settings_page"),
               ),
 
               ListTile(
                 leading: const Icon(Icons.info),
-                title: const Text('About'),
+                title: const Text('Tentang'),
                 onTap: () => _selectPage(context, "about_page"),
               ),
 
