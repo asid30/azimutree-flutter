@@ -96,6 +96,22 @@ class _BottomsheetLocationMapWidgetState
               // update global notifiers so other widgets (map overlay) can consume
               selectedTreePlotNotifier.value = plot;
               selectedTreeClusterNotifier.value = cluster;
+              // Populate trees for this plot so Prev/Next can navigate
+              TreeDao.getAllTrees()
+                  .then((allTrees) {
+                    if (!mounted) return;
+                    final trees =
+                        allTrees.where((t) => t.plotId == plot.id).toList();
+                    setState(() {
+                      _treesForSelectedPlot = trees;
+                    });
+                  })
+                  .catchError((_) {
+                    if (!mounted) return;
+                    setState(() {
+                      _treesForSelectedPlot = [];
+                    });
+                  });
             } catch (_) {
               if (!mounted) return;
               setState(() {
@@ -104,6 +120,22 @@ class _BottomsheetLocationMapWidgetState
               });
               selectedTreePlotNotifier.value = plot;
               selectedTreeClusterNotifier.value = null;
+              // Populate trees even if cluster lookup failed
+              TreeDao.getAllTrees()
+                  .then((allTrees) {
+                    if (!mounted) return;
+                    final trees =
+                        allTrees.where((t) => t.plotId == plot.id).toList();
+                    setState(() {
+                      _treesForSelectedPlot = trees;
+                    });
+                  })
+                  .catchError((_) {
+                    if (!mounted) return;
+                    setState(() {
+                      _treesForSelectedPlot = [];
+                    });
+                  });
             }
           })
           .catchError((_) {
@@ -198,6 +230,96 @@ class _BottomsheetLocationMapWidgetState
     } catch (_) {
       // If any error occurs, keep _hasAnyData as false.
     }
+  }
+
+  Future<void> _selectAndCenterTree(TreeModel t) async {
+    if (t.latitude == null || t.longitude == null) return;
+    selectedTreeNotifier.value = t;
+    selectedLocationNotifier.value = null;
+    await Future.delayed(const Duration(milliseconds: 60));
+    isFollowingUserLocationNotifier.value = false;
+    preserveZoomOnNextCenterNotifier.value = true;
+    selectedLocationFromSearchNotifier.value = false;
+    selectedLocationNotifier.value = Position(t.longitude!, t.latitude!);
+  }
+
+  void _goToNextTree() {
+    if (_treesForSelectedPlot.isEmpty) return;
+    final sorted = List<TreeModel>.from(
+      _treesForSelectedPlot,
+    )..sort((a, b) => a.kodePohon.toString().compareTo(b.kodePohon.toString()));
+    final current = selectedTreeNotifier.value;
+    int idx = 0;
+    if (current != null) {
+      idx = sorted.indexWhere((t) => t.id == current.id);
+      if (idx < 0) idx = 0;
+      idx = (idx + 1) % sorted.length;
+    }
+    final next = sorted[idx];
+    _selectAndCenterTree(next);
+  }
+
+  void _goToPreviousTree() {
+    if (_treesForSelectedPlot.isEmpty) return;
+    final sorted = List<TreeModel>.from(
+      _treesForSelectedPlot,
+    )..sort((a, b) => a.kodePohon.toString().compareTo(b.kodePohon.toString()));
+    final current = selectedTreeNotifier.value;
+    int idx = 0;
+    if (current != null) {
+      idx = sorted.indexWhere((t) => t.id == current.id);
+      if (idx < 0) idx = 0;
+      idx = (idx - 1) < 0 ? sorted.length - 1 : (idx - 1);
+    } else {
+      idx = sorted.length - 1;
+    }
+    final prev = sorted[idx];
+    _selectAndCenterTree(prev);
+  }
+
+  Future<void> _selectAndCenterPlot(PlotModel p) async {
+    selectedPlotNotifier.value = p;
+    // center flow: clear then set selectedLocation so map centers
+    selectedLocationNotifier.value = null;
+    await Future.delayed(const Duration(milliseconds: 60));
+    isFollowingUserLocationNotifier.value = false;
+    preserveZoomOnNextCenterNotifier.value = true;
+    selectedLocationFromSearchNotifier.value = false;
+    selectedLocationNotifier.value = Position(p.longitude, p.latitude);
+  }
+
+  Future<void> _goToNextPlot() async {
+    final cur = _selectedPlot;
+    if (cur == null) return;
+    try {
+      final all = await PlotDao.getAllPlots();
+      final sameCluster =
+          all.where((pl) => pl.idCluster == cur.idCluster).toList()..sort(
+            (a, b) => a.kodePlot.toString().compareTo(b.kodePlot.toString()),
+          );
+      if (sameCluster.isEmpty) return;
+      final idx = sameCluster.indexWhere((pl) => pl.id == cur.id);
+      final next = sameCluster[(idx < 0 ? 0 : (idx + 1) % sameCluster.length)];
+      await _selectAndCenterPlot(next);
+    } catch (_) {}
+  }
+
+  Future<void> _goToPreviousPlot() async {
+    final cur = _selectedPlot;
+    if (cur == null) return;
+    try {
+      final all = await PlotDao.getAllPlots();
+      final sameCluster =
+          all.where((pl) => pl.idCluster == cur.idCluster).toList()..sort(
+            (a, b) => a.kodePlot.toString().compareTo(b.kodePlot.toString()),
+          );
+      if (sameCluster.isEmpty) return;
+      int idx = sameCluster.indexWhere((pl) => pl.id == cur.id);
+      if (idx < 0) idx = 0;
+      final prev =
+          sameCluster[(idx - 1) < 0 ? sameCluster.length - 1 : (idx - 1)];
+      await _selectAndCenterPlot(prev);
+    } catch (_) {}
   }
 
   TableRow _row(String label, String value) {
@@ -440,6 +562,13 @@ class _BottomsheetLocationMapWidgetState
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     IconButton(
+                                      tooltip: 'Plot sebelumnya',
+                                      onPressed: () async {
+                                        await _goToPreviousPlot();
+                                      },
+                                      icon: const Icon(Icons.arrow_back),
+                                    ),
+                                    IconButton(
                                       tooltip: 'Center on plot',
                                       onPressed: () async {
                                         isFollowingUserLocationNotifier.value =
@@ -457,21 +586,18 @@ class _BottomsheetLocationMapWidgetState
                                           plot.longitude,
                                           plot.latitude,
                                         );
-                                        if (context.mounted) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            const SnackBar(
-                                              content: Text(
-                                                'Centering map on plot...',
-                                              ),
-                                            ),
-                                          );
-                                        }
+                                        // center applied; no snackbar
                                       },
                                       icon: const Icon(
                                         Icons.my_location_outlined,
                                       ),
+                                    ),
+                                    IconButton(
+                                      tooltip: 'Plot berikutnya',
+                                      onPressed: () async {
+                                        await _goToNextPlot();
+                                      },
+                                      icon: const Icon(Icons.arrow_forward),
                                     ),
                                     IconButton(
                                       onPressed: () {
@@ -597,6 +723,11 @@ class _BottomsheetLocationMapWidgetState
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 IconButton(
+                                  tooltip: 'Pohon sebelumnya',
+                                  onPressed: _goToPreviousTree,
+                                  icon: const Icon(Icons.arrow_back),
+                                ),
+                                IconButton(
                                   tooltip: 'Center on tree',
                                   onPressed:
                                       (tree.latitude != null &&
@@ -618,20 +749,15 @@ class _BottomsheetLocationMapWidgetState
                                               tree.longitude!,
                                               tree.latitude!,
                                             );
-                                            if (context.mounted) {
-                                              ScaffoldMessenger.of(
-                                                context,
-                                              ).showSnackBar(
-                                                const SnackBar(
-                                                  content: Text(
-                                                    'Centering map on tree...',
-                                                  ),
-                                                ),
-                                              );
-                                            }
+                                            // center applied; no snackbar
                                           }
                                           : null,
                                   icon: const Icon(Icons.my_location_outlined),
+                                ),
+                                IconButton(
+                                  tooltip: 'Pohon berikutnya',
+                                  onPressed: _goToNextTree,
+                                  icon: const Icon(Icons.arrow_forward),
                                 ),
                                 IconButton(
                                   onPressed: () {
