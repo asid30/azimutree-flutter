@@ -26,8 +26,9 @@ void main() async {
     final inspection = prefs.getBool(
       'enddrawer_tooltip_inspection_dismissed_value',
     );
-    if (inspection != null)
+    if (inspection != null) {
       isInspectionWorkflowEnabledNotifier.value = inspection;
+    }
     final legend = prefs.getBool('enddrawer_tooltip_legend_dismissed_value');
     if (legend != null) isMapLegendVisibleNotifier.value = legend;
     final marker = prefs.getBool(
