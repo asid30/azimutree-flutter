@@ -2,6 +2,8 @@ import 'package:azimutree/data/global_variables/logger_global.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:azimutree/data/database/plot_dao.dart';
+import 'package:azimutree/data/database/cluster_dao.dart';
 
 class SuggestionBodyWidget extends StatelessWidget {
   final bool isSearching;
@@ -38,17 +40,51 @@ class SuggestionBodyWidget extends StatelessWidget {
             return ListTile(
               title: Text(place["name"] ?? ""),
               subtitle: Text("${place["longitude"]} ${place["latitude"]}"),
-              onTap: () {
+              onTap: () async {
                 logger.i(
                   "Selected place: $place\n${place["longitude"]} ${place["latitude"]}",
                 );
-                // Mark this selection as originating from a search so the
-                // map shows the search-result marker.
+                // If this is a cluster/plot local result, resolve DB models
+                // and set selectedPlotNotifier so the UI shows the plot
+                // details. Otherwise fallback to generic map location.
+                final type = place['type'] as String?;
                 selectedLocationFromSearchNotifier.value = true;
-                selectedLocationNotifier.value = Position(
-                  double.parse(place["longitude"]),
-                  double.parse(place["latitude"]),
-                );
+                try {
+                  if (type == 'plot' || type == 'cluster') {
+                    final plotId = place['plotId'] as int?;
+                    if (plotId != null) {
+                      final plot = await PlotDao.getPlotById(plotId);
+                      if (plot != null) {
+                        selectedPlotNotifier.value = plot;
+                        try {
+                          final cl = await ClusterDao.getClusterById(
+                            plot.idCluster,
+                          );
+                          selectedPlotClusterNotifier.value = cl;
+                        } catch (_) {
+                          selectedPlotClusterNotifier.value = null;
+                        }
+                        // Center map on the plot
+                        selectedLocationNotifier.value = Position(
+                          plot.longitude,
+                          plot.latitude,
+                        );
+                        userInputSearchBarNotifier.value = "";
+                        return;
+                      }
+                    }
+                  }
+                } catch (e) {
+                  logger.w('Suggestion selection DB resolve failed: $e');
+                }
+
+                // Fallback: generic place coordinate (Mapbox)
+                try {
+                  selectedLocationNotifier.value = Position(
+                    double.parse(place["longitude"].toString()),
+                    double.parse(place["latitude"].toString()),
+                  );
+                } catch (_) {}
                 userInputSearchBarNotifier.value = "";
               },
             );
