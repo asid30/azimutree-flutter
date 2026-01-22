@@ -12,6 +12,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:azimutree/data/database/tree_dao.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -51,6 +52,11 @@ void main() async {
     if (plotPlotLines != null) {
       isPlotToPlotLineVisibleNotifier.value = plotPlotLines;
     }
+  } catch (_) {}
+  // Load persisted inspected tree ids from DB so UI reflects saved state.
+  try {
+    final ids = await TreeDao.getInspectedTreeIds();
+    inspectedTreeIdsNotifier.value = ids;
   } catch (_) {}
   runApp(MainApp());
 }

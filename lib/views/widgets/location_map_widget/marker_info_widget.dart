@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:azimutree/data/database/tree_dao.dart';
 
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
@@ -224,7 +225,7 @@ class MarkerInfoWidget extends StatelessWidget {
                                     vertical: 8,
                                   ),
                                 ),
-                                onPressed: () {
+                                onPressed: () async {
                                   final setCopy = Set<int>.from(inspectedSet);
                                   if (inspected) {
                                     setCopy.remove(tree.id);
@@ -232,6 +233,15 @@ class MarkerInfoWidget extends StatelessWidget {
                                     if (tree.id != null) setCopy.add(tree.id!);
                                   }
                                   inspectedTreeIdsNotifier.value = setCopy;
+                                  // Persist the inspected flag to DB for this tree
+                                  try {
+                                    if (tree.id != null) {
+                                      await TreeDao.setInspectedForTree(
+                                        tree.id!,
+                                        setCopy.contains(tree.id),
+                                      );
+                                    }
+                                  } catch (_) {}
                                 },
                                 icon: Icon(
                                   inspected ? Icons.check : Icons.checklist,

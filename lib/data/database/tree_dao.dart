@@ -20,6 +20,8 @@ class TreeDao {
         altitude REAL,
         keterangan TEXT,
         urlFoto TEXT,
+        -- Optional inspection workflow flag: 0/1, nullable for backward compatibility
+        inspected INTEGER,
         FOREIGN KEY (plotId) REFERENCES plots(id) ON DELETE CASCADE
       )
     ''');
@@ -56,6 +58,33 @@ class TreeDao {
       where: 'id = ?',
       whereArgs: [tree.id],
     );
+  }
+
+  /// Update only the `inspected` column for a given tree id.
+  static Future<int> setInspectedForTree(int id, bool? inspected) async {
+    final db = await AzimutreeDB.instance.database;
+    final value = inspected == null ? null : (inspected ? 1 : 0);
+    return await db.update(
+      tableName,
+      {'inspected': value},
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+  }
+
+  /// Return the set of tree ids marked inspected in DB.
+  static Future<Set<int>> getInspectedTreeIds() async {
+    final db = await AzimutreeDB.instance.database;
+    try {
+      final rows = await db.query(
+        tableName,
+        columns: ['id'],
+        where: 'inspected = 1',
+      );
+      return rows.map<int>((r) => r['id'] as int).toSet();
+    } catch (_) {
+      return {};
+    }
   }
 
   static Future<int> deleteTree(int id) async {

@@ -943,7 +943,7 @@ class _BottomsheetLocationMapWidgetState
                                             vertical: 8,
                                           ),
                                         ),
-                                        onPressed: () {
+                                        onPressed: () async {
                                           final setCopy = Set<int>.from(
                                             inspectedSet,
                                           );
@@ -956,6 +956,14 @@ class _BottomsheetLocationMapWidgetState
                                           }
                                           inspectedTreeIdsNotifier.value =
                                               setCopy;
+                                          try {
+                                            if (tree.id != null) {
+                                              await TreeDao.setInspectedForTree(
+                                                tree.id!,
+                                                setCopy.contains(tree.id),
+                                              );
+                                            }
+                                          } catch (_) {}
                                         },
                                         icon: Icon(
                                           inspected
