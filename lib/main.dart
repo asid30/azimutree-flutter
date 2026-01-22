@@ -35,6 +35,10 @@ void main() async {
       'enddrawer_tooltip_marker_click_dismissed_value',
     );
     if (marker != null) isMarkerActivationEnabledNotifier.value = marker;
+    final markerInfo = prefs.getBool(
+      'enddrawer_tooltip_marker_info_dismissed_value',
+    );
+    if (markerInfo != null) isMarkerInfoOnSelectNotifier.value = markerInfo;
   } catch (_) {}
   runApp(MainApp());
 }
