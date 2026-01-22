@@ -84,6 +84,9 @@ class _SearchbarBottomsheetWidgetState
                 _searchController.clear();
                 FocusScope.of(context).unfocus();
                 userInputSearchBarNotifier.value = "";
+                // Request the bottomsheet to minimize so the map regains focus.
+                bottomsheetMinimizeRequestNotifier.value =
+                    bottomsheetMinimizeRequestNotifier.value + 1;
               },
             ),
             hintText: 'Cari lokasi...',

@@ -30,6 +30,7 @@ class _BottomsheetLocationMapWidgetState
   final DraggableScrollableController _draggableController =
       DraggableScrollableController();
   late final VoidCallback _searchFocusListener;
+  late final VoidCallback _minimizeRequestListener;
 
   // Cached plot/cluster info for the currently-selected tree.
   PlotModel? _selectedPlot;
@@ -59,6 +60,17 @@ class _BottomsheetLocationMapWidgetState
       }
     };
     isSearchFieldFocusedNotifier.addListener(_searchFocusListener);
+
+    _minimizeRequestListener = () {
+      try {
+        _draggableController.animateTo(
+          _minChildSize,
+          duration: const Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
+        );
+      } catch (_) {}
+    };
+    bottomsheetMinimizeRequestNotifier.addListener(_minimizeRequestListener);
 
     _selectedTreeListener = () {
       final tree = selectedTreeNotifier.value;
@@ -211,6 +223,7 @@ class _BottomsheetLocationMapWidgetState
   void dispose() {
     _positionSub?.cancel();
     isSearchFieldFocusedNotifier.removeListener(_searchFocusListener);
+    bottomsheetMinimizeRequestNotifier.removeListener(_minimizeRequestListener);
     _draggableController.dispose();
     selectedTreeNotifier.removeListener(_selectedTreeListener);
     selectedPlotNotifier.removeListener(_selectedPlotListener);

@@ -65,3 +65,6 @@ ValueNotifier<bool> isInspectionWorkflowEnabledNotifier = ValueNotifier(false);
 
 /// Set of tree IDs that have been marked as inspected/done.
 ValueNotifier<Set<int>> inspectedTreeIdsNotifier = ValueNotifier({});
+
+/// Increment this value to request the bottomsheet to minimize.
+ValueNotifier<int> bottomsheetMinimizeRequestNotifier = ValueNotifier(0);

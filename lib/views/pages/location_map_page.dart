@@ -203,6 +203,7 @@ class _EndDrawerToggleRow extends StatefulWidget {
 }
 
 class _EndDrawerToggleRowState extends State<_EndDrawerToggleRow> {
+  bool _dismissed = false;
   bool _loading = true;
 
   @override
@@ -213,20 +214,30 @@ class _EndDrawerToggleRowState extends State<_EndDrawerToggleRow> {
 
   Future<void> _loadPref() async {
     final prefs = await SharedPreferences.getInstance();
+    final dismissed = prefs.getBool(widget.prefKey) ?? false;
     final valueKey = '${widget.prefKey}_value';
     final persistedValue = prefs.getBool(valueKey);
     if (!mounted) return;
     setState(() {
+      _dismissed = dismissed;
       _loading = false;
     });
-    // If a persisted toggle value exists, propagate it to the caller
-    // so the shared ValueListenable is initialized with the persisted state.
+    // If a persisted toggle value exists, apply it to the provided
+    // ValueListenable by calling the onChanged callback so the global
+    // notifier is updated accordingly.
     if (persistedValue != null) {
       widget.onChanged(persistedValue);
     }
   }
 
-  // Dismissal logic removed: UI no longer supports tooltip dismissal.
+  Future<void> _dismiss() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(widget.prefKey, true);
+    if (!mounted) return;
+    setState(() {
+      _dismissed = true;
+    });
+  }
 
   Future<void> _persistValue(bool v) async {
     final prefs = await SharedPreferences.getInstance();
@@ -275,7 +286,12 @@ class _EndDrawerToggleRowState extends State<_EndDrawerToggleRow> {
                     widget.onChanged(v);
                   },
                 ),
-                // Close (dismiss) button removed to simplify the UI.
+                if (!_dismissed)
+                  IconButton(
+                    tooltip: 'Tutup bantuan',
+                    icon: const Icon(Icons.close, size: 18),
+                    onPressed: _dismiss,
+                  ),
               ],
             );
           },
@@ -283,8 +299,8 @@ class _EndDrawerToggleRowState extends State<_EndDrawerToggleRow> {
       ],
     );
 
-    // Always return the row directly. Tooltip/dismissal behavior has
-    // been removed to avoid the small 'X' button shown next to the switch.
-    return row;
+    if (_dismissed) return row;
+
+    return Tooltip(message: widget.tooltipMessage, child: row);
   }
 }
