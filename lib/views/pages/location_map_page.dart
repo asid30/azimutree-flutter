@@ -20,6 +20,8 @@ class LocationMapPage extends StatefulWidget {
 
 class _LocationMapPageState extends State<LocationMapPage> {
   bool defaultStyleMap = true;
+  final GlobalKey _legendKey = GlobalKey();
+  double? _legendWidth;
 
   // Helper widget: persistent toggle row for the end-drawer that
   // shows a Tooltip until the user dismisses it. Dismissal is
@@ -148,21 +150,59 @@ class _LocationMapPageState extends State<LocationMapPage> {
             ValueListenableBuilder<bool>(
               valueListenable: isMapLegendVisibleNotifier,
               builder: (context, visible, child) {
+                if (visible) {
+                  // Measure legend width after layout and store it in state.
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    final ctx = _legendKey.currentContext;
+                    final w = ctx?.size?.width;
+                    if (w != null && w != _legendWidth) {
+                      setState(() {
+                        _legendWidth = w;
+                      });
+                    }
+                  });
+
+                  // Provide the measured legend width to MarkerInfoWidget so
+                  // it uses the same width without relying on intrinsics.
+                  final markerWidth =
+                      _legendWidth ??
+                      (MediaQuery.of(context).size.width * 0.45).clamp(
+                        200.0,
+                        MediaQuery.of(context).size.width,
+                      );
+
+                  return Positioned(
+                    top: 35,
+                    left: 12,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Attach key to legend so we can measure it.
+                        Container(
+                          key: _legendKey,
+                          child: const MapLegendWidget(),
+                        ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: markerWidth,
+                          child: const MarkerInfoWidget(),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // Legend hidden: give MarkerInfo a reasonable finite width.
+                final defaultWidth = (MediaQuery.of(context).size.width * 0.45)
+                    .clamp(200.0, MediaQuery.of(context).size.width);
                 return Positioned(
-                  // Restore previous vertical offset so the card sits above
-                  // the camera zoom indicators. Use full width between left
-                  // and right margins so legend + marker info consume width.
                   top: 35,
                   left: 12,
-                  right: 12,
-                  child: Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (visible) const MapLegendWidget(),
-                      if (visible) const SizedBox(width: 8),
-                      // Marker info takes the remaining space
-                      const Expanded(child: MarkerInfoWidget()),
-                    ],
+                  child: SizedBox(
+                    width: defaultWidth,
+                    child: const MarkerInfoWidget(),
                   ),
                 );
               },
@@ -203,7 +243,6 @@ class _EndDrawerToggleRow extends StatefulWidget {
 }
 
 class _EndDrawerToggleRowState extends State<_EndDrawerToggleRow> {
-  bool _dismissed = false;
   bool _loading = true;
 
   @override
@@ -214,12 +253,10 @@ class _EndDrawerToggleRowState extends State<_EndDrawerToggleRow> {
 
   Future<void> _loadPref() async {
     final prefs = await SharedPreferences.getInstance();
-    final dismissed = prefs.getBool(widget.prefKey) ?? false;
     final valueKey = '${widget.prefKey}_value';
     final persistedValue = prefs.getBool(valueKey);
     if (!mounted) return;
     setState(() {
-      _dismissed = dismissed;
       _loading = false;
     });
     // If a persisted toggle value exists, apply it to the provided
@@ -228,15 +265,6 @@ class _EndDrawerToggleRowState extends State<_EndDrawerToggleRow> {
     if (persistedValue != null) {
       widget.onChanged(persistedValue);
     }
-  }
-
-  Future<void> _dismiss() async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(widget.prefKey, true);
-    if (!mounted) return;
-    setState(() {
-      _dismissed = true;
-    });
   }
 
   Future<void> _persistValue(bool v) async {
@@ -286,20 +314,13 @@ class _EndDrawerToggleRowState extends State<_EndDrawerToggleRow> {
                     widget.onChanged(v);
                   },
                 ),
-                if (!_dismissed)
-                  IconButton(
-                    tooltip: 'Tutup bantuan',
-                    icon: const Icon(Icons.close, size: 18),
-                    onPressed: _dismiss,
-                  ),
+                // Dismissal removed: no close button shown.
               ],
             );
           },
         ),
       ],
     );
-
-    if (_dismissed) return row;
 
     return Tooltip(message: widget.tooltipMessage, child: row);
   }
