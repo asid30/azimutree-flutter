@@ -9,7 +9,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_lorem: ^2.0.0 # Adds placeholder "lorem ipsum" text for UI prototyping
   flutter_native_splash: ^2.4.4 # Generates native Android/iOS splash screens from assets/config
   http: ^1.4.0 # Lightweight HTTP client for REST calls and network requests
   image_picker: ^1.1.2 # Capture images from camera or select from gallery
