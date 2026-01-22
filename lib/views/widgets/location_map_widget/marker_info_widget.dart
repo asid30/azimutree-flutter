@@ -9,6 +9,86 @@ import 'package:azimutree/data/models/cluster_model.dart';
 class MarkerInfoWidget extends StatelessWidget {
   const MarkerInfoWidget({super.key});
 
+  double _degrees(double rad) => rad * 180.0 / math.pi;
+
+  double _haversineDistance(
+    double lat1,
+    double lon1,
+    double lat2,
+    double lon2,
+  ) {
+    // returns distance in meters
+    const R = 6371000; // Earth radius meters
+    final dLat = _toRad(lat2 - lat1);
+    final dLon = _toRad(lon2 - lon1);
+    final a =
+        math.sin(dLat / 2) * math.sin(dLat / 2) +
+        math.cos(_toRad(lat1)) *
+            math.cos(_toRad(lat2)) *
+            math.sin(dLon / 2) *
+            math.sin(dLon / 2);
+    final c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+    return R * c;
+  }
+
+  double _toRad(double deg) => deg * math.pi / 180.0;
+
+  double? _posLat(dynamic p) {
+    if (p == null) return null;
+    if (p is List && p.length >= 2) return (p[1] as num).toDouble();
+    try {
+      final v = (p.latitude as num?)?.toDouble();
+      if (v != null) return v;
+    } catch (_) {}
+    try {
+      final v = (p.lat as num?)?.toDouble();
+      if (v != null) return v;
+    } catch (_) {}
+    try {
+      final v = (p['latitude'] as num?)?.toDouble();
+      if (v != null) return v;
+    } catch (_) {}
+    try {
+      final v = (p['lat'] as num?)?.toDouble();
+      if (v != null) return v;
+    } catch (_) {}
+    return null;
+  }
+
+  double? _posLng(dynamic p) {
+    if (p == null) return null;
+    if (p is List && p.length >= 2) return (p[0] as num).toDouble();
+    try {
+      final v = (p.longitude as num?)?.toDouble();
+      if (v != null) return v;
+    } catch (_) {}
+    try {
+      final v = (p.lng as num?)?.toDouble();
+      if (v != null) return v;
+    } catch (_) {}
+    try {
+      final v = (p['longitude'] as num?)?.toDouble();
+      if (v != null) return v;
+    } catch (_) {}
+    try {
+      final v = (p['lon'] as num?)?.toDouble();
+      if (v != null) return v;
+    } catch (_) {}
+    return null;
+  }
+
+  double _computeBearing(double lat1, double lon1, double lat2, double lon2) {
+    final y = math.sin(_toRad(lon2 - lon1)) * math.cos(_toRad(lat2));
+    final x =
+        math.cos(_toRad(lat1)) * math.sin(_toRad(lat2)) -
+        math.sin(_toRad(lat1)) *
+            math.cos(_toRad(lat2)) *
+            math.cos(_toRad(lon2 - lon1));
+    final brng = math.atan2(y, x);
+    final deg = (_degrees(brng) + 360) % 360;
+    return deg;
+  }
+
   Widget _cardForTree(TreeModel tree, PlotModel? plot, ClusterModel? cluster) {
     return Card(
       elevation: 6,
@@ -62,6 +142,58 @@ class MarkerInfoWidget extends StatelessWidget {
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
+                          // Inspection: show bearing and distance to user when enabled
+                          ValueListenableBuilder<bool>(
+                            valueListenable:
+                                isInspectionWorkflowEnabledNotifier,
+                            builder: (context, enabled, child) {
+                              if (!enabled) return const SizedBox.shrink();
+                              return ValueListenableBuilder<dynamic>(
+                                valueListenable: userLocationNotifier,
+                                builder: (context, userPos, child) {
+                                  if (userPos == null ||
+                                      tree.latitude == null ||
+                                      tree.longitude == null) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  final fromLat = _posLat(userPos);
+                                  final fromLng = _posLng(userPos);
+                                  final toLat = tree.latitude!;
+                                  final toLng = tree.longitude!;
+                                  if (fromLat == null || fromLng == null) {
+                                    return const SizedBox.shrink();
+                                  }
+                                  final bearing =
+                                      _computeBearing(
+                                        fromLat,
+                                        fromLng,
+                                        toLat,
+                                        toLng,
+                                      ).round();
+                                  final distanceMeters = _haversineDistance(
+                                    fromLat,
+                                    fromLng,
+                                    toLat,
+                                    toLng,
+                                  );
+                                  final distText =
+                                      (distanceMeters < 1000)
+                                          ? '${distanceMeters.round()} m'
+                                          : '${(distanceMeters / 1000).toStringAsFixed(2)} km';
+                                  return Padding(
+                                    padding: const EdgeInsets.only(top: 6.0),
+                                    child: Text(
+                                      'Arah: $bearing° • Jarak: $distText',
+                                      style: const TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.black54,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              );
+                            },
+                          ),
                         ],
                       ),
                     ),
@@ -176,6 +308,54 @@ class MarkerInfoWidget extends StatelessWidget {
                             color: Colors.black54,
                           ),
                         ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: isInspectionWorkflowEnabledNotifier,
+                        builder: (context, enabled, child) {
+                          if (!enabled) return const SizedBox.shrink();
+                          return ValueListenableBuilder<dynamic>(
+                            valueListenable: userLocationNotifier,
+                            builder: (context, userPos, child) {
+                              if (userPos == null) {
+                                return const SizedBox.shrink();
+                              }
+                              final fromLat = _posLat(userPos);
+                              final fromLng = _posLng(userPos);
+                              final toLat = plot.latitude;
+                              final toLng = plot.longitude;
+                              if (fromLat == null || fromLng == null) {
+                                return const SizedBox.shrink();
+                              }
+                              final bearing =
+                                  _computeBearing(
+                                    fromLat,
+                                    fromLng,
+                                    toLat,
+                                    toLng,
+                                  ).round();
+                              final distanceMeters = _haversineDistance(
+                                fromLat,
+                                fromLng,
+                                toLat,
+                                toLng,
+                              );
+                              final distText =
+                                  (distanceMeters < 1000)
+                                      ? '${distanceMeters.round()} m'
+                                      : '${(distanceMeters / 1000).toStringAsFixed(2)} km';
+                              return Padding(
+                                padding: const EdgeInsets.only(top: 6.0),
+                                child: Text(
+                                  'Arah: $bearing° • Jarak: $distText',
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.black54,
+                                  ),
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
                     ],
                   ),
                 ),
