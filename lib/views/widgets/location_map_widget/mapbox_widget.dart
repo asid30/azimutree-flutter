@@ -68,6 +68,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   late final VoidCallback _northResetListener;
   late final VoidCallback _selectedTreeListener;
   late final VoidCallback _inspectedListener;
+  late final VoidCallback _inspectionToggleListener;
   late final VoidCallback _userLocationListener;
   late final VoidCallback _treeToPlotToggleListener;
   late final VoidCallback _plotToPlotToggleListener;
@@ -183,6 +184,19 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       });
     };
     inspectedTreeIdsNotifier.addListener(_inspectedListener);
+    // Reload markers when the inspection workflow toggle changes so marker
+    // colors reflect the current workflow state (show/hide inspected color).
+    _inspectionToggleListener = () {
+      if (!mounted) return;
+      Future.microtask(() async {
+        try {
+          if (_mapboxMap == null) return;
+          // Refresh markers so tree colors update according to the toggle.
+          await _loadMarkers();
+        } catch (_) {}
+      });
+    };
+    isInspectionWorkflowEnabledNotifier.addListener(_inspectionToggleListener);
 
     // React to plot selection (marker taps).
     selectedPlotNotifier.addListener(() {
@@ -205,6 +219,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     userLocationNotifier.removeListener(_userLocationListener);
     selectedTreeNotifier.removeListener(_selectedTreeListener);
     inspectedTreeIdsNotifier.removeListener(_inspectedListener);
+    isInspectionWorkflowEnabledNotifier.removeListener(
+      _inspectionToggleListener,
+    );
     isTreeToPlotLineVisibleNotifier.removeListener(_treeToPlotToggleListener);
     isPlotToPlotLineVisibleNotifier.removeListener(_plotToPlotToggleListener);
     super.dispose();
@@ -1054,8 +1071,14 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       if (tree.latitude == null || tree.longitude == null) continue;
       final selected = selTree?.id == tree.id;
 
-      // If the tree is marked as inspected, show it with the inspected color.
-      final inspected = inspectedTreeIdsNotifier.value.contains(tree.id);
+      // If the tree is marked as inspected and the inspection workflow is
+      // currently enabled, show it with the inspected color. When the
+      // workflow toggle is off, treat trees as not inspected for visual
+      // purposes so they render the normal color.
+      final inspected =
+          isInspectionWorkflowEnabledNotifier.value &&
+          tree.id != null &&
+          inspectedTreeIdsNotifier.value.contains(tree.id);
 
       // Determine cluster for this tree via its plot.
       int? treeClusterId;
