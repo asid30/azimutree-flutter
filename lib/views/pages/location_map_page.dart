@@ -118,19 +118,6 @@ class _LocationMapPageState extends State<LocationMapPage> {
                     onChanged: (v) => isMapLegendVisibleNotifier.value = v,
                   ),
                   const SizedBox(height: 12),
-                  // Inspection workflow toggle
-                  _endDrawerToggleRow(
-                    prefKey: 'enddrawer_tooltip_inspection_dismissed',
-                    tooltipMessage: 'Aktifkan workflow inspeksi lapangan',
-                    icon: const Icon(Icons.checklist, color: Color(0xFF1F4226)),
-                    title: 'Workflow inspeksi',
-                    subtitle:
-                        'Aktifkan untuk menandai pohon sebagai "Done" saat inspeksi',
-                    valueListenable: isInspectionWorkflowEnabledNotifier,
-                    onChanged:
-                        (v) => isInspectionWorkflowEnabledNotifier.value = v,
-                  ),
-                  const SizedBox(height: 12),
                   _endDrawerToggleRow(
                     prefKey: 'enddrawer_tooltip_marker_info_dismissed',
                     tooltipMessage: 'Tampilkan kartu info saat marker dipilih',
@@ -144,6 +131,20 @@ class _LocationMapPageState extends State<LocationMapPage> {
                     valueListenable: isMarkerInfoOnSelectNotifier,
                     onChanged: (v) => isMarkerInfoOnSelectNotifier.value = v,
                   ),
+                  const SizedBox(height: 12),
+                  // Inspection workflow toggle
+                  _endDrawerToggleRow(
+                    prefKey: 'enddrawer_tooltip_inspection_dismissed',
+                    tooltipMessage: 'Aktifkan workflow inspeksi lapangan',
+                    icon: const Icon(Icons.checklist, color: Color(0xFF1F4226)),
+                    title: 'Workflow inspeksi',
+                    subtitle:
+                        'Aktifkan untuk menandai pohon sebagai "Done" saat inspeksi',
+                    valueListenable: isInspectionWorkflowEnabledNotifier,
+                    onChanged:
+                        (v) => isInspectionWorkflowEnabledNotifier.value = v,
+                  ),
+                  const SizedBox(height: 12),
                   const SizedBox(height: 12),
                   _endDrawerToggleRow(
                     prefKey: 'enddrawer_tooltip_tree_to_plot_lines_dismissed',
