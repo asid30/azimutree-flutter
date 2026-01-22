@@ -130,6 +130,20 @@ class _LocationMapPageState extends State<LocationMapPage> {
                     onChanged:
                         (v) => isInspectionWorkflowEnabledNotifier.value = v,
                   ),
+                  const SizedBox(height: 12),
+                  _endDrawerToggleRow(
+                    prefKey: 'enddrawer_tooltip_marker_info_dismissed',
+                    tooltipMessage: 'Tampilkan kartu info saat marker dipilih',
+                    icon: const Icon(
+                      Icons.info_outline,
+                      color: Color(0xFF1F4226),
+                    ),
+                    title: 'Tampilkan info marker',
+                    subtitle:
+                        'Tampilkan kartu informasi saat marker dipilih di peta',
+                    valueListenable: isMarkerInfoOnSelectNotifier,
+                    onChanged: (v) => isMarkerInfoOnSelectNotifier.value = v,
+                  ),
                 ],
               ),
             ),

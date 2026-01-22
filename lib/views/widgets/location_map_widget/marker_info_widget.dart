@@ -209,50 +209,58 @@ class MarkerInfoWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        // Limit card width so it doesn't become too narrow and wrap badly on
-        // small devices. Use up to 85% of available width.
-        final maxCardWidth = math.max(200.0, constraints.maxWidth * 0.85);
-        return Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ValueListenableBuilder<TreeModel?>(
-              valueListenable: selectedTreeNotifier,
-              builder: (context, tree, child) {
-                if (tree == null) return const SizedBox.shrink();
-                return ValueListenableBuilder<PlotModel?>(
-                  valueListenable: selectedTreePlotNotifier,
-                  builder: (context, plot, child) {
-                    return ValueListenableBuilder<ClusterModel?>(
-                      valueListenable: selectedTreeClusterNotifier,
-                      builder: (context, cluster, child) {
-                        return ConstrainedBox(
-                          constraints: BoxConstraints(maxWidth: maxCardWidth),
-                          child: _cardForTree(tree, plot, cluster),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isMarkerInfoOnSelectNotifier,
+      builder: (context, enabled, child) {
+        if (!enabled) return const SizedBox.shrink();
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            // Limit card width so it doesn't become too narrow and wrap badly on
+            // small devices. Use up to 85% of available width.
+            final maxCardWidth = math.max(200.0, constraints.maxWidth * 0.85);
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ValueListenableBuilder<TreeModel?>(
+                  valueListenable: selectedTreeNotifier,
+                  builder: (context, tree, child) {
+                    if (tree == null) return const SizedBox.shrink();
+                    return ValueListenableBuilder<PlotModel?>(
+                      valueListenable: selectedTreePlotNotifier,
+                      builder: (context, plot, child) {
+                        return ValueListenableBuilder<ClusterModel?>(
+                          valueListenable: selectedTreeClusterNotifier,
+                          builder: (context, cluster, child) {
+                            return ConstrainedBox(
+                              constraints: BoxConstraints(
+                                maxWidth: maxCardWidth,
+                              ),
+                              child: _cardForTree(tree, plot, cluster),
+                            );
+                          },
                         );
                       },
                     );
                   },
-                );
-              },
-            ),
-            ValueListenableBuilder<PlotModel?>(
-              valueListenable: selectedPlotNotifier,
-              builder: (context, plot, child) {
-                if (plot == null) return const SizedBox.shrink();
-                return ValueListenableBuilder<ClusterModel?>(
-                  valueListenable: selectedPlotClusterNotifier,
-                  builder: (context, cluster, child) {
-                    return ConstrainedBox(
-                      constraints: BoxConstraints(maxWidth: maxCardWidth),
-                      child: _cardForPlot(plot, cluster),
+                ),
+                ValueListenableBuilder<PlotModel?>(
+                  valueListenable: selectedPlotNotifier,
+                  builder: (context, plot, child) {
+                    if (plot == null) return const SizedBox.shrink();
+                    return ValueListenableBuilder<ClusterModel?>(
+                      valueListenable: selectedPlotClusterNotifier,
+                      builder: (context, cluster, child) {
+                        return ConstrainedBox(
+                          constraints: BoxConstraints(maxWidth: maxCardWidth),
+                          child: _cardForPlot(plot, cluster),
+                        );
+                      },
                     );
                   },
-                );
-              },
-            ),
-          ],
+                ),
+              ],
+            );
+          },
         );
       },
     );

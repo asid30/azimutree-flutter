@@ -66,5 +66,8 @@ ValueNotifier<bool> isInspectionWorkflowEnabledNotifier = ValueNotifier(false);
 /// Set of tree IDs that have been marked as inspected/done.
 ValueNotifier<Set<int>> inspectedTreeIdsNotifier = ValueNotifier({});
 
+/// When true, selecting a marker (tree/plot) shows the floating marker info card.
+ValueNotifier<bool> isMarkerInfoOnSelectNotifier = ValueNotifier(true);
+
 /// Increment this value to request the bottomsheet to minimize.
 ValueNotifier<int> bottomsheetMinimizeRequestNotifier = ValueNotifier(0);
