@@ -8,6 +8,8 @@ import 'package:azimutree/views/pages/tutorial_page.dart';
 import 'package:azimutree/services/debug_mode_service.dart';
 import 'package:azimutree/services/theme_preference_service.dart';
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
@@ -17,6 +19,22 @@ void main() async {
   MapboxOptions.setAccessToken(dotenv.env['MAP_BOX_ACCESS']!);
   await DebugModeService.instance.init();
   await ThemePreferenceService.instance.init();
+  // Load persisted end-drawer toggle values early so UI that depends on
+  // these notifiers reflect the right state on first build.
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final inspection = prefs.getBool(
+      'enddrawer_tooltip_inspection_dismissed_value',
+    );
+    if (inspection != null)
+      isInspectionWorkflowEnabledNotifier.value = inspection;
+    final legend = prefs.getBool('enddrawer_tooltip_legend_dismissed_value');
+    if (legend != null) isMapLegendVisibleNotifier.value = legend;
+    final marker = prefs.getBool(
+      'enddrawer_tooltip_marker_click_dismissed_value',
+    );
+    if (marker != null) isMarkerActivationEnabledNotifier.value = marker;
+  } catch (_) {}
   runApp(MainApp());
 }
 
