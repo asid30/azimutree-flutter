@@ -9,25 +9,24 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  flutter_lorem: ^2.0.0 # Lorem ipsum text generator
-  flutter_native_splash: ^2.4.4 # Native splash screen (downgraded to resolve archive/excel conflict)
-  # camera and ML Kit removed
-  http: ^1.4.0 # http services
-  image_picker: ^1.1.2 # Image picker
-  intl: ^0.20.2 # Internationalization support
-  file_picker: ^10.1.9 # File picker for selecting files
-  excel: ^2.0.0 # Excel reader for .xlsx/.xls
-  path_provider: ^2.1.5 # Path provider for accessing device storage
-  path: ^1.9.1 # Path manipulation
-  sqflite: ^2.4.2 # SQLite database
-  logger: ^2.5.0 # Logging utility
-  url_launcher: ^6.3.1 # URL launcher for opening links
-  mapbox_maps_flutter: ^2.17.0 # Bumped to enable LineAnnotationManager/native polyline support
-  flutter_dotenv: ^6.0.0 # Environment variables
-  cached_network_image: ^3.4.1 # Cached images for network photos
-  flutter_slidable: ^3.1.0 # Swipeable action panes
-  shared_preferences: ^2.2.3 # Simple key-value persistent storage
-  geolocator: ^11.0.0 # Real-time device location
+  flutter_lorem: ^2.0.0 # Adds placeholder "lorem ipsum" text for UI prototyping
+  flutter_native_splash: ^2.4.4 # Generates native Android/iOS splash screens from assets/config
+  http: ^1.4.0 # Lightweight HTTP client for REST calls and network requests
+  image_picker: ^1.1.2 # Capture images from camera or select from gallery
+  intl: ^0.20.2 # Internationalization & date/number formatting utilities
+  file_picker: ^10.1.9 # Cross-platform file selection (document import/export)
+  excel: ^2.0.0 # Read/write Excel (.xlsx/.xls) files for data import/export
+  path_provider: ^2.1.5 # Locate platform-specific directories (temp, documents, etc.)
+  path: ^1.9.1 # Utilities for manipulating filesystem paths
+  sqflite: ^2.4.2 # SQLite plugin for local relational storage and queries
+  logger: ^2.5.0 # Structured logging helper with levels and outputs
+  url_launcher: ^6.3.1 # Open URLs, phone dialer, email client, and external intents
+  mapbox_maps_flutter: ^2.17.0 # Mapbox SDK: maps, layers, annotations and advanced rendering
+  flutter_dotenv: ^6.0.0 # Load environment variables from a `.env` file securely
+  cached_network_image: ^3.4.1 # Efficient image caching for remote images with placeholders
+  flutter_slidable: ^3.1.0 # Adds swipe-to-reveal action panes (list item actions)
+  shared_preferences: ^2.2.3 # Simple persistent key-value storage for small data
+  geolocator: ^11.0.0 # Device location APIs: permissions, current position, streams
 
 dev_dependencies:
   flutter_test:
@@ -41,11 +40,11 @@ flutter:
     - .env
 
 flutter_native_splash:
-  color: "#000000" # warna background
-  image: assets/images/ic_launcher.png # gambar splash
+  color: "#1F4226" # Background color for native splash (hex for Color(0xFF1F4226))
+  image: assets/images/splashscreen3.png # Splash image asset used for Android and iOS
   android: true
   ios: true
 
   android_12:
-    image: assets/images/ic_launcher.png
-    icon_background_color: "#000000"
+    image: assets/images/splashscreen3.png
+    icon_background_color: "#1F4226"

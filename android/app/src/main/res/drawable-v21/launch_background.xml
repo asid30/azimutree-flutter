@@ -4,11 +4,6 @@
         <bitmap android:gravity="fill" android:src="@drawable/background"/>
     </item>
     <item>
-        <!-- Scale the splash image to a percentage of the screen and center it
-             to avoid cropping on devices with different aspect ratios. -->
-        <scale android:drawable="@drawable/splash"
-               android:scaleGravity="center"
-               android:scaleWidth="60%"
-               android:scaleHeight="60%" />
+        <bitmap android:gravity="center" android:src="@drawable/splash"/>
     </item>
 </layer-list>
