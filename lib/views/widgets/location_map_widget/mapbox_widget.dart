@@ -69,6 +69,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   late final VoidCallback _selectedTreeListener;
   late final VoidCallback _inspectedListener;
   late final VoidCallback _userLocationListener;
+  late final VoidCallback _treeToPlotToggleListener;
+  late final VoidCallback _plotToPlotToggleListener;
   // Cache of tree models currently displayed on the map.
   final List<TreeModel> _treesCache = [];
   // Cache of plot models currently displayed on the map.
@@ -114,6 +116,37 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       }
     };
     userLocationNotifier.addListener(_userLocationListener);
+    _treeToPlotToggleListener = () {
+      // If tree->plot lines were turned off, remove any existing connection
+      // visuals. If turned on, refresh current selection.
+      if (!isTreeToPlotLineVisibleNotifier.value) {
+        Future.microtask(() async => await _removeConnectionMarkers());
+      } else {
+        if (selectedTreeNotifier.value != null) {
+          Future.microtask(
+            () async => await _updateConnectionForSelectedTree(),
+          );
+        } else if (selectedPlotNotifier.value != null) {
+          Future.microtask(
+            () async => await _updateConnectionForSelectedPlot(),
+          );
+        }
+      }
+    };
+    isTreeToPlotLineVisibleNotifier.addListener(_treeToPlotToggleListener);
+
+    _plotToPlotToggleListener = () {
+      if (!isPlotToPlotLineVisibleNotifier.value) {
+        Future.microtask(() async => await _removeConnectionMarkers());
+      } else {
+        if (selectedPlotNotifier.value != null) {
+          Future.microtask(
+            () async => await _updateConnectionForSelectedPlot(),
+          );
+        }
+      }
+    };
+    isPlotToPlotLineVisibleNotifier.addListener(_plotToPlotToggleListener);
     _selectedTreeListener = () {
       if (!mounted) return;
       // Recreate markers so the selected tree is rendered with the
@@ -172,6 +205,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     userLocationNotifier.removeListener(_userLocationListener);
     selectedTreeNotifier.removeListener(_selectedTreeListener);
     inspectedTreeIdsNotifier.removeListener(_inspectedListener);
+    isTreeToPlotLineVisibleNotifier.removeListener(_treeToPlotToggleListener);
+    isPlotToPlotLineVisibleNotifier.removeListener(_plotToPlotToggleListener);
     super.dispose();
   }
 
@@ -666,6 +701,11 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       await _removeConnectionMarkers();
       return;
     }
+    // Respect user preference: do not draw tree->plot lines if disabled.
+    if (!isTreeToPlotLineVisibleNotifier.value) {
+      await _removeConnectionMarkers();
+      return;
+    }
     if (tree.latitude == null || tree.longitude == null) return;
 
     // Find the plot center for this tree and draw connection.
@@ -737,8 +777,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       for (final p in plotsForCluster) {
         plotSegments.add([p.longitude, p.latitude, clusterLon, clusterLat]);
       }
-      // Draw plot->plot lines in light-blue, remove existing visuals first.
-      if (plotSegments.isNotEmpty) {
+      // Draw plot->plot lines in light-blue only if enabled by the user.
+      if (plotSegments.isNotEmpty && isPlotToPlotLineVisibleNotifier.value) {
         await _showConnectionLines(
           plotSegments,
           color: kPlotConnectionColor,
@@ -768,7 +808,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           t.latitude!,
         ]);
       }
-      if (treeSegments.isNotEmpty) {
+      if (treeSegments.isNotEmpty && isTreeToPlotLineVisibleNotifier.value) {
         // Add tree connection lines without removing the plot->plot lines.
         await _showConnectionLines(
           treeSegments,

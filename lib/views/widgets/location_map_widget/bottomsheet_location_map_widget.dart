@@ -489,7 +489,16 @@ class _BottomsheetLocationMapWidgetState
                             children: [
                               IconButton(
                                 onPressed: () => _centerToMyLocation(context),
-                                icon: const Icon(Icons.my_location),
+                                icon: ValueListenableBuilder<dynamic>(
+                                  valueListenable: userLocationNotifier,
+                                  builder: (context, pos, child) {
+                                    return Icon(
+                                      pos == null
+                                          ? Icons.location_on_outlined
+                                          : Icons.location_on,
+                                    );
+                                  },
+                                ),
                                 style: ButtonStyle(
                                   foregroundColor:
                                       WidgetStateProperty.resolveWith(

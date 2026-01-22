@@ -39,6 +39,18 @@ void main() async {
       'enddrawer_tooltip_marker_info_dismissed_value',
     );
     if (markerInfo != null) isMarkerInfoOnSelectNotifier.value = markerInfo;
+    final treePlotLines = prefs.getBool(
+      'enddrawer_tooltip_tree_to_plot_lines_dismissed_value',
+    );
+    if (treePlotLines != null) {
+      isTreeToPlotLineVisibleNotifier.value = treePlotLines;
+    }
+    final plotPlotLines = prefs.getBool(
+      'enddrawer_tooltip_plot_to_plot_lines_dismissed_value',
+    );
+    if (plotPlotLines != null) {
+      isPlotToPlotLineVisibleNotifier.value = plotPlotLines;
+    }
   } catch (_) {}
   runApp(MainApp());
 }

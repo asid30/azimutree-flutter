@@ -69,5 +69,11 @@ ValueNotifier<Set<int>> inspectedTreeIdsNotifier = ValueNotifier({});
 /// When true, selecting a marker (tree/plot) shows the floating marker info card.
 ValueNotifier<bool> isMarkerInfoOnSelectNotifier = ValueNotifier(true);
 
+/// Show/hide line from tree marker to its plot center.
+ValueNotifier<bool> isTreeToPlotLineVisibleNotifier = ValueNotifier(true);
+
+/// Show/hide connecting lines between plots.
+ValueNotifier<bool> isPlotToPlotLineVisibleNotifier = ValueNotifier(true);
+
 /// Increment this value to request the bottomsheet to minimize.
 ValueNotifier<int> bottomsheetMinimizeRequestNotifier = ValueNotifier(0);
