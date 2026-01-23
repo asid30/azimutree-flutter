@@ -414,9 +414,35 @@ class _BottomsheetLocationMapWidgetState
             (a, b) => a.kodePlot.toString().compareTo(b.kodePlot.toString()),
           );
       if (sameCluster.isEmpty) return;
-      final idx = sameCluster.indexWhere((pl) => pl.id == cur.id);
-      final next = sameCluster[(idx < 0 ? 0 : (idx + 1) % sameCluster.length)];
-      await _selectAndCenterPlot(next);
+      // Determine if this cluster has a generated centroid
+      final hasPlot1 = sameCluster.any((p) => p.kodePlot == 1);
+      final includeCentroid = !hasPlot1 && sameCluster.length > 1;
+
+      // Build navigation sequence: [plot1, plot2, ..., (centroid)]
+      final seq = <dynamic>[];
+      seq.addAll(sameCluster);
+      if (includeCentroid)
+        seq.add({'centroid': true, 'clusterId': cur.idCluster});
+
+      // Find current index
+      int idx = seq.indexWhere((e) => e is PlotModel && e.id == cur.id);
+      if (idx < 0) idx = 0;
+      final next = seq[(idx + 1) % seq.length];
+      if (next is PlotModel) {
+        // Clear centroid selection if any and move to plot
+        selectedCentroidNotifier.value = null;
+        await _selectAndCenterPlot(next);
+      } else {
+        // Centroid selected
+        try {
+          final cluster = await ClusterDao.getClusterById(cur.idCluster);
+          if (cluster != null) {
+            selectedPlotNotifier.value = null;
+            selectedCentroidNotifier.value = cluster;
+            await _centerToCentroid(cluster);
+          }
+        } catch (_) {}
+      }
     } catch (_) {}
   }
 
@@ -430,11 +456,31 @@ class _BottomsheetLocationMapWidgetState
             (a, b) => a.kodePlot.toString().compareTo(b.kodePlot.toString()),
           );
       if (sameCluster.isEmpty) return;
-      int idx = sameCluster.indexWhere((pl) => pl.id == cur.id);
+      // Determine if this cluster has a generated centroid
+      final hasPlot1 = sameCluster.any((p) => p.kodePlot == 1);
+      final includeCentroid = !hasPlot1 && sameCluster.length > 1;
+
+      final seq = <dynamic>[];
+      seq.addAll(sameCluster);
+      if (includeCentroid)
+        seq.add({'centroid': true, 'clusterId': cur.idCluster});
+
+      int idx = seq.indexWhere((e) => e is PlotModel && e.id == cur.id);
       if (idx < 0) idx = 0;
-      final prev =
-          sameCluster[(idx - 1) < 0 ? sameCluster.length - 1 : (idx - 1)];
-      await _selectAndCenterPlot(prev);
+      final prev = seq[(idx - 1) < 0 ? (seq.length - 1) : (idx - 1)];
+      if (prev is PlotModel) {
+        selectedCentroidNotifier.value = null;
+        await _selectAndCenterPlot(prev);
+      } else {
+        try {
+          final cluster = await ClusterDao.getClusterById(cur.idCluster);
+          if (cluster != null) {
+            selectedPlotNotifier.value = null;
+            selectedCentroidNotifier.value = cluster;
+            await _centerToCentroid(cluster);
+          }
+        } catch (_) {}
+      }
     } catch (_) {}
   }
 
