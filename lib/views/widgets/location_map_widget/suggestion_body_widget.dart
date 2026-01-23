@@ -69,6 +69,10 @@ class SuggestionBodyWidget extends StatelessWidget {
                         } catch (_) {
                           selectedPlotClusterNotifier.value = null;
                         }
+                        // Ensure we stop following live location so the
+                        // search result marker can be displayed (the map
+                        // hides the search marker while following user).
+                        isFollowingUserLocationNotifier.value = false;
                         // Center map on the plot
                         selectedLocationNotifier.value = Position(
                           plot.longitude,
@@ -83,8 +87,10 @@ class SuggestionBodyWidget extends StatelessWidget {
                   logger.w('Suggestion selection DB resolve failed: $e');
                 }
 
-                // Fallback: generic place coordinate (Mapbox)
+                // Fallback: generic place coordinate (Mapbox).
+                // Also disable follow-to-user so the search marker can show.
                 try {
+                  isFollowingUserLocationNotifier.value = false;
                   selectedLocationNotifier.value = Position(
                     double.parse(place["longitude"].toString()),
                     double.parse(place["latitude"].toString()),

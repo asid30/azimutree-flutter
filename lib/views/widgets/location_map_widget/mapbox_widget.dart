@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 
 // Marker style constants
 const int kClusterColor = 0xFF2E7D32;
@@ -377,6 +378,59 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // (Using built-in Mapbox compass; no custom compass here.)
+                  // Remove-search-marker button at top so it's visually first.
+                  ValueListenableBuilder<bool>(
+                    valueListenable: selectedLocationFromSearchNotifier,
+                    builder: (context, hasSearchMarker, child) {
+                      if (!hasSearchMarker) return const SizedBox.shrink();
+                      return Tooltip(
+                        message: 'Hapus marker pencarian',
+                        child: FloatingActionButton.small(
+                          heroTag: 'remove_search_marker_btn',
+                          onPressed: () async {
+                            final confirm = await showDialog<bool>(
+                              context: context,
+                              builder:
+                                  (_) => const AlertConfirmationWidget(
+                                    message:
+                                        'Hapus marker pencarian dari peta?',
+                                    confirmText: 'Hapus',
+                                    cancelText: 'Batal',
+                                  ),
+                            );
+                            if (confirm != true) return;
+                            // Prevent the bottomsheet from regaining focus or
+                            // expanding after the dialog dismisses by explicitly
+                            // unfocusing and clearing the focus notifier.
+                            try {
+                              FocusManager.instance.primaryFocus?.unfocus();
+                            } catch (_) {}
+                            try {
+                              isSearchFieldFocusedNotifier.value = false;
+                            } catch (_) {}
+                            try {
+                              await _removeSearchResultMarker();
+                            } catch (_) {}
+                            try {
+                              selectedLocationFromSearchNotifier.value = false;
+                              selectedLocationNotifier.value = null;
+                            } catch (_) {}
+                          },
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            205,
+                            237,
+                            211,
+                          ),
+                          child: const Icon(
+                            Icons.clear,
+                            color: Color(0xFF1F4226),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 8),
                   ValueListenableBuilder<bool>(
                     valueListenable: isMarkerActivationEnabledNotifier,
                     builder: (context, enabled, child) {
@@ -391,16 +445,20 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                               () =>
                                   isMarkerActivationEnabledNotifier.value =
                                       !enabled,
-                          backgroundColor: Color.fromARGB(255, 205, 237, 211),
+                          backgroundColor: const Color.fromARGB(
+                            255,
+                            205,
+                            237,
+                            211,
+                          ),
                           child: Icon(
                             enabled ? Icons.touch_app : Icons.block,
-                            color: Color(0xFF1F4226),
+                            color: const Color(0xFF1F4226),
                           ),
                         ),
                       );
                     },
                   ),
-                  const SizedBox(height: 8),
                   FloatingActionButton.small(
                     heroTag: 'zoom_in_btn',
                     onPressed: () async => _zoomBy(1.0),

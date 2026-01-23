@@ -16,7 +16,6 @@ import 'package:azimutree/services/gdrive_thumbnail_service.dart';
 
 class BottomsheetLocationMapWidget extends StatefulWidget {
   const BottomsheetLocationMapWidget({super.key});
-
   @override
   State<BottomsheetLocationMapWidget> createState() =>
       _BottomsheetLocationMapWidgetState();
@@ -79,10 +78,10 @@ class _BottomsheetLocationMapWidgetState
       // camera animation run), minimize the bottomsheet, unfocus the
       // search field (hide keyboard), and ensure any previous marker
       // selection is cleared.
-      if (!mounted) return;
       if (!selectedLocationFromSearchNotifier.value) return;
       Future.microtask(() async {
         await Future.delayed(const Duration(milliseconds: 600));
+        if (!mounted) return;
         try {
           // Minimize bottomsheet
           bottomsheetMinimizeRequestNotifier.value =
@@ -621,6 +620,7 @@ class _BottomsheetLocationMapWidgetState
                                       },
                                       icon: const Icon(Icons.arrow_back),
                                     ),
+                                    const SizedBox(width: 8),
                                     IconButton(
                                       tooltip: 'Center on plot',
                                       onPressed: () async {
@@ -645,6 +645,7 @@ class _BottomsheetLocationMapWidgetState
                                         Icons.my_location_outlined,
                                       ),
                                     ),
+                                    const SizedBox(width: 8),
                                     IconButton(
                                       tooltip: 'Plot berikutnya',
                                       onPressed: () async {
@@ -652,6 +653,7 @@ class _BottomsheetLocationMapWidgetState
                                       },
                                       icon: const Icon(Icons.arrow_forward),
                                     ),
+                                    const SizedBox(width: 8),
                                     IconButton(
                                       onPressed: () {
                                         selectedPlotNotifier.value = null;
