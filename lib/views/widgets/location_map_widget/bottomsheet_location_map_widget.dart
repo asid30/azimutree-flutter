@@ -421,8 +421,9 @@ class _BottomsheetLocationMapWidgetState
       // Build navigation sequence: [plot1, plot2, ..., (centroid)]
       final seq = <dynamic>[];
       seq.addAll(sameCluster);
-      if (includeCentroid)
+      if (includeCentroid) {
         seq.add({'centroid': true, 'clusterId': cur.idCluster});
+      }
 
       // Find current index
       int idx = seq.indexWhere((e) => e is PlotModel && e.id == cur.id);
@@ -462,8 +463,9 @@ class _BottomsheetLocationMapWidgetState
 
       final seq = <dynamic>[];
       seq.addAll(sameCluster);
-      if (includeCentroid)
+      if (includeCentroid) {
         seq.add({'centroid': true, 'clusterId': cur.idCluster});
+      }
 
       int idx = seq.indexWhere((e) => e is PlotModel && e.id == cur.id);
       if (idx < 0) idx = 0;
