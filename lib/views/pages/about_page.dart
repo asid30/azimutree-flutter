@@ -43,8 +43,8 @@ class AboutPage extends StatelessWidget {
           children: [
             //* Background App
             BackgroundAppWidget(
-              lightBackgroundImage: "assets/images/light-bg-plain.png",
-              darkBackgroundImage: "assets/images/dark-bg-plain.png",
+              lightBackgroundImage: "assets/images/light-bg-notitle.png",
+              darkBackgroundImage: "assets/images/dark-bg-notitle.png",
             ),
             //* Content
             SingleChildScrollView(
@@ -69,13 +69,14 @@ class AboutPage extends StatelessWidget {
                     ),
 
                     Card(
+                      color: Color.fromARGB(240, 180, 216, 187),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Azimutree - Forest Health Monitoring',
+                              'Azimutree - Pemantauan Kesehatan Hutan',
                               style: const TextStyle(
                                 fontSize: 24,
                                 fontWeight: FontWeight.bold,
@@ -93,6 +94,7 @@ class AboutPage extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     Card(
+                      color: Color.fromARGB(240, 180, 216, 187),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -112,6 +114,7 @@ class AboutPage extends StatelessWidget {
                     const SizedBox(height: 12),
 
                     Card(
+                      color: Color.fromARGB(240, 180, 216, 187),
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(
@@ -131,43 +134,13 @@ class AboutPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 12),
 
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _sectionTitle(context, 'Tujuan Proyek'),
-                            const Text(
-                              'Proyek ini bertujuan untuk membantu kegiatan survei lapangan kehutanan dengan menyediakan alat digital yang memudahkan pencatatan lokasi klaster, plot, dan pohon secara langsung di lapangan tanpa bergantung pada pencatatan manual.',
-                              textAlign: TextAlign.justify,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    Card(
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _sectionTitle(context, 'Catatan'),
-                            _bullet(
-                              'Aplikasi ini dikembangkan untuk perangkat mobile Android.',
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
                     const Center(
                       child: Text(
-                        'Developed by Asid30 © 2026',
-                        style: TextStyle(fontSize: 12),
+                        'Dikembangkan oleh Asid30 © 2026',
+                        style: TextStyle(
+                          fontSize: 12,
+                          backgroundColor: Color.fromARGB(240, 180, 216, 187),
+                        ),
                       ),
                     ),
                     const SizedBox(height: 24),

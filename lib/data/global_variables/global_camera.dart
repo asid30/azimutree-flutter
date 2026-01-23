@@ -1,3 +1,2 @@
-import 'package:camera/camera.dart';
-
-List<CameraDescription> globalCameras = [];
+// Camera global removed. File kept as placeholder in case other modules import it.
+List<dynamic> globalCameras = [];

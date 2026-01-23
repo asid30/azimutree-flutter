@@ -24,11 +24,12 @@ class AzimutreeDB {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 2,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
       onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
     );
   }
 
@@ -36,6 +37,19 @@ class AzimutreeDB {
     await ClusterDao.createTable(db);
     await PlotDao.createTable(db);
     await TreeDao.createTable(db);
+  }
+
+  Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    // Add migration path to introduce optional 'inspected' column on trees
+    if (oldVersion < 2 && newVersion >= 2) {
+      try {
+        await db.execute(
+          'ALTER TABLE ${TreeDao.tableName} ADD COLUMN inspected INTEGER',
+        );
+      } catch (_) {
+        // ignore if column already exists or other issues; safe to continue
+      }
+    }
   }
 
   Future close() async {

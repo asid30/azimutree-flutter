@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:azimutree/data/models/tree_model.dart';
+import 'package:azimutree/data/models/plot_model.dart';
+import 'package:azimutree/data/models/cluster_model.dart';
 
 ValueNotifier<bool> isLightModeNotifier = ValueNotifier(true);
 ValueNotifier<String> selectedPageNotifier = ValueNotifier("home");
@@ -22,3 +25,60 @@ ValueNotifier<int> northResetRequestNotifier = ValueNotifier(0);
 
 /// True when the search input inside the bottom sheet has focus.
 ValueNotifier<bool> isSearchFieldFocusedNotifier = ValueNotifier(false);
+
+/// Holds the currently-selected tree (when a marker is tapped on the map).
+ValueNotifier<TreeModel?> selectedTreeNotifier = ValueNotifier(null);
+
+/// Holds the currently-selected plot (when a plot marker is tapped on the map).
+ValueNotifier<PlotModel?> selectedPlotNotifier = ValueNotifier(null);
+
+/// When true, the next `selectedLocationNotifier` update will preserve the
+/// current map zoom instead of forcing a fixed zoom level. This is used when
+/// centering on a tree so the user's zoom choice isn't overridden.
+ValueNotifier<bool> preserveZoomOnNextCenterNotifier = ValueNotifier(false);
+
+/// When true, the currently set `selectedLocationNotifier` was originated
+/// from a search result selection. The map will show the special "search"
+/// marker only when this notifier is true.
+ValueNotifier<bool> selectedLocationFromSearchNotifier = ValueNotifier(false);
+
+/// When true, tapping (via the short hold activation) on markers is allowed.
+/// This lets the user temporarily disable marker activation to avoid accidental
+/// selections while panning.
+ValueNotifier<bool> isMarkerActivationEnabledNotifier = ValueNotifier(true);
+
+/// Controls whether the on-map legend (top-left) is visible.
+ValueNotifier<bool> isMapLegendVisibleNotifier = ValueNotifier(true);
+
+/// Latest screen offset (in logical pixels) where a selected marker was tapped.
+/// Used to position floating marker info near the tapped marker.
+ValueNotifier<Offset?> selectedMarkerScreenOffsetNotifier = ValueNotifier(null);
+
+// When a tree is selected, these hold the resolved plot and cluster models
+// to avoid doing DB lookups in UI widgets.
+ValueNotifier<PlotModel?> selectedTreePlotNotifier = ValueNotifier(null);
+ValueNotifier<ClusterModel?> selectedTreeClusterNotifier = ValueNotifier(null);
+ValueNotifier<ClusterModel?> selectedPlotClusterNotifier = ValueNotifier(null);
+
+/// When a generated centroid marker is selected on the map, this holds the
+/// resolved `ClusterModel` so UI can show cluster info just like selecting
+/// a plot. Set to `null` to clear selection.
+ValueNotifier<ClusterModel?> selectedCentroidNotifier = ValueNotifier(null);
+
+/// Enable/disable the simple inspection workflow (toggle in drawer).
+ValueNotifier<bool> isInspectionWorkflowEnabledNotifier = ValueNotifier(false);
+
+/// Set of tree IDs that have been marked as inspected/done.
+ValueNotifier<Set<int>> inspectedTreeIdsNotifier = ValueNotifier({});
+
+/// When true, selecting a marker (tree/plot) shows the floating marker info card.
+ValueNotifier<bool> isMarkerInfoOnSelectNotifier = ValueNotifier(true);
+
+/// Show/hide line from tree marker to its plot center.
+ValueNotifier<bool> isTreeToPlotLineVisibleNotifier = ValueNotifier(true);
+
+/// Show/hide connecting lines between plots.
+ValueNotifier<bool> isPlotToPlotLineVisibleNotifier = ValueNotifier(true);
+
+/// Increment this value to request the bottomsheet to minimize.
+ValueNotifier<int> bottomsheetMinimizeRequestNotifier = ValueNotifier(0);
