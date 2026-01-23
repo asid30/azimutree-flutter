@@ -73,29 +73,52 @@ class _SearchbarBottomsheetWidgetState
     return ValueListenableBuilder(
       valueListenable: userInputSearchBarNotifier,
       builder: (context, userInputSearchBar, child) {
-        return TextFormField(
-          focusNode: _focusNode,
-          controller: _searchController,
-          decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.search, color: Colors.grey),
-            suffixIcon: IconButton(
-              icon: const Icon(Icons.close, color: Colors.grey),
+        return Row(
+          children: [
+            Expanded(
+              child: TextFormField(
+                focusNode: _focusNode,
+                controller: _searchController,
+                decoration: InputDecoration(
+                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.close, color: Colors.grey),
+                    onPressed: () {
+                      _searchController.clear();
+                      FocusScope.of(context).unfocus();
+                      userInputSearchBarNotifier.value = "";
+                      // Request the bottomsheet to minimize so the map regains focus.
+                      bottomsheetMinimizeRequestNotifier.value =
+                          bottomsheetMinimizeRequestNotifier.value + 1;
+                    },
+                  ),
+                  hintText: 'Cari lokasi...',
+                  contentPadding: const EdgeInsets.symmetric(
+                    vertical: 9,
+                    horizontal: 16,
+                  ),
+                ),
+                onChanged: _onSearchChanged,
+              ),
+            ),
+            const SizedBox(width: 8),
+            IconButton(
+              tooltip: 'Minimize bottomsheet',
               onPressed: () {
-                _searchController.clear();
-                FocusScope.of(context).unfocus();
-                userInputSearchBarNotifier.value = "";
-                // Request the bottomsheet to minimize so the map regains focus.
-                bottomsheetMinimizeRequestNotifier.value =
-                    bottomsheetMinimizeRequestNotifier.value + 1;
+                try {
+                  bottomsheetMinimizeRequestNotifier.value =
+                      bottomsheetMinimizeRequestNotifier.value + 1;
+                } catch (_) {}
+                try {
+                  FocusScope.of(context).unfocus();
+                } catch (_) {}
+                try {
+                  isSearchFieldFocusedNotifier.value = false;
+                } catch (_) {}
               },
+              icon: const Icon(Icons.keyboard_arrow_down),
             ),
-            hintText: 'Cari lokasi...',
-            contentPadding: const EdgeInsets.symmetric(
-              vertical: 9,
-              horizontal: 16,
-            ),
-          ),
-          onChanged: _onSearchChanged,
+          ],
         );
       },
     );

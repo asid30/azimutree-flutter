@@ -655,6 +655,31 @@ class _BottomsheetLocationMapWidgetState
                                     ),
                                     const SizedBox(width: 8),
                                     IconButton(
+                                      tooltip: 'Minimize bottomsheet',
+                                      onPressed: () {
+                                        try {
+                                          bottomsheetMinimizeRequestNotifier
+                                                  .value =
+                                              bottomsheetMinimizeRequestNotifier
+                                                  .value +
+                                              1;
+                                        } catch (_) {}
+                                        try {
+                                          if (context.mounted) {
+                                            FocusScope.of(context).unfocus();
+                                          }
+                                        } catch (_) {}
+                                        try {
+                                          isSearchFieldFocusedNotifier.value =
+                                              false;
+                                        } catch (_) {}
+                                      },
+                                      icon: const Icon(
+                                        Icons.keyboard_arrow_down,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    IconButton(
                                       onPressed: () {
                                         selectedPlotNotifier.value = null;
                                       },
