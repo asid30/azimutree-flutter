@@ -4,6 +4,7 @@ import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_plot_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/tree_plot_manage_data_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -31,7 +32,8 @@ class PlotClusterManageDataWidget extends StatefulWidget {
 }
 
 class _PlotClusterManageDataWidgetState
-    extends State<PlotClusterManageDataWidget> {
+    extends State<PlotClusterManageDataWidget>
+    with SingleTickerProviderStateMixin {
   String? _expandedKey;
 
   String _tileKey(PlotModel plot) =>
@@ -128,10 +130,33 @@ class _PlotClusterManageDataWidgetState
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                "Plot ${plot.kodePlot}",
-                                style:
-                                    const TextStyle(fontWeight: FontWeight.w600),
+                              child: Row(
+                                children: [
+                                  Flexible(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            "Plot ${plot.kodePlot}",
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                        if (plot.kodePlot == 1) ...[
+                                          const SizedBox(width: 6),
+                                          const Icon(
+                                            Icons.star,
+                                            size: 18,
+                                            color: Color(0xFF1F4226),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             IconButton(
@@ -160,78 +185,86 @@ class _PlotClusterManageDataWidgetState
                           data: ThemeData().copyWith(
                             dividerColor: Colors.transparent,
                           ),
-                          child: ExpansionTile(
-                            key: ValueKey("${isExpanded}_$tileKey"),
-                            initiallyExpanded: isExpanded,
-                            onExpansionChanged: (expanded) {
-                              setState(() {
-                                if (expanded) {
-                                  _expandedKey = tileKey;
-                                } else if (_expandedKey == tileKey) {
-                                  _expandedKey = null;
-                                }
-                              });
-                            },
-                            tilePadding: EdgeInsets.zero,
-                            title: const Text(
-                              "Detail plot",
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                            subtitle: Table(
-                              columnWidths: const {
-                                0: FlexColumnWidth(2),
-                                1: FlexColumnWidth(3),
+                          child: AnimatedSize(
+                            duration: const Duration(milliseconds: 800),
+                            curve: Curves.easeInOut,
+                            alignment: Alignment.topCenter,
+                            child: ExpansionTile(
+                              key: ValueKey("${isExpanded}_$tileKey"),
+                              maintainState: true,
+                              initiallyExpanded: isExpanded,
+                              onExpansionChanged: (expanded) {
+                                setState(() {
+                                  if (expanded) {
+                                    _expandedKey = tileKey;
+                                  } else if (_expandedKey == tileKey) {
+                                    _expandedKey = null;
+                                  }
+                                });
                               },
+                              tilePadding: EdgeInsets.zero,
+                              title: const Text(
+                                "Detail plot",
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              subtitle: Table(
+                                columnWidths: const {
+                                  0: FlexColumnWidth(2),
+                                  1: FlexColumnWidth(3),
+                                },
+                                children: [
+                                  _row(
+                                    "Latitude",
+                                    plot.latitude.toStringAsFixed(6),
+                                  ),
+                                  _row(
+                                    "Longitude",
+                                    plot.longitude.toStringAsFixed(6),
+                                  ),
+                                  _row(
+                                    "Altitude",
+                                    plot.altitude != null
+                                        ? "${plot.altitude} m"
+                                        : "-",
+                                  ),
+                                  _row(
+                                    "Jumlah Pohon",
+                                    plot.id != null
+                                        ? widget.treeData
+                                            .where(
+                                              (tree) => tree.plotId == plot.id,
+                                            )
+                                            .length
+                                            .toString()
+                                        : "0",
+                                  ),
+                                ],
+                              ),
                               children: [
-                                _row(
-                                  "Latitude",
-                                  plot.latitude.toStringAsFixed(6),
-                                ),
-                                _row(
-                                  "Longitude",
-                                  plot.longitude.toStringAsFixed(6),
-                                ),
-                                _row(
-                                  "Altitude",
-                                  plot.altitude != null
-                                      ? "${plot.altitude} m"
-                                      : "-",
-                                ),
-                                _row(
-                                  "Jumlah Pohon",
-                                  plot.id != null
-                                      ? widget.treeData
-                                          .where((tree) => tree.plotId == plot.id)
-                                          .length
-                                          .toString()
-                                      : "0",
-                                ),
+                                const Divider(height: 1),
+                                if (plot.id != null)
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                    ),
+                                    child: TreePlotManageDataWidget(
+                                      plotId: plot.id!,
+                                      treeData: widget.treeData,
+                                      plots: widget.plotData,
+                                      clusters: widget.clustersData,
+                                      treeNotifier: widget.treeNotifier,
+                                    ),
+                                  )
+                                else
+                                  const Padding(
+                                    padding: EdgeInsets.all(8.0),
+                                    child: Text("ID plot tidak tersedia"),
+                                  ),
                               ],
                             ),
-                            children: [
-                              const Divider(height: 1),
-                              if (plot.id != null)
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 8.0,
-                                  ),
-                                  child: TreePlotManageDataWidget(
-                                    plotId: plot.id!,
-                                    treeData: widget.treeData,
-                                    plots: widget.plotData,
-                                    clusters: widget.clustersData,
-                                    treeNotifier: widget.treeNotifier,
-                                  ),
-                                )
-                              else
-                                const Padding(
-                                  padding: EdgeInsets.all(8.0),
-                                  child: Text("ID plot tidak tersedia"),
-                                ),
-                            ],
                           ),
                         ),
                       ],
@@ -284,19 +317,11 @@ class _PlotClusterManageDataWidgetState
     final confirm = await showDialog<bool>(
       context: context,
       builder:
-          (_) => AlertDialog(
-            title: const Text("Hapus plot?"),
-            content: const Text("Semua pohon di plot ini akan ikut terhapus."),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("Batal"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text("Hapus"),
-              ),
-            ],
+          (_) => AlertConfirmationWidget(
+            title: 'Hapus plot?',
+            message: 'Semua pohon di plot ini akan ikut terhapus.',
+            confirmText: 'Hapus',
+            cancelText: 'Batal',
           ),
     );
 

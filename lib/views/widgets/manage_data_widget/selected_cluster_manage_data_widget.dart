@@ -6,6 +6,7 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_cluster_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:flutter/material.dart';
 
 class SelectedClusterManageDataWidget extends StatelessWidget {
@@ -36,56 +37,66 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
         int treeCount = 0;
         double? clusterLat;
         double? clusterLon;
-        if (selectedClusterCode != null && clustersData.isNotEmpty) {
-          try {
-            selectedCluster = clustersData.firstWhere(
-              (c) => c.kodeCluster == selectedClusterCode,
-            );
-            if (selectedCluster.id != null) {
-              final plotsForCluster =
-                  plotData
-                      .where((plot) => plot.idCluster == selectedCluster?.id)
-                      .toList();
+        String? coordinateNote;
+        bool usedPlot1 = false;
+        try {
+          selectedCluster = clustersData.firstWhere(
+            (c) => c.kodeCluster == selectedClusterCode,
+          );
+          final sel = selectedCluster;
+          if (sel.id != null) {
+            final plotsForCluster =
+                plotData.where((plot) => plot.idCluster == sel.id).toList();
 
-              plotCount = plotsForCluster.length;
+            plotCount = plotsForCluster.length;
 
-              if (plotsForCluster.isNotEmpty) {
+            if (plotsForCluster.isNotEmpty) {
+              // Prefer plot with kodePlot == 1 as the cluster center.
+              final hasPlot1 = plotsForCluster.any((p) => p.kodePlot == 1);
+              if (hasPlot1) {
                 final plot1 = plotsForCluster.firstWhere(
                   (p) => p.kodePlot == 1,
-                  orElse: () => plotsForCluster.first,
                 );
-
-                // Kalau plot 1 ada: pakai koordinatnya; kalau tidak, pakai rata-rata plot yang ada.
                 clusterLat = plot1.latitude;
                 clusterLon = plot1.longitude;
-
-                if (plot1.kodePlot != 1 && plotsForCluster.length > 1) {
-                  clusterLat =
-                      plotsForCluster
-                          .map((p) => p.latitude)
-                          .reduce((a, b) => a + b) /
-                      plotsForCluster.length;
-                  clusterLon =
-                      plotsForCluster
-                          .map((p) => p.longitude)
-                          .reduce((a, b) => a + b) /
-                      plotsForCluster.length;
+                coordinateNote = '(plot 1)';
+                usedPlot1 = true;
+              } else {
+                // Calculate centroid from available plot coordinates in the cluster.
+                final plotsWithCoords = plotsForCluster;
+                if (plotsWithCoords.isNotEmpty) {
+                  final latSum = plotsWithCoords.fold<double>(
+                    0.0,
+                    (sum, p) => sum + p.latitude,
+                  );
+                  final lonSum = plotsWithCoords.fold<double>(
+                    0.0,
+                    (sum, p) => sum + p.longitude,
+                  );
+                  clusterLat = latSum / plotsWithCoords.length;
+                  clusterLon = lonSum / plotsWithCoords.length;
+                  coordinateNote = '(centroid)';
+                } else {
+                  // No plot 1 and no usable coordinates to compute centroid.
+                  clusterLat = null;
+                  clusterLon = null;
+                  coordinateNote = 'tidak ada plot satu';
                 }
               }
-
-              final clusterPlotIds =
-                  plotsForCluster
-                      .where((plot) => plot.id != null)
-                      .map((plot) => plot.id!)
-                      .toSet();
-              treeCount =
-                  treeData
-                      .where((tree) => clusterPlotIds.contains(tree.plotId))
-                      .length;
             }
-          } catch (_) {
-            selectedCluster = null; // kalau tidak ketemu
+
+            final clusterPlotIds =
+                plotsForCluster
+                    .where((plot) => plot.id != null)
+                    .map((plot) => plot.id!)
+                    .toSet();
+            treeCount =
+                treeData
+                    .where((tree) => clusterPlotIds.contains(tree.plotId))
+                    .length;
           }
+        } catch (_) {
+          selectedCluster = null; // kalau tidak ketemu
         }
 
         return Container(
@@ -122,7 +133,26 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                           _row("Pengukur", selectedCluster.namaPengukur ?? "-"),
                           _row("Jumlah Plot", plotCount.toString()),
                           _row("Jumlah Pohon", treeCount.toString()),
-                          _coordinateRow(clusterLat, clusterLon),
+                          _row(
+                            "Pusat Klaster",
+                            usedPlot1
+                                ? 'Plot 1'
+                                : (clusterLat != null
+                                    ? 'Generated Centroid'
+                                    : (coordinateNote ?? '-')),
+                          ),
+                          _row(
+                            "Latitude",
+                            clusterLat != null
+                                ? clusterLat.toStringAsFixed(6)
+                                : '-',
+                          ),
+                          _row(
+                            "Longitude",
+                            clusterLon != null
+                                ? clusterLon.toStringAsFixed(6)
+                                : '-',
+                          ),
                           _row(
                             "Tanggal Pengukuran",
                             selectedCluster.tanggalPengukuran != null
@@ -184,32 +214,6 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     return "$d-$m-$y";
   }
 
-  TableRow _coordinateRow(double? lat, double? lon) {
-    String value;
-    String tooltip;
-    if (lat != null && lon != null) {
-      value = "${lat.toStringAsFixed(6)}, ${lon.toStringAsFixed(6)}";
-      tooltip =
-          "Koordinat klaster diambil dari plot 1 jika ada, atau rata-rata plot yang tersedia.";
-    } else {
-      value = "-";
-      tooltip = "Belum ada plot, koordinat klaster belum tersedia.";
-    }
-
-    return TableRow(
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 0),
-          child: Text("Koordinat"),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 0),
-          child: Tooltip(message: tooltip, child: Text(": $value")),
-        ),
-      ],
-    );
-  }
-
   Future<void> _editCluster(BuildContext context, ClusterModel cluster) async {
     final result = await showDialog<ClusterModel>(
       context: context,
@@ -233,21 +237,11 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     final confirm = await showDialog<bool>(
       context: context,
       builder:
-          (_) => AlertDialog(
-            title: const Text("Hapus klaster?"),
-            content: const Text(
-              "Semua plot dan pohon di klaster ini akan ikut terhapus.",
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("Batal"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text("Hapus"),
-              ),
-            ],
+          (_) => AlertConfirmationWidget(
+            title: 'Hapus klaster?',
+            message: 'Semua plot dan pohon di klaster ini akan ikut terhapus.',
+            confirmText: 'Hapus',
+            cancelText: 'Batal',
           ),
     );
 

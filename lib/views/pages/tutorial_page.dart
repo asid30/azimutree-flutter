@@ -3,7 +3,6 @@ import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_lorem/flutter_lorem.dart';
 
 class TutorialPage extends StatelessWidget {
   const TutorialPage({super.key});
@@ -25,8 +24,8 @@ class TutorialPage extends StatelessWidget {
           children: [
             //* Background App
             BackgroundAppWidget(
-              lightBackgroundImage: "assets/images/light-bg-plain.png",
-              darkBackgroundImage: "assets/images/dark-bg-plain.png",
+              lightBackgroundImage: "assets/images/light-bg-notitle.png",
+              darkBackgroundImage: "assets/images/dark-bg-notitle.png",
             ),
             //* Content
             SingleChildScrollView(
@@ -49,24 +48,118 @@ class TutorialPage extends StatelessWidget {
                         const Text("Kembali", style: TextStyle(fontSize: 18)),
                       ],
                     ),
-                    Text(
-                      'Selamat Datang di Aplikasi Azimutree!',
-                      style: TextStyle(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
+
+                    Card(
+                      color: const Color.fromARGB(240, 180, 216, 187),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Panduan Singkat Azimutree',
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Panduan ini memperkenalkan alur kerja dasar aplikasi: membuat klaster, menambahkan plot, lalu merekam pohon beserta lokasi dan foto. Ikuti langkah-langkah di bawah untuk memulai.',
+                              textAlign: TextAlign.justify,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 15),
-                    Text(
-                      'Panduan ini akan membantu Anda memahami cara menggunakan aplikasi Azimutree untuk mengelola data klaster, plot, dan pohon.',
-                      style: TextStyle(fontSize: 16),
+                    const SizedBox(height: 12),
+
+                    Card(
+                      color: const Color.fromARGB(240, 180, 216, 187),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Langkah Awal',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              '• Buat Klaster baru: buka Kelola Data → Tambah Klaster.',
+                            ),
+                            const Text(
+                              '• Tambah Plot: setelah klaster dibuat, tambahkan plot pada klaster tersebut.',
+                            ),
+                            const Text(
+                              '• Rekam Pohon: pada plot, tambahkan data pohon termasuk azimut, jarak, dan (opsional) foto.',
+                            ),
+                            const SizedBox(height: 6),
+                            const Text(
+                              'Setiap perubahan disimpan secara lokal.',
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
-                    Divider(height: 30, thickness: 1),
-                    Text(
-                      lorem(paragraphs: 3, words: 750),
-                      style: TextStyle(fontSize: 16),
-                      textAlign: TextAlign.justify,
+                    const SizedBox(height: 12),
+
+                    Card(
+                      color: const Color.fromARGB(240, 180, 216, 187),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Fitur Utama',
+                              style: Theme.of(context).textTheme.titleMedium
+                                  ?.copyWith(fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              '• Visualisasi plot dan pohon di peta interaktif.',
+                            ),
+                            const Text(
+                              '• Edit dan hapus data plot/pohon melalui antarmuka manajemen data.',
+                            ),
+                            const Text(
+                              '• Pratinjau foto pohon dan tracking lokasi ke peta.',
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
+                    const SizedBox(height: 12),
+
+                    Card(
+                      color: const Color.fromARGB(240, 180, 216, 187),
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            Text(
+                              'Tips & Praktik Lapangan',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              '• Pastikan perangkat memiliki GPS aktif dan akurasi yang baik saat merekam lokasi.',
+                            ),
+                            Text(
+                              '• Ambil beberapa foto dari sudut berbeda jika kondisi pencahayaan buruk.',
+                            ),
+                            Text(
+                              '• Simpan data secara berkala saat bekerja di lapangan untuk menghindari kehilangan data.',
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),

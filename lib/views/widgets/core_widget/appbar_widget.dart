@@ -3,7 +3,8 @@ import 'package:flutter/material.dart';
 
 class AppbarWidget extends StatelessWidget implements PreferredSizeWidget {
   final String title;
-  const AppbarWidget({super.key, required this.title});
+  final List<Widget>? extraActions;
+  const AppbarWidget({super.key, required this.title, this.extraActions});
 
   @override
   Widget build(BuildContext context) {
@@ -29,6 +30,7 @@ class AppbarWidget extends StatelessWidget implements PreferredSizeWidget {
             );
           },
         ),
+        if (extraActions != null) ...extraActions!,
       ],
     );
   }

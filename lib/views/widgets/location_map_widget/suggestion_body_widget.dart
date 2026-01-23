@@ -2,6 +2,8 @@ import 'package:azimutree/data/global_variables/logger_global.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:azimutree/data/database/plot_dao.dart';
+import 'package:azimutree/data/database/cluster_dao.dart';
 
 class SuggestionBodyWidget extends StatelessWidget {
   final bool isSearching;
@@ -38,14 +40,67 @@ class SuggestionBodyWidget extends StatelessWidget {
             return ListTile(
               title: Text(place["name"] ?? ""),
               subtitle: Text("${place["longitude"]} ${place["latitude"]}"),
-              onTap: () {
+              onTap: () async {
                 logger.i(
                   "Selected place: $place\n${place["longitude"]} ${place["latitude"]}",
                 );
-                selectedLocationNotifier.value = Position(
-                  double.parse(place["longitude"]),
-                  double.parse(place["latitude"]),
-                );
+                // Clear any existing marker selection so the search action
+                // starts from a clean state (previous plot/tree selection
+                // should not linger after user searches).
+                selectedTreeNotifier.value = null;
+                selectedPlotNotifier.value = null;
+                // If this is a cluster/plot local result, resolve DB models
+                // and set selectedPlotNotifier so the UI shows the plot
+                // details. For local `plot`/`cluster` results we DO NOT want
+                // the Mapbox search result marker, so ensure
+                // `selectedLocationFromSearchNotifier` is false. Only set it
+                // to true for generic Mapbox API place results (fallback).
+                final type = place['type'] as String?;
+                try {
+                  if (type == 'plot' || type == 'cluster') {
+                    final plotId = place['plotId'] as int?;
+                    if (plotId != null) {
+                      final plot = await PlotDao.getPlotById(plotId);
+                      if (plot != null) {
+                        // This is a local plot/cluster selection — do not show the
+                        // Mapbox search marker.
+                        selectedLocationFromSearchNotifier.value = false;
+                        selectedPlotNotifier.value = plot;
+                        try {
+                          final cl = await ClusterDao.getClusterById(
+                            plot.idCluster,
+                          );
+                          selectedPlotClusterNotifier.value = cl;
+                        } catch (_) {
+                          selectedPlotClusterNotifier.value = null;
+                        }
+                        // Ensure we stop following live location so the
+                        // camera can center on the plot.
+                        isFollowingUserLocationNotifier.value = false;
+                        // Center map on the plot
+                        selectedLocationNotifier.value = Position(
+                          plot.longitude,
+                          plot.latitude,
+                        );
+                        userInputSearchBarNotifier.value = "";
+                        return;
+                      }
+                    }
+                  }
+                } catch (e) {
+                  logger.w('Suggestion selection DB resolve failed: $e');
+                }
+
+                // Fallback: generic place coordinate (Mapbox). For these
+                // results we want to show the Mapbox search marker.
+                try {
+                  isFollowingUserLocationNotifier.value = false;
+                  selectedLocationFromSearchNotifier.value = true;
+                  selectedLocationNotifier.value = Position(
+                    double.parse(place["longitude"].toString()),
+                    double.parse(place["latitude"].toString()),
+                  );
+                } catch (_) {}
                 userInputSearchBarNotifier.value = "";
               },
             );

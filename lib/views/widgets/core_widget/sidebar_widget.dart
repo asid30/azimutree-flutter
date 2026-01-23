@@ -39,17 +39,13 @@ class SidebarWidget extends StatelessWidget {
 
               ListTile(
                 leading: const Icon(Icons.home),
-                title: const Text('Home'),
+                title: const Text('Beranda'),
                 onTap: () => _selectPage(context, "home"),
               ),
 
               const Divider(color: Color(0xFF1F4226)),
 
-              ListTile(
-                leading: const Icon(Icons.qr_code_scanner),
-                title: const Text('Scan Kode Label'),
-                onTap: () => _selectPage(context, "scan_label_page"),
-              ),
+              // Scan feature removed
               ListTile(
                 leading: const Icon(Icons.storage),
                 title: const Text('Kelola Data Cluster Plot'),
@@ -61,7 +57,7 @@ class SidebarWidget extends StatelessWidget {
                 onTap: () => _selectPage(context, "location_map_page"),
               ),
               ListTile(
-                leading: const Icon(Icons.help),
+                leading: const Icon(Icons.book),
                 title: const Text('Panduan Aplikasi'),
                 onTap: () => _selectPage(context, "tutorial_page"),
               ),
@@ -70,13 +66,13 @@ class SidebarWidget extends StatelessWidget {
 
               ListTile(
                 leading: const Icon(Icons.settings),
-                title: const Text('Settings'),
+                title: const Text('Pengaturan'),
                 onTap: () => _selectPage(context, "settings_page"),
               ),
 
               ListTile(
                 leading: const Icon(Icons.info),
-                title: const Text('About'),
+                title: const Text('Tentang'),
                 onTap: () => _selectPage(context, "about_page"),
               ),
 

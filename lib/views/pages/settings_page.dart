@@ -37,8 +37,8 @@ class _SettingsPageState extends State<SettingsPage> {
           children: [
             //* Background App
             BackgroundAppWidget(
-              lightBackgroundImage: "assets/images/light-bg-plain.png",
-              darkBackgroundImage: "assets/images/dark-bg-plain.png",
+              lightBackgroundImage: "assets/images/light-bg-notitle.png",
+              darkBackgroundImage: "assets/images/dark-bg-notitle.png",
             ),
             //* Content
             SingleChildScrollView(
@@ -62,13 +62,15 @@ class _SettingsPageState extends State<SettingsPage> {
                       ],
                     ),
                     Card(
+                      color: Color.fromARGB(240, 180, 216, 187),
                       child: ValueListenableBuilder<bool>(
                         valueListenable: isLightModeNotifier,
                         builder: (context, isLightMode, _) {
                           return SwitchListTile(
                             title: const Text('Tema'),
+                            activeTrackColor: Color(0xFF1F4226),
                             subtitle: Text(
-                              isLightMode ? 'Light Theme' : 'Dark Theme',
+                              isLightMode ? 'Tema Terang' : 'Tema Gelap',
                             ),
                             value: isLightMode,
                             onChanged: (value) {
@@ -80,11 +82,13 @@ class _SettingsPageState extends State<SettingsPage> {
                     ),
 
                     Card(
+                      color: Color.fromARGB(240, 180, 216, 187),
                       child: ValueListenableBuilder<bool>(
                         valueListenable: DebugModeService.instance.enabled,
                         builder: (context, enabled, _) {
                           return SwitchListTile(
                             title: const Text('Mode Debug'),
+                            activeTrackColor: Color(0xFF1F4226),
                             subtitle: const Text(
                               'Tampilkan fitur debug (generate/hapus data) di Kelola Data',
                             ),

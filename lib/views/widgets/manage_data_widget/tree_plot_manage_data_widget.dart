@@ -4,10 +4,12 @@ import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_tree_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:azimutree/services/gdrive_thumbnail_service.dart';
 
 class TreePlotManageDataWidget extends StatelessWidget {
   final int plotId;
@@ -224,9 +226,12 @@ class TreePlotManageDataWidget extends StatelessWidget {
 
   Widget _buildTreeImage(TreeModel tree, {BoxFit fit = BoxFit.cover}) {
     final url = tree.urlFoto!;
+    final resolved = GDriveThumbnailService.toThumbnailUrl(url);
+
+    // (debug prints removed)
 
     return CachedNetworkImage(
-      imageUrl: url,
+      imageUrl: resolved,
       fit: fit,
       placeholder:
           (context, _) => const Center(
@@ -251,7 +256,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
       MaterialPageRoute(
         builder:
             (_) => _TreePhotoPreviewPage(
-              imageUrl: tree.urlFoto!,
+              imageUrl: GDriveThumbnailService.toThumbnailUrl(tree.urlFoto!),
               heroTag: heroTag,
             ),
       ),
@@ -262,6 +267,15 @@ class TreePlotManageDataWidget extends StatelessWidget {
     if (tree.latitude == null || tree.longitude == null) return;
 
     selectedPageNotifier.value = 'location_map_page';
+    // Navigating to the map to track a tree is not a search result selection.
+    selectedLocationFromSearchNotifier.value = false;
+    // Disable following the user's live location so the map centers on the tree.
+    isFollowingUserLocationNotifier.value = false;
+    // Preserve the current zoom level when centering (same as tapping a marker).
+    preserveZoomOnNextCenterNotifier.value = true;
+    // Make the tree the selected tree so the map will render it as active
+    // and trigger the dashed connection to the plot center.
+    selectedTreeNotifier.value = tree;
     selectedLocationNotifier.value = Position(tree.longitude!, tree.latitude!);
     Navigator.pushNamed(context, 'location_map_page');
   }
@@ -290,19 +304,11 @@ class TreePlotManageDataWidget extends StatelessWidget {
     final confirm = await showDialog<bool>(
       context: context,
       builder:
-          (_) => AlertDialog(
-            title: const Text("Hapus pohon?"),
-            content: const Text("Data pohon akan dihapus permanen."),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false),
-                child: const Text("Batal"),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(true),
-                child: const Text("Hapus"),
-              ),
-            ],
+          (_) => AlertConfirmationWidget(
+            title: 'Hapus pohon?',
+            message: 'Data pohon akan dihapus permanen.',
+            confirmText: 'Hapus',
+            cancelText: 'Batal',
           ),
     );
     if (confirm != true) return;

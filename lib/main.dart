@@ -2,24 +2,62 @@ import 'package:azimutree/views/pages/about_page.dart';
 import 'package:azimutree/views/pages/home_page.dart';
 import 'package:azimutree/views/pages/location_map_page.dart';
 import 'package:azimutree/views/pages/manage_data_page.dart';
-import 'package:azimutree/views/pages/scan_label_page.dart';
+// Scan feature removed: no scan_label_page import
 import 'package:azimutree/views/pages/settings_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
-import 'package:azimutree/data/global_variables/global_camera.dart';
 import 'package:azimutree/services/debug_mode_service.dart';
 import 'package:azimutree/services/theme_preference_service.dart';
 import 'package:flutter/material.dart';
-import 'package:camera/camera.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:azimutree/data/database/tree_dao.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
   MapboxOptions.setAccessToken(dotenv.env['MAP_BOX_ACCESS']!);
-  globalCameras = await availableCameras();
   await DebugModeService.instance.init();
   await ThemePreferenceService.instance.init();
+  // Load persisted end-drawer toggle values early so UI that depends on
+  // these notifiers reflect the right state on first build.
+  try {
+    final prefs = await SharedPreferences.getInstance();
+    final inspection = prefs.getBool(
+      'enddrawer_tooltip_inspection_dismissed_value',
+    );
+    if (inspection != null) {
+      isInspectionWorkflowEnabledNotifier.value = inspection;
+    }
+    final legend = prefs.getBool('enddrawer_tooltip_legend_dismissed_value');
+    if (legend != null) isMapLegendVisibleNotifier.value = legend;
+    final marker = prefs.getBool(
+      'enddrawer_tooltip_marker_click_dismissed_value',
+    );
+    if (marker != null) isMarkerActivationEnabledNotifier.value = marker;
+    final markerInfo = prefs.getBool(
+      'enddrawer_tooltip_marker_info_dismissed_value',
+    );
+    if (markerInfo != null) isMarkerInfoOnSelectNotifier.value = markerInfo;
+    final treePlotLines = prefs.getBool(
+      'enddrawer_tooltip_tree_to_plot_lines_dismissed_value',
+    );
+    if (treePlotLines != null) {
+      isTreeToPlotLineVisibleNotifier.value = treePlotLines;
+    }
+    final plotPlotLines = prefs.getBool(
+      'enddrawer_tooltip_plot_to_plot_lines_dismissed_value',
+    );
+    if (plotPlotLines != null) {
+      isPlotToPlotLineVisibleNotifier.value = plotPlotLines;
+    }
+  } catch (_) {}
+  // Load persisted inspected tree ids from DB so UI reflects saved state.
+  try {
+    final ids = await TreeDao.getInspectedTreeIds();
+    inspectedTreeIdsNotifier.value = ids;
+  } catch (_) {}
   runApp(MainApp());
 }
 
@@ -48,11 +86,7 @@ class _MainAppState extends State<MainApp> {
         switch (settings.name) {
           case 'home':
             return _buildFadeTransitionPageRoute(const HomePage(), settings);
-          case 'scan_label_page':
-            return _buildFadeTransitionPageRoute(
-              const ScanLabelPage(),
-              settings,
-            );
+          // 'scan_label_page' removed
           case 'manage_data_page':
             return _buildFadeTransitionPageRoute(
               const ManageDataPage(),
