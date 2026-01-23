@@ -130,11 +130,33 @@ class _PlotClusterManageDataWidgetState
                         Row(
                           children: [
                             Expanded(
-                              child: Text(
-                                "Plot ${plot.kodePlot}",
-                                style: const TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                ),
+                              child: Row(
+                                children: [
+                                  Flexible(
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Flexible(
+                                          child: Text(
+                                            "Plot ${plot.kodePlot}",
+                                            overflow: TextOverflow.ellipsis,
+                                            style: const TextStyle(
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                        if (plot.kodePlot == 1) ...[
+                                          const SizedBox(width: 6),
+                                          const Icon(
+                                            Icons.star,
+                                            size: 18,
+                                            color: Color(0xFF1F4226),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                             IconButton(
