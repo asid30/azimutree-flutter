@@ -244,6 +244,8 @@ class _BottomsheetLocationMapWidgetState
     selectedPlotNotifier.addListener(_selectedPlotListener);
     if (selectedPlotNotifier.value != null) _selectedPlotListener();
 
+    // No separate listener needed for centroid; UI reads notifier directly.
+
     // Check whether the DB has any data so we can show contextual help text.
     _checkDatabaseHasData();
   }
@@ -329,6 +331,77 @@ class _BottomsheetLocationMapWidgetState
     preserveZoomOnNextCenterNotifier.value = true;
     selectedLocationFromSearchNotifier.value = false;
     selectedLocationNotifier.value = Position(p.longitude, p.latitude);
+  }
+
+  Future<void> _centerToCentroid(ClusterModel cluster) async {
+    try {
+      final allPlots = await PlotDao.getAllPlots();
+      final plotsForCluster =
+          allPlots.where((p) => p.idCluster == cluster.id).toList();
+      if (plotsForCluster.isEmpty) return;
+      final latSum = plotsForCluster
+          .map((p) => p.latitude)
+          .reduce((a, b) => a + b);
+      final lonSum = plotsForCluster
+          .map((p) => p.longitude)
+          .reduce((a, b) => a + b);
+      final centroidLat = latSum / plotsForCluster.length;
+      final centroidLon = lonSum / plotsForCluster.length;
+      // center flow
+      selectedLocationNotifier.value = null;
+      await Future.delayed(const Duration(milliseconds: 60));
+      isFollowingUserLocationNotifier.value = false;
+      preserveZoomOnNextCenterNotifier.value = true;
+      selectedLocationFromSearchNotifier.value = false;
+      selectedLocationNotifier.value = Position(centroidLon, centroidLat);
+    } catch (_) {}
+  }
+
+  Future<void> _goToNextPlotFromCentroid(ClusterModel cluster) async {
+    try {
+      final all = await PlotDao.getAllPlots();
+      final sameCluster =
+          all.where((pl) => pl.idCluster == cluster.id).toList()..sort(
+            (a, b) => a.kodePlot.toString().compareTo(b.kodePlot.toString()),
+          );
+      if (sameCluster.isEmpty) return;
+      // if a plot is currently selected, move to next; otherwise go to first
+      final cur = selectedPlotNotifier.value;
+      int idx = 0;
+      if (cur != null && cur.idCluster == cluster.id) {
+        idx = sameCluster.indexWhere((pl) => pl.id == cur.id);
+        if (idx < 0) idx = 0;
+        idx = (idx + 1) % sameCluster.length;
+      }
+      final next = sameCluster[idx];
+      // Deselect centroid when moving to a concrete plot
+      selectedCentroidNotifier.value = null;
+      await _selectAndCenterPlot(next);
+    } catch (_) {}
+  }
+
+  Future<void> _goToPreviousPlotFromCentroid(ClusterModel cluster) async {
+    try {
+      final all = await PlotDao.getAllPlots();
+      final sameCluster =
+          all.where((pl) => pl.idCluster == cluster.id).toList()..sort(
+            (a, b) => a.kodePlot.toString().compareTo(b.kodePlot.toString()),
+          );
+      if (sameCluster.isEmpty) return;
+      final cur = selectedPlotNotifier.value;
+      int idx = 0;
+      if (cur != null && cur.idCluster == cluster.id) {
+        idx = sameCluster.indexWhere((pl) => pl.id == cur.id);
+        if (idx < 0) idx = 0;
+        idx = (idx - 1) < 0 ? sameCluster.length - 1 : (idx - 1);
+      } else {
+        idx = sameCluster.length - 1;
+      }
+      final prev = sameCluster[idx];
+      // Deselect centroid when moving to a concrete plot
+      selectedCentroidNotifier.value = null;
+      await _selectAndCenterPlot(prev);
+    } catch (_) {}
   }
 
   Future<void> _goToNextPlot() async {
@@ -751,13 +824,98 @@ class _BottomsheetLocationMapWidgetState
                         );
                       }
 
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        child: Text(
-                          _hasAnyData
-                              ? 'Pilih marker di peta untuk menampilkan informasi.'
-                              : 'Kamu tidak memiliki data, silahkan tambah data terlebih dahulu.',
-                        ),
+                      // If no plot selected but a centroid is selected, show centroid UI
+                      return ValueListenableBuilder<ClusterModel?>(
+                        valueListenable: selectedCentroidNotifier,
+                        builder: (context, cluster, child) {
+                          if (cluster != null) {
+                            return Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    const Text(
+                                      'Centroid',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        IconButton(
+                                          tooltip: 'Plot sebelumnya',
+                                          onPressed: () async {
+                                            await _goToPreviousPlotFromCentroid(
+                                              cluster,
+                                            );
+                                          },
+                                          icon: const Icon(Icons.arrow_back),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        IconButton(
+                                          tooltip: 'Center on centroid',
+                                          onPressed: () async {
+                                            await _centerToCentroid(cluster);
+                                          },
+                                          icon: const Icon(
+                                            Icons.my_location_outlined,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        IconButton(
+                                          tooltip: 'Plot berikutnya',
+                                          onPressed: () async {
+                                            await _goToNextPlotFromCentroid(
+                                              cluster,
+                                            );
+                                          },
+                                          icon: const Icon(Icons.arrow_forward),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        IconButton(
+                                          onPressed: () {
+                                            selectedCentroidNotifier.value =
+                                                null;
+                                          },
+                                          icon: const Icon(Icons.close),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 8.0),
+                                  child: Row(
+                                    children: [
+                                      Text('Cluster: ${cluster.kodeCluster}'),
+                                      const SizedBox(width: 12),
+                                      const Text('Centroid'),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                const Text(
+                                  'Centroid ini dihasilkan dari plot di klaster ini.',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                const SizedBox(height: 8),
+                              ],
+                            );
+                          }
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: Text(
+                              _hasAnyData
+                                  ? 'Pilih marker di peta untuk menampilkan informasi.'
+                                  : 'Kamu tidak memiliki data, silahkan tambah data terlebih dahulu.',
+                            ),
+                          );
+                        },
                       );
                     }
 

@@ -167,11 +167,23 @@ class _MapboxWidgetState extends State<MapboxWidget> {
 
     _selectedCentroidListener = () {
       if (!mounted) return;
-      // Reload markers first, then draw connections to the centroid.
+      // Reload markers first. If a centroid is selected, draw connections
+      // to it. If centroid is cleared, avoid removing connection visuals
+      // if another selection (plot/tree) is active — let their listeners
+      // manage connections.
       Future.microtask(() async {
         try {
           if (_mapboxMap != null) await _loadMarkers();
-          await _updateConnectionForSelectedCentroid();
+          final cluster = selectedCentroidNotifier.value;
+          if (cluster != null) {
+            await _updateConnectionForSelectedCentroid();
+          } else {
+            // If a plot or tree is selected, they will redraw connections.
+            if (selectedPlotNotifier.value == null &&
+                selectedTreeNotifier.value == null) {
+              await _removeConnectionMarkers();
+            }
+          }
         } catch (_) {}
       });
     };
