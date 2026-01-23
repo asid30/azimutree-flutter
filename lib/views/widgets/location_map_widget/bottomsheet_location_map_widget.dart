@@ -30,6 +30,7 @@ class _BottomsheetLocationMapWidgetState
   final DraggableScrollableController _draggableController =
       DraggableScrollableController();
   late final VoidCallback _searchFocusListener;
+  late final VoidCallback _searchCenterListener;
   late final VoidCallback _minimizeRequestListener;
 
   // Cached plot/cluster info for the currently-selected tree.
@@ -71,6 +72,35 @@ class _BottomsheetLocationMapWidgetState
       } catch (_) {}
     };
     bottomsheetMinimizeRequestNotifier.addListener(_minimizeRequestListener);
+
+    _searchCenterListener = () {
+      // When a search result set `selectedLocationFromSearchNotifier`,
+      // center will occur on the map. After a short delay (to let the
+      // camera animation run), minimize the bottomsheet, unfocus the
+      // search field (hide keyboard), and ensure any previous marker
+      // selection is cleared.
+      if (!mounted) return;
+      if (!selectedLocationFromSearchNotifier.value) return;
+      Future.microtask(() async {
+        await Future.delayed(const Duration(milliseconds: 600));
+        try {
+          // Minimize bottomsheet
+          bottomsheetMinimizeRequestNotifier.value =
+              bottomsheetMinimizeRequestNotifier.value + 1;
+        } catch (_) {}
+        try {
+          // Unfocus keyboard/search field
+          if (context.mounted) FocusScope.of(context).unfocus();
+          isSearchFieldFocusedNotifier.value = false;
+        } catch (_) {}
+        try {
+          // Clear any existing marker selection (previous marker)
+          selectedTreeNotifier.value = null;
+          selectedPlotNotifier.value = null;
+        } catch (_) {}
+      });
+    };
+    selectedLocationFromSearchNotifier.addListener(_searchCenterListener);
 
     _selectedTreeListener = () {
       final tree = selectedTreeNotifier.value;
@@ -223,6 +253,7 @@ class _BottomsheetLocationMapWidgetState
   void dispose() {
     _positionSub?.cancel();
     isSearchFieldFocusedNotifier.removeListener(_searchFocusListener);
+    selectedLocationFromSearchNotifier.removeListener(_searchCenterListener);
     bottomsheetMinimizeRequestNotifier.removeListener(_minimizeRequestListener);
     _draggableController.dispose();
     selectedTreeNotifier.removeListener(_selectedTreeListener);

@@ -44,6 +44,11 @@ class SuggestionBodyWidget extends StatelessWidget {
                 logger.i(
                   "Selected place: $place\n${place["longitude"]} ${place["latitude"]}",
                 );
+                // Clear any existing marker selection so the search action
+                // starts from a clean state (previous plot/tree selection
+                // should not linger after user searches).
+                selectedTreeNotifier.value = null;
+                selectedPlotNotifier.value = null;
                 // If this is a cluster/plot local result, resolve DB models
                 // and set selectedPlotNotifier so the UI shows the plot
                 // details. Otherwise fallback to generic map location.
