@@ -24,7 +24,7 @@ class BottomsheetLocationMapWidget extends StatefulWidget {
 class _BottomsheetLocationMapWidgetState
     extends State<BottomsheetLocationMapWidget> {
   StreamSubscription<geo.Position>? _positionSub;
-  final double _maxChildSize = 0.8;
+  final double _maxChildSize = 0.9;
   final double _minChildSize = 0.25;
   final DraggableScrollableController _draggableController =
       DraggableScrollableController();
@@ -652,31 +652,6 @@ class _BottomsheetLocationMapWidgetState
                                         await _goToNextPlot();
                                       },
                                       icon: const Icon(Icons.arrow_forward),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      tooltip: 'Minimize bottomsheet',
-                                      onPressed: () {
-                                        try {
-                                          bottomsheetMinimizeRequestNotifier
-                                                  .value =
-                                              bottomsheetMinimizeRequestNotifier
-                                                  .value +
-                                              1;
-                                        } catch (_) {}
-                                        try {
-                                          if (context.mounted) {
-                                            FocusScope.of(context).unfocus();
-                                          }
-                                        } catch (_) {}
-                                        try {
-                                          isSearchFieldFocusedNotifier.value =
-                                              false;
-                                        } catch (_) {}
-                                      },
-                                      icon: const Icon(
-                                        Icons.keyboard_arrow_down,
-                                      ),
                                     ),
                                     const SizedBox(width: 8),
                                     IconButton(

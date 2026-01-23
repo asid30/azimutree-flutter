@@ -51,15 +51,20 @@ class SuggestionBodyWidget extends StatelessWidget {
                 selectedPlotNotifier.value = null;
                 // If this is a cluster/plot local result, resolve DB models
                 // and set selectedPlotNotifier so the UI shows the plot
-                // details. Otherwise fallback to generic map location.
+                // details. For local `plot`/`cluster` results we DO NOT want
+                // the Mapbox search result marker, so ensure
+                // `selectedLocationFromSearchNotifier` is false. Only set it
+                // to true for generic Mapbox API place results (fallback).
                 final type = place['type'] as String?;
-                selectedLocationFromSearchNotifier.value = true;
                 try {
                   if (type == 'plot' || type == 'cluster') {
                     final plotId = place['plotId'] as int?;
                     if (plotId != null) {
                       final plot = await PlotDao.getPlotById(plotId);
                       if (plot != null) {
+                        // This is a local plot/cluster selection — do not show the
+                        // Mapbox search marker.
+                        selectedLocationFromSearchNotifier.value = false;
                         selectedPlotNotifier.value = plot;
                         try {
                           final cl = await ClusterDao.getClusterById(
@@ -70,8 +75,7 @@ class SuggestionBodyWidget extends StatelessWidget {
                           selectedPlotClusterNotifier.value = null;
                         }
                         // Ensure we stop following live location so the
-                        // search result marker can be displayed (the map
-                        // hides the search marker while following user).
+                        // camera can center on the plot.
                         isFollowingUserLocationNotifier.value = false;
                         // Center map on the plot
                         selectedLocationNotifier.value = Position(
@@ -87,10 +91,11 @@ class SuggestionBodyWidget extends StatelessWidget {
                   logger.w('Suggestion selection DB resolve failed: $e');
                 }
 
-                // Fallback: generic place coordinate (Mapbox).
-                // Also disable follow-to-user so the search marker can show.
+                // Fallback: generic place coordinate (Mapbox). For these
+                // results we want to show the Mapbox search marker.
                 try {
                   isFollowingUserLocationNotifier.value = false;
+                  selectedLocationFromSearchNotifier.value = true;
                   selectedLocationNotifier.value = Position(
                     double.parse(place["longitude"].toString()),
                     double.parse(place["latitude"].toString()),
