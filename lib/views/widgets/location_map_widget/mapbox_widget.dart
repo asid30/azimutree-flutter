@@ -42,6 +42,9 @@ const int kTreeInspectedColor = 0xFF8BC34A;
 // Light blue for plot-to-plot cluster connection lines
 const int kPlotConnectionColor = 0xFF81D4FA;
 
+// Centroid generated marker color
+const int kCentroidColor = 0xFF6A1B9A;
+
 class MapboxWidget extends StatefulWidget {
   final String standardStyleUri;
   final String sateliteStyleUri;
@@ -60,6 +63,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   MapboxMap? _mapboxMap;
   CircleAnnotationManager? _circleManager;
   CircleAnnotationManager? _searchResultManager;
+  // Cache of generated centroid markers for hit-testing and metadata.
+  final List<Map<String, dynamic>> _centroidCache = [];
   // Use dynamic so we can support line annotation manager when available
   // while avoiding static analyzer errors on plugin API mismatches.
   dynamic _connectionManager;
@@ -71,6 +76,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   late final VoidCallback _inspectedListener;
   late final VoidCallback _inspectionToggleListener;
   late final VoidCallback _userLocationListener;
+  late final VoidCallback _selectedCentroidListener;
   late final VoidCallback _treeToPlotToggleListener;
   late final VoidCallback _plotToPlotToggleListener;
   // Cache of tree models currently displayed on the map.
@@ -159,6 +165,18 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     };
     selectedTreeNotifier.addListener(_selectedTreeListener);
 
+    _selectedCentroidListener = () {
+      if (!mounted) return;
+      // Reload markers first, then draw connections to the centroid.
+      Future.microtask(() async {
+        try {
+          if (_mapboxMap != null) await _loadMarkers();
+          await _updateConnectionForSelectedCentroid();
+        } catch (_) {}
+      });
+    };
+    selectedCentroidNotifier.addListener(_selectedCentroidListener);
+
     _inspectedListener = () {
       if (!mounted) return;
       // Run asynchronously so the notifier call doesn't block the UI.
@@ -225,6 +243,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     );
     isTreeToPlotLineVisibleNotifier.removeListener(_treeToPlotToggleListener);
     isPlotToPlotLineVisibleNotifier.removeListener(_plotToPlotToggleListener);
+    selectedCentroidNotifier.removeListener(_selectedCentroidListener);
     super.dispose();
   }
 
@@ -490,12 +509,16 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     TreeModel? nearestTree;
     PlotModel? nearestPlot;
 
+    // Track nearest centroid candidate entry (contains cluster, lat, lon)
+    Map<String, dynamic>? nearestCentroidEntry;
+
     // Helper to process a coordinate and update nearest candidates.
     Future<void> processCoordinate(
       double lon,
       double lat, {
       TreeModel? tree,
       PlotModel? plot,
+      Map<String, dynamic>? centroidEntry,
     }) async {
       try {
         final scr = await _mapboxMap!.pixelForCoordinate(
@@ -510,6 +533,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           minDist = dist;
           nearestTree = tree;
           nearestPlot = plot;
+          if (centroidEntry != null) {
+            nearestCentroidEntry = centroidEntry;
+          }
         }
       } catch (_) {
         // ignore conversion errors per point
@@ -528,6 +554,16 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       await processCoordinate(plot.longitude, plot.latitude, plot: plot);
     }
 
+    // Then check generated centroids
+    if (_centroidCache.isNotEmpty) {
+      for (final c in _centroidCache) {
+        final lon = c['lon'] as double?;
+        final lat = c['lat'] as double?;
+        if (lon == null || lat == null) continue;
+        await processCoordinate(lon, lat, centroidEntry: c);
+      }
+    }
+
     const threshold = 28.0; // pixels
     if (minDist <= threshold && mounted) {
       isSearchFieldFocusedNotifier.value = false;
@@ -535,6 +571,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       // Prefer tree over plot if both are equally close.
       if (nearestTree != null) {
         final selTree = nearestTree;
+        // Clear centroid selection when selecting a tree so its marker
+        // style deactivates immediately.
+        selectedCentroidNotifier.value = null;
         selectedPlotNotifier.value = null;
         selectedTreeNotifier.value = selTree;
         // Resolve plot and cluster for UI consumption
@@ -570,6 +609,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
 
       if (nearestPlot != null) {
         final selPlot = nearestPlot;
+        // Clear centroid selection when selecting a plot so centroid
+        // loses the active style immediately.
+        selectedCentroidNotifier.value = null;
         selectedTreeNotifier.value = null;
         selectedTreePlotNotifier.value = null;
         selectedTreeClusterNotifier.value = null;
@@ -593,6 +635,29 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             selPlot!.longitude,
             selPlot.latitude,
           );
+        } catch (_) {}
+      }
+      // If no plot/tree selected but a centroid was nearest, select centroid
+      if (nearestPlot == null && nearestCentroidEntry != null) {
+        final selEntry = nearestCentroidEntry!;
+        final selCluster = selEntry['cluster'] as ClusterModel?;
+        final selLat = selEntry['lat'] as double?;
+        final selLon = selEntry['lon'] as double?;
+        selectedTreeNotifier.value = null;
+        selectedPlotNotifier.value = null;
+        selectedCentroidNotifier.value = selCluster;
+        selectedPlotClusterNotifier.value = selCluster;
+        selectedMarkerScreenOffsetNotifier.value = Offset(
+          localPosition.dx,
+          localPosition.dy - 48,
+        );
+        try {
+          isFollowingUserLocationNotifier.value = false;
+          preserveZoomOnNextCenterNotifier.value = true;
+          selectedLocationFromSearchNotifier.value = false;
+          if (selLon != null && selLat != null) {
+            selectedLocationNotifier.value = Position(selLon, selLat);
+          }
         } catch (_) {}
       }
     }
@@ -896,6 +961,55 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     }
   }
 
+  Future<void> _updateConnectionForSelectedCentroid() async {
+    final cluster = selectedCentroidNotifier.value;
+    if (_mapboxMap == null) return;
+    if (cluster == null) {
+      await _removeConnectionMarkers();
+      return;
+    }
+
+    try {
+      // Find plots for this cluster
+      final allPlots = await PlotDao.getAllPlots();
+      final plotsForCluster =
+          allPlots.where((p) => p.idCluster == cluster.id).toList();
+      if (plotsForCluster.isEmpty) {
+        await _removeConnectionMarkers();
+        return;
+      }
+
+      // Compute centroid (average) of available plot coordinates
+      final latSum = plotsForCluster
+          .map((p) => p.latitude)
+          .reduce((a, b) => a + b);
+      final lonSum = plotsForCluster
+          .map((p) => p.longitude)
+          .reduce((a, b) => a + b);
+      final centroidLat = latSum / plotsForCluster.length;
+      final centroidLon = lonSum / plotsForCluster.length;
+
+      // Build lines from every plot in the cluster to the centroid
+      final plotSegments = <List<double>>[];
+      for (final p in plotsForCluster) {
+        plotSegments.add([p.longitude, p.latitude, centroidLon, centroidLat]);
+      }
+
+      if (plotSegments.isNotEmpty && isPlotToPlotLineVisibleNotifier.value) {
+        await _showConnectionLines(
+          plotSegments,
+          color: kPlotConnectionColor,
+          removeExisting: true,
+        );
+      } else {
+        // If plotting is disabled, ensure connections are removed.
+        await _removeConnectionMarkers();
+      }
+    } catch (_) {
+      await _removeConnectionMarkers();
+    }
+  }
+
   Future<void> _showConnectionLines(
     List<List<double>> segments, {
     int color = kPlotConnectionColor,
@@ -1068,10 +1182,66 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     List<ClusterModel> clusters,
     List<PlotModel> plots,
   ) async {
-    // Cluster center markers removed per UX update - cluster center
-    // indicator (green) is no longer rendered. Keep function as a
-    // no-op to avoid changing call sites.
-    return;
+    // Add generated-centroid markers for clusters that do NOT have a Plot 1
+    // and that contain more than one plot. The marker uses the same size
+    // as plot markers but a distinct purple color.
+    if (_circleManager == null) return;
+    _centroidCache.clear();
+    final futures = <Future>[];
+    for (final cluster in clusters) {
+      try {
+        final clusterPlots =
+            plots.where((p) => p.idCluster == cluster.id).toList();
+        if (clusterPlots.length <= 1) {
+          continue; // do not show for single-plot clusters
+        }
+        final hasPlot1 = clusterPlots.any((p) => p.kodePlot == 1);
+        if (hasPlot1) {
+          continue; // skip if Plot 1 exists
+        }
+
+        // Compute centroid (average) of plot coordinates
+        final latSum = clusterPlots.fold<double>(0.0, (s, p) => s + p.latitude);
+        final lonSum = clusterPlots.fold<double>(
+          0.0,
+          (s, p) => s + p.longitude,
+        );
+        final centroidLat = latSum / clusterPlots.length;
+        final centroidLon = lonSum / clusterPlots.length;
+
+        // remember for hit-testing
+        _centroidCache.add({
+          'cluster': cluster,
+          'lat': centroidLat,
+          'lon': centroidLon,
+        });
+
+        final isSelectedCentroid =
+            selectedCentroidNotifier.value?.id == cluster.id;
+        futures.add(
+          _circleManager!.create(
+            _buildCircleOptions(
+              Position(centroidLon, centroidLat),
+              circleColor: kCentroidColor,
+              circleRadius: kPlotRadius,
+              circleStrokeColor:
+                  isSelectedCentroid
+                      ? kPlotSelectedStrokeColor
+                      : kPlotStrokeColor,
+              circleStrokeWidth:
+                  isSelectedCentroid
+                      ? kPlotSelectedStrokeWidth
+                      : kPlotStrokeWidth,
+              circleOpacity: 1.0,
+            ),
+          ),
+        );
+      } catch (_) {
+        // ignore per-cluster errors
+      }
+    }
+
+    if (futures.isNotEmpty) await Future.wait(futures);
   }
 
   Future<void> _addPlotMarkers(List<PlotModel> plots) async {

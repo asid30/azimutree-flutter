@@ -60,6 +60,11 @@ ValueNotifier<PlotModel?> selectedTreePlotNotifier = ValueNotifier(null);
 ValueNotifier<ClusterModel?> selectedTreeClusterNotifier = ValueNotifier(null);
 ValueNotifier<ClusterModel?> selectedPlotClusterNotifier = ValueNotifier(null);
 
+/// When a generated centroid marker is selected on the map, this holds the
+/// resolved `ClusterModel` so UI can show cluster info just like selecting
+/// a plot. Set to `null` to clear selection.
+ValueNotifier<ClusterModel?> selectedCentroidNotifier = ValueNotifier(null);
+
 /// Enable/disable the simple inspection workflow (toggle in drawer).
 ValueNotifier<bool> isInspectionWorkflowEnabledNotifier = ValueNotifier(false);
 

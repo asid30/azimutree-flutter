@@ -397,6 +397,66 @@ class MarkerInfoWidget extends StatelessWidget {
     );
   }
 
+  Widget _cardForCentroid(ClusterModel cluster) {
+    return Card(
+      elevation: 6,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Centroid',
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                      Text(
+                        'Cluster ${cluster.kodeCluster}',
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: Colors.black54,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 6,
+            right: 6,
+            child: SizedBox(
+              width: 36,
+              height: 36,
+              child: Material(
+                color: Colors.transparent,
+                child: IconButton(
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  icon: const Icon(Icons.close, size: 18),
+                  onPressed: () {
+                    selectedCentroidNotifier.value = null;
+                    selectedMarkerScreenOffsetNotifier.value = null;
+                    selectedPlotClusterNotifier.value = null;
+                  },
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
@@ -445,6 +505,17 @@ class MarkerInfoWidget extends StatelessWidget {
                           child: _cardForPlot(plot, cluster),
                         );
                       },
+                    );
+                  },
+                ),
+                // Centroid marker info: shown when a generated centroid is selected.
+                ValueListenableBuilder<ClusterModel?>(
+                  valueListenable: selectedCentroidNotifier,
+                  builder: (context, cluster, child) {
+                    if (cluster == null) return const SizedBox.shrink();
+                    return ConstrainedBox(
+                      constraints: BoxConstraints(maxWidth: maxCardWidth),
+                      child: _cardForCentroid(cluster),
                     );
                   },
                 ),
