@@ -53,12 +53,29 @@ class _SettingsPageState extends State<SettingsPage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        BackButton(
-                          onPressed: () {
-                            Navigator.popAndPushNamed(context, "home");
+                        ValueListenableBuilder<bool>(
+                          valueListenable: isLightModeNotifier,
+                          builder: (context, isLight, child) {
+                            return BackButton(
+                              color: isLight ? null : Colors.white,
+                              onPressed: () {
+                                Navigator.popAndPushNamed(context, "home");
+                              },
+                            );
                           },
                         ),
-                        const Text("Kembali", style: TextStyle(fontSize: 18)),
+                        ValueListenableBuilder<bool>(
+                          valueListenable: isLightModeNotifier,
+                          builder: (context, isLight, child) {
+                            return Text(
+                              "Kembali",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: isLight ? null : Colors.white,
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
                     Card(

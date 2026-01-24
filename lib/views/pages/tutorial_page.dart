@@ -2,6 +2,7 @@
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
 
 class TutorialPage extends StatelessWidget {
@@ -40,12 +41,29 @@ class TutorialPage extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.start,
                       children: [
-                        BackButton(
-                          onPressed: () {
-                            Navigator.popAndPushNamed(context, "home");
+                        ValueListenableBuilder<bool>(
+                          valueListenable: isLightModeNotifier,
+                          builder: (context, isLight, child) {
+                            return BackButton(
+                              color: isLight ? null : Colors.white,
+                              onPressed: () {
+                                Navigator.popAndPushNamed(context, "home");
+                              },
+                            );
                           },
                         ),
-                        const Text("Kembali", style: TextStyle(fontSize: 18)),
+                        ValueListenableBuilder<bool>(
+                          valueListenable: isLightModeNotifier,
+                          builder: (context, isLight, child) {
+                            return Text(
+                              "Kembali",
+                              style: TextStyle(
+                                fontSize: 18,
+                                color: isLight ? null : Colors.white,
+                              ),
+                            );
+                          },
+                        ),
                       ],
                     ),
 
