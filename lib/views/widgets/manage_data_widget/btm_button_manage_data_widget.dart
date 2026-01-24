@@ -7,6 +7,7 @@ class BtmButtonManageDataWidget extends StatelessWidget {
   final Size minSize;
   final Size maxSize;
   final bool? isEnabled;
+  final Color? backgroundColor;
 
   const BtmButtonManageDataWidget({
     super.key,
@@ -15,6 +16,7 @@ class BtmButtonManageDataWidget extends StatelessWidget {
     this.minSize = const Size(150, 75),
     this.maxSize = const Size(200, 125),
     this.isEnabled = true,
+    this.backgroundColor,
     required this.onPressed,
   });
 
@@ -25,7 +27,9 @@ class BtmButtonManageDataWidget extends StatelessWidget {
       style: ElevatedButton.styleFrom(
         foregroundColor: isEnabled! ? Colors.white : Colors.white70,
         backgroundColor:
-            isEnabled! ? Color.fromARGB(255, 85, 146, 98) : Colors.grey,
+            isEnabled!
+                ? (backgroundColor ?? const Color.fromARGB(255, 85, 146, 98))
+                : Colors.grey,
         minimumSize: minSize,
         maximumSize: maxSize,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),

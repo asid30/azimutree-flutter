@@ -295,6 +295,7 @@ class _BottomsheetManageDataWidgetState
                     BtmButtonManageDataWidget(
                       label: "Ekspor Data",
                       icon: Icons.file_upload,
+                      backgroundColor: const Color(0xFF1F4226),
                       onPressed: () {
                         showDialog<void>(
                           barrierDismissible: false,
@@ -485,6 +486,7 @@ class _BottomsheetManageDataWidgetState
                     BtmButtonManageDataWidget(
                       label: "Impor Data",
                       icon: Icons.file_download,
+                      backgroundColor: const Color(0xFF1F4226),
                       onPressed: () async {
                         final result = await showDialog(
                           barrierDismissible: false,
@@ -544,6 +546,7 @@ class _BottomsheetManageDataWidgetState
                     BtmButtonManageDataWidget(
                       label: "Unduh Template",
                       icon: Icons.description,
+                      backgroundColor: const Color(0xFF1F4226),
                       onPressed: () {
                         _confirmAndOpenTemplate();
                       },
@@ -595,6 +598,7 @@ class _BottomsheetManageDataWidgetState
                                   label: "Klaster",
                                   minSize: const Size(100, 40),
                                   maxSize: const Size(150, 70),
+                                  backgroundColor: const Color(0xFF1F4226),
                                   onPressed: () {
                                     showDialog(
                                       barrierDismissible: false,
@@ -614,6 +618,7 @@ class _BottomsheetManageDataWidgetState
                                   maxSize: const Size(150, 70),
                                   // kalau kamu mau beda warna ketika belum ada klaster:
                                   isEnabled: hasCluster,
+                                  backgroundColor: const Color(0xFF1F4226),
                                   onPressed: () {
                                     if (!hasCluster) {
                                       _showWarningNeedCluster(target: "plot");
@@ -637,6 +642,7 @@ class _BottomsheetManageDataWidgetState
                                   minSize: const Size(100, 40),
                                   maxSize: const Size(150, 70),
                                   isEnabled: hasPlotForSelectedCluster,
+                                  backgroundColor: const Color(0xFF1F4226),
                                   onPressed: () {
                                     if (!hasPlotForSelectedCluster) {
                                       _showWarningNeedPlot(target: "pohon");
