@@ -173,7 +173,8 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
       valueListenable: isLightModeNotifier,
       builder: (context, isLightMode, _) {
         final isDark = !isLightMode;
-        final dialogBgColor = isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
+        final dialogBgColor =
+            isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
         final dialogText = isDark ? Colors.white : Colors.black;
         return AlertDialog(
           backgroundColor: dialogBgColor,
@@ -237,10 +238,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
           // Tombol aksi
           actions: [
             TextButton(
-              child: Text(
-                "Batal",
-                style: TextStyle(color: dialogText),
-              ),
+              child: Text("Batal", style: TextStyle(color: dialogText)),
               onPressed: () => Navigator.of(context).pop(false),
             ),
 
@@ -253,8 +251,13 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all(dialogBgColor),
                     foregroundColor: WidgetStateProperty.resolveWith((states) {
-                      if (isDark) return states.contains(WidgetState.disabled) ? Colors.grey : Colors.white;
-                      return states.contains(WidgetState.disabled) ? Colors.grey : Colors.black;
+                      if (isDark)
+                        return states.contains(WidgetState.disabled)
+                            ? Colors.grey
+                            : Colors.white;
+                      return states.contains(WidgetState.disabled)
+                          ? Colors.grey
+                          : Colors.black;
                     }),
                   ),
                   child: const Text("Simpan"),

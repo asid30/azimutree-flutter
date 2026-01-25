@@ -207,14 +207,12 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
       valueListenable: isLightModeNotifier,
       builder: (context, isLightMode, _) {
         final isDark = !isLightMode;
-        final dialogBgColor = isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
+        final dialogBgColor =
+            isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
         final dialogText = isDark ? Colors.white : Colors.black;
         return AlertDialog(
           backgroundColor: dialogBgColor,
-          title: Text(
-            "Tambah Plot Baru",
-            style: TextStyle(color: dialogText),
-          ),
+          title: Text("Tambah Plot Baru", style: TextStyle(color: dialogText)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -339,10 +337,7 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
           ),
           actions: [
             TextButton(
-              child: Text(
-                "Batal",
-                style: TextStyle(color: dialogText),
-              ),
+              child: Text("Batal", style: TextStyle(color: dialogText)),
               onPressed: () => Navigator.of(context).pop(false),
             ),
             ValueListenableBuilder<bool>(
@@ -353,8 +348,13 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all(dialogBgColor),
                     foregroundColor: WidgetStateProperty.resolveWith((states) {
-                      if (isDark) return states.contains(WidgetState.disabled) ? Colors.grey : Colors.white;
-                      return states.contains(WidgetState.disabled) ? Colors.grey : Colors.black;
+                      if (isDark)
+                        return states.contains(WidgetState.disabled)
+                            ? Colors.grey
+                            : Colors.white;
+                      return states.contains(WidgetState.disabled)
+                          ? Colors.grey
+                          : Colors.black;
                     }),
                   ),
                   child: const Text("Simpan"),
