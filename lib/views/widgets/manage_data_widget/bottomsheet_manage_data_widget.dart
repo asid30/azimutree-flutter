@@ -337,64 +337,57 @@ class _BottomsheetManageDataWidgetState
                               context: context,
                               builder: (dialogContext) {
                                 final clusters = widget.clusterNotifier.value;
-                                String? selectedKode;
-                                if (clusters.isNotEmpty) {
-                                  selectedKode = clusters.first.kodeCluster;
-                                }
+                                String? selectedKode =
+                                    clusters.isNotEmpty
+                                        ? clusters.first.kodeCluster
+                                        : null;
                                 String? selectedDirectoryPath;
 
                                 return StatefulBuilder(
                                   builder: (builderContext, setState) {
-                                    return AlertDialog(
-                                      title: const Text('Ekspor Data ke Excel'),
-                                      content: SizedBox(
-                                        width: double.maxFinite,
-                                        child: Column(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            if (clusters.isEmpty) ...[
-                                              const Text(
-                                                'Belum ada klaster tersedia.',
-                                              ),
-                                            ] else ...[
-                                              const Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Text('Pilih klaster:'),
-                                              ),
-                                              const SizedBox(height: 30),
-                                              ValueListenableBuilder<bool>(
-                                                valueListenable:
-                                                    isLightModeNotifier,
-                                                builder: (
-                                                  context,
-                                                  isLightMode,
-                                                  _,
-                                                ) {
-                                                  final isDark = !isLightMode;
-                                                  return Text(
-                                                    'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor data untuk menambahkan data dari file eksternal (sheet), ekspor data untuk menyimpan salinan data Anda, atau unduh template untuk format data (sheet) yang benar.',
-                                                    textAlign:
-                                                        TextAlign.justify,
+                                    return ValueListenableBuilder<bool>(
+                                      valueListenable: isLightModeNotifier,
+                                      builder: (context, isLightMode, _) {
+                                        final isDark = !isLightMode;
+                                        return AlertDialog(
+                                          title: Text(
+                                            'Ekspor Data ke Excel',
+                                            style: TextStyle(
+                                              color:
+                                                  isDark ? Colors.white : null,
+                                            ),
+                                          ),
+                                          content: SizedBox(
+                                            width: double.maxFinite,
+                                            child: Column(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                if (clusters.isEmpty) ...[
+                                                  Text(
+                                                    'Belum ada klaster tersedia.',
                                                     style: TextStyle(
                                                       color:
                                                           isDark
                                                               ? Colors.white
                                                               : null,
                                                     ),
-                                                  );
-                                                },
-                                              ),
-                                              const SizedBox(height: 20),
-                                              ValueListenableBuilder<bool>(
-                                                valueListenable:
-                                                    isLightModeNotifier,
-                                                builder: (
-                                                  context,
-                                                  isLightMode,
-                                                  _,
-                                                ) {
-                                                  final isDark = !isLightMode;
-                                                  return DropdownButton<String>(
+                                                  ),
+                                                ] else ...[
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                      'Pilih klaster:',
+                                                      style: TextStyle(
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : null,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 30),
+                                                  DropdownButton<String>(
                                                     value: selectedKode,
                                                     isExpanded: true,
                                                     dropdownColor:
@@ -421,6 +414,12 @@ class _BottomsheetManageDataWidgetState
                                                                               null
                                                                           ? ' - ${c.namaPengukur}'
                                                                           : ''),
+                                                                  style: TextStyle(
+                                                                    color:
+                                                                        isDark
+                                                                            ? Colors.white
+                                                                            : null,
+                                                                  ),
                                                                 ),
                                                               ),
                                                             )
@@ -430,141 +429,180 @@ class _BottomsheetManageDataWidgetState
                                                           () =>
                                                               selectedKode = v,
                                                         ),
-                                                  );
-                                                },
-                                              ),
-                                              const SizedBox(height: 12),
-                                              const Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Text(
-                                                  'Simpan ke folder:',
-                                                ),
-                                              ),
-                                              const SizedBox(height: 8),
-                                              Align(
-                                                alignment: Alignment.centerLeft,
-                                                child: Text(
-                                                  selectedDirectoryPath == null
-                                                      ? 'Default: Download'
-                                                      : selectedDirectoryPath!,
-                                                  style: const TextStyle(
-                                                    fontSize: 12,
                                                   ),
+                                                  const SizedBox(height: 12),
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                      'Simpan ke folder:',
+                                                      style: TextStyle(
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : null,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  Align(
+                                                    alignment:
+                                                        Alignment.centerLeft,
+                                                    child: Text(
+                                                      selectedDirectoryPath ==
+                                                              null
+                                                          ? 'Default: Download'
+                                                          : selectedDirectoryPath!,
+                                                      style: TextStyle(
+                                                        fontSize: 12,
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : null,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  const SizedBox(height: 8),
+                                                  OutlinedButton(
+                                                    onPressed: () async {
+                                                      final picked =
+                                                          await FilePicker
+                                                              .platform
+                                                              .getDirectoryPath();
+                                                      if (!builderContext
+                                                          .mounted) {
+                                                        return;
+                                                      }
+                                                      if (picked == null ||
+                                                          picked
+                                                              .trim()
+                                                              .isEmpty) {
+                                                        return;
+                                                      }
+                                                      setState(
+                                                        () =>
+                                                            selectedDirectoryPath =
+                                                                picked,
+                                                      );
+                                                    },
+                                                    child: Text(
+                                                      'Pilih Folder Simpan',
+                                                      style: TextStyle(
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : null,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ],
+                                            ),
+                                          ),
+                                          actions: [
+                                            TextButton(
+                                              onPressed:
+                                                  () =>
+                                                      Navigator.of(
+                                                        dialogContext,
+                                                      ).pop(),
+                                              child: Text(
+                                                'Batal',
+                                                style: TextStyle(
+                                                  color:
+                                                      isDark
+                                                          ? Colors.white
+                                                          : null,
                                                 ),
                                               ),
-                                              const SizedBox(height: 8),
-                                              OutlinedButton(
-                                                onPressed: () async {
-                                                  final picked =
-                                                      await FilePicker.platform
-                                                          .getDirectoryPath();
-                                                  if (!builderContext.mounted) {
-                                                    return;
-                                                  }
-                                                  if (picked == null ||
-                                                      picked.trim().isEmpty) {
-                                                    return;
-                                                  }
-                                                  setState(
-                                                    () =>
-                                                        selectedDirectoryPath =
-                                                            picked,
-                                                  );
-                                                },
-                                                child: const Text(
-                                                  'Pilih Folder Simpan',
-                                                ),
-                                              ),
-                                            ],
-                                          ],
-                                        ),
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed:
-                                              () =>
-                                                  Navigator.of(
-                                                    dialogContext,
-                                                  ).pop(),
-                                          child: const Text('Batal'),
-                                        ),
-                                        ElevatedButton(
-                                          onPressed:
-                                              clusters.isEmpty
-                                                  ? null
-                                                  : () async {
-                                                    final cluster = clusters
-                                                        .firstWhere(
-                                                          (c) =>
-                                                              c.kodeCluster ==
-                                                              selectedKode,
-                                                          orElse:
-                                                              () =>
-                                                                  clusters
-                                                                      .first,
+                                            ),
+                                            ElevatedButton(
+                                              onPressed:
+                                                  clusters.isEmpty
+                                                      ? null
+                                                      : () async {
+                                                        final cluster = clusters
+                                                            .firstWhere(
+                                                              (c) =>
+                                                                  c.kodeCluster ==
+                                                                  selectedKode,
+                                                              orElse:
+                                                                  () =>
+                                                                      clusters
+                                                                          .first,
+                                                            );
+                                                        Navigator.of(
+                                                          dialogContext,
+                                                        ).pop();
+                                                        showDialog<void>(
+                                                          barrierDismissible:
+                                                              false,
+                                                          context: this.context,
+                                                          useRootNavigator:
+                                                              true,
+                                                          builder:
+                                                              (
+                                                                _,
+                                                              ) => const Center(
+                                                                child:
+                                                                    CircularProgressIndicator(),
+                                                              ),
                                                         );
-
-                                                    // Close selection dialog (no async gap before using dialogContext)
-                                                    Navigator.of(
-                                                      dialogContext,
-                                                    ).pop();
-
-                                                    // Show progress dialog on root navigator
-                                                    showDialog<void>(
-                                                      barrierDismissible: false,
-                                                      context: this.context,
-                                                      useRootNavigator: true,
-                                                      builder:
-                                                          (_) => const Center(
-                                                            child:
-                                                                CircularProgressIndicator(),
-                                                          ),
-                                                    );
-
-                                                    try {
-                                                      final path =
-                                                          await ExcelExportService.exportClusterToExcel(
-                                                            cluster: cluster,
-                                                            directoryPath:
-                                                                selectedDirectoryPath,
-                                                            preferDownloads:
-                                                                selectedDirectoryPath ==
-                                                                null,
+                                                        try {
+                                                          final path =
+                                                              await ExcelExportService.exportClusterToExcel(
+                                                                cluster:
+                                                                    cluster,
+                                                                directoryPath:
+                                                                    selectedDirectoryPath,
+                                                                preferDownloads:
+                                                                    selectedDirectoryPath ==
+                                                                    null,
+                                                              );
+                                                          if (!mounted) return;
+                                                          Navigator.of(
+                                                            this.context,
+                                                            rootNavigator: true,
+                                                          ).pop();
+                                                          await _showAlert(
+                                                            title: 'Sukses',
+                                                            message:
+                                                                'Ekspor selesai. File disimpan di:\n$path',
+                                                            backgroundColor:
+                                                                Colors
+                                                                    .lightGreen
+                                                                    .shade200,
                                                           );
-
-                                                      if (!mounted) return;
-                                                      // Close progress dialog (root)
-                                                      Navigator.of(
-                                                        this.context,
-                                                        rootNavigator: true,
-                                                      ).pop();
-                                                      await _showAlert(
-                                                        title: 'Sukses',
-                                                        message:
-                                                            'Ekspor selesai. File disimpan di:\n$path',
-                                                        backgroundColor:
-                                                            Colors
-                                                                .lightGreen
-                                                                .shade200,
-                                                      );
-                                                    } catch (e) {
-                                                      if (!mounted) return;
-                                                      Navigator.of(
-                                                        this.context,
-                                                        rootNavigator: true,
-                                                      ).pop();
-                                                      await _showAlert(
-                                                        title: 'Gagal',
-                                                        message:
-                                                            'Ekspor gagal: ${e.toString()}',
-                                                        backgroundColor:
-                                                            Colors.red.shade200,
-                                                      );
-                                                    }
-                                                  },
-                                          child: const Text('Ekspor'),
-                                        ),
-                                      ],
+                                                        } catch (e) {
+                                                          if (!mounted) return;
+                                                          Navigator.of(
+                                                            this.context,
+                                                            rootNavigator: true,
+                                                          ).pop();
+                                                          await _showAlert(
+                                                            title: 'Gagal',
+                                                            message:
+                                                                'Ekspor gagal: ${e.toString()}',
+                                                            backgroundColor:
+                                                                Colors
+                                                                    .red
+                                                                    .shade200,
+                                                          );
+                                                        }
+                                                      },
+                                              child: Text(
+                                                'Ekspor',
+                                                style: TextStyle(
+                                                  color:
+                                                      isDark
+                                                          ? Colors.white
+                                                          : null,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        );
+                                      },
                                     );
                                   },
                                 );

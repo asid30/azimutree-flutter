@@ -203,143 +203,162 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Colors.white,
-      title: const Text("Tambah Plot Baru"),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 🔽 DROPDOWN KODE KLASTER
-            DropdownButtonFormField<int>(
-              initialValue: _selectedClusterId,
-              decoration: const InputDecoration(
-                labelText: "Klaster",
-                border: OutlineInputBorder(),
-              ),
-              isExpanded: true,
-              items:
-                  widget.clusters.map((cluster) {
-                    return DropdownMenuItem<int>(
-                      value: cluster.id,
-                      child: Text(cluster.kodeCluster),
-                    );
-                  }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedClusterId = value;
-                  final availableCodes = _availablePlotCodesForSelectedCluster;
-                  _selectedPlotCode =
-                      availableCodes.isNotEmpty ? availableCodes.first : null;
-                });
-                _validateForm();
-              },
-            ),
-            const SizedBox(height: 8),
-
-            DropdownButtonFormField<int>(
-              initialValue: _selectedPlotCode,
-              decoration: InputDecoration(
-                labelText: "Pilih Plot",
-                border: const OutlineInputBorder(),
-                errorText:
-                    _isDuplicateCode
-                        ? 'Kode plot sudah dipakai, pilih kode lain.'
-                        : null,
-                errorMaxLines: 2,
-              ),
-              items:
-                  _availablePlotCodesForSelectedCluster
-                      .map(
-                        (code) => DropdownMenuItem<int>(
-                          value: code,
-                          child: Text('Plot $code'),
-                        ),
-                      )
-                      .toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedPlotCode = value;
-                });
-                _validateForm();
-              },
-            ),
-            if (_availablePlotCodesForSelectedCluster.isEmpty)
-              const Padding(
-                padding: EdgeInsets.only(top: 4.0),
-                child: Text(
-                  'Semua kode plot pada klaster ini sudah dipakai.',
-                  style: TextStyle(fontSize: 12, color: Colors.redAccent),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isLightModeNotifier,
+      builder: (context, isLightMode, _) {
+        final isDark = !isLightMode;
+        return AlertDialog(
+          backgroundColor:
+              isDark ? const Color.fromARGB(255, 36, 67, 42) : Colors.white,
+          title: Text(
+            "Tambah Plot Baru",
+            style: TextStyle(color: isDark ? Colors.white : null),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 🔽 DROPDOWN KODE KLASTER
+                DropdownButtonFormField<int>(
+                  initialValue: _selectedClusterId,
+                  decoration: const InputDecoration(
+                    labelText: "Klaster",
+                    border: OutlineInputBorder(),
+                  ),
+                  isExpanded: true,
+                  items:
+                      widget.clusters.map((cluster) {
+                        return DropdownMenuItem<int>(
+                          value: cluster.id,
+                          child: Text(cluster.kodeCluster),
+                        );
+                      }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedClusterId = value;
+                      final availableCodes =
+                          _availablePlotCodesForSelectedCluster;
+                      _selectedPlotCode =
+                          availableCodes.isNotEmpty
+                              ? availableCodes.first
+                              : null;
+                    });
+                    _validateForm();
+                  },
                 ),
-              ),
-            const SizedBox(height: 8),
+                const SizedBox(height: 8),
 
-            TextField(
-              controller: _latitudeController,
-              decoration: const InputDecoration(
-                labelText: "Latitude",
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-              inputFormatters: [
-                _CommaToDotNoSpaceFormatter(),
-                FilteringTextInputFormatter.allow(RegExp(r'[-0-9\.,]')),
+                DropdownButtonFormField<int>(
+                  initialValue: _selectedPlotCode,
+                  decoration: InputDecoration(
+                    labelText: "Pilih Plot",
+                    border: const OutlineInputBorder(),
+                    errorText:
+                        _isDuplicateCode
+                            ? 'Kode plot sudah dipakai, pilih kode lain.'
+                            : null,
+                    errorMaxLines: 2,
+                  ),
+                  items:
+                      _availablePlotCodesForSelectedCluster
+                          .map(
+                            (code) => DropdownMenuItem<int>(
+                              value: code,
+                              child: Text('Plot $code'),
+                            ),
+                          )
+                          .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedPlotCode = value;
+                    });
+                    _validateForm();
+                  },
+                ),
+                if (_availablePlotCodesForSelectedCluster.isEmpty)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      'Semua kode plot pada klaster ini sudah dipakai.',
+                      style: TextStyle(fontSize: 12, color: Colors.redAccent),
+                    ),
+                  ),
+                const SizedBox(height: 8),
+
+                TextField(
+                  controller: _latitudeController,
+                  decoration: const InputDecoration(
+                    labelText: "Latitude",
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  inputFormatters: [
+                    _CommaToDotNoSpaceFormatter(),
+                    FilteringTextInputFormatter.allow(RegExp(r'[-0-9\.,]')),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                TextField(
+                  controller: _longitudeController,
+                  decoration: const InputDecoration(
+                    labelText: "Longitude",
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  inputFormatters: [
+                    _CommaToDotNoSpaceFormatter(),
+                    FilteringTextInputFormatter.allow(RegExp(r'[-0-9\.,]')),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                TextField(
+                  controller: _altitudeController,
+                  decoration: const InputDecoration(
+                    labelText: "Altitude (opsional)",
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: [
+                    _CommaToDotNoSpaceFormatter(),
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9\.,-]')),
+                  ],
+                ),
               ],
             ),
-            const SizedBox(height: 8),
-
-            TextField(
-              controller: _longitudeController,
-              decoration: const InputDecoration(
-                labelText: "Longitude",
-                border: OutlineInputBorder(),
+          ),
+          actions: [
+            TextButton(
+              child: Text(
+                "Batal",
+                style: TextStyle(color: isDark ? Colors.white : null),
               ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-              inputFormatters: [
-                _CommaToDotNoSpaceFormatter(),
-                FilteringTextInputFormatter.allow(RegExp(r'[-0-9\.,]')),
-              ],
+              onPressed: () => Navigator.of(context).pop(false),
             ),
-            const SizedBox(height: 8),
-
-            TextField(
-              controller: _altitudeController,
-              decoration: const InputDecoration(
-                labelText: "Altitude (opsional)",
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: [
-                _CommaToDotNoSpaceFormatter(),
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9\.,-]')),
-              ],
+            ValueListenableBuilder<bool>(
+              valueListenable: _isFormValid,
+              builder: (context, isValid, _) {
+                return TextButton(
+                  onPressed: isValid ? _savePlot : null,
+                  child: Text(
+                    "Simpan",
+                    style: TextStyle(color: isDark ? Colors.white : null),
+                  ),
+                );
+              },
             ),
           ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          child: const Text("Batal"),
-          onPressed: () => Navigator.of(context).pop(false),
-        ),
-        ValueListenableBuilder<bool>(
-          valueListenable: _isFormValid,
-          builder: (context, isValid, _) {
-            return TextButton(
-              onPressed: isValid ? _savePlot : null,
-              child: const Text("Simpan"),
-            );
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }

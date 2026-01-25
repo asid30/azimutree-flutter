@@ -142,11 +142,15 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                       crossAxisAlignment:
                                           CrossAxisAlignment.start,
                                       children: [
-                                        const Text(
+                                        Text(
                                           "Pilih Klaster",
                                           style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 16,
+                                            color:
+                                                isDark
+                                                    ? Colors.white
+                                                    : Colors.black,
                                           ),
                                         ),
                                         const SizedBox(height: 4),

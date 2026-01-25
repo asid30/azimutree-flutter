@@ -3,6 +3,7 @@ import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 
 class DialogEditTreeWidget extends StatefulWidget {
   final TreeModel tree;
@@ -43,25 +44,44 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
   @override
   void initState() {
     super.initState();
-    _kodeController = TextEditingController(text: widget.tree.kodePohon.toString());
+    _kodeController = TextEditingController(
+      text: widget.tree.kodePohon.toString(),
+    );
     _namaController = TextEditingController(text: widget.tree.namaPohon ?? "");
-    _ilmiahController = TextEditingController(text: widget.tree.namaIlmiah ?? "");
+    _ilmiahController = TextEditingController(
+      text: widget.tree.namaIlmiah ?? "",
+    );
     _azimutController = TextEditingController(
-      text: widget.tree.azimut != null ? widget.tree.azimut!.toStringAsFixed(1) : "",
+      text:
+          widget.tree.azimut != null
+              ? widget.tree.azimut!.toStringAsFixed(1)
+              : "",
     );
     _jarakController = TextEditingController(
-      text: widget.tree.jarakPusatM != null ? widget.tree.jarakPusatM!.toStringAsFixed(2) : "",
+      text:
+          widget.tree.jarakPusatM != null
+              ? widget.tree.jarakPusatM!.toStringAsFixed(2)
+              : "",
     );
     _latitudeController = TextEditingController(
-      text: widget.tree.latitude != null ? widget.tree.latitude!.toStringAsFixed(6) : "",
+      text:
+          widget.tree.latitude != null
+              ? widget.tree.latitude!.toStringAsFixed(6)
+              : "",
     );
     _longitudeController = TextEditingController(
-      text: widget.tree.longitude != null ? widget.tree.longitude!.toStringAsFixed(6) : "",
+      text:
+          widget.tree.longitude != null
+              ? widget.tree.longitude!.toStringAsFixed(6)
+              : "",
     );
     _altitudeController = TextEditingController(
-      text: widget.tree.altitude != null ? widget.tree.altitude!.toString() : "",
+      text:
+          widget.tree.altitude != null ? widget.tree.altitude!.toString() : "",
     );
-    _keteranganController = TextEditingController(text: widget.tree.keterangan ?? "");
+    _keteranganController = TextEditingController(
+      text: widget.tree.keterangan ?? "",
+    );
     _urlController = TextEditingController(text: widget.tree.urlFoto ?? "");
 
     _selectedPlotId = widget.tree.plotId;
@@ -101,14 +121,15 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
     final latValid = double.tryParse(_latitudeController.text.trim()) != null;
     final lonValid = double.tryParse(_longitudeController.text.trim()) != null;
 
-    final duplicate = kode != null
-        ? widget.treeNotifier.value.any(
-            (tree) =>
-                tree.plotId == _selectedPlotId &&
-                tree.id != widget.tree.id &&
-                tree.kodePohon == kode,
-          )
-        : false;
+    final duplicate =
+        kode != null
+            ? widget.treeNotifier.value.any(
+              (tree) =>
+                  tree.plotId == _selectedPlotId &&
+                  tree.id != widget.tree.id &&
+                  tree.kodePohon == kode,
+            )
+            : false;
 
     if (_isDuplicate != duplicate) {
       setState(() {
@@ -141,8 +162,13 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
     final jarak = _parseDouble(_jarakController.text);
     final altitude = _parseDouble(_altitudeController.text);
     final keterangan =
-        _keteranganController.text.trim().isNotEmpty ? _capitalizeWords(_keteranganController.text.trim()) : null;
-    final urlFoto = _urlController.text.trim().isNotEmpty ? _urlController.text.trim() : null;
+        _keteranganController.text.trim().isNotEmpty
+            ? _capitalizeWords(_keteranganController.text.trim())
+            : null;
+    final urlFoto =
+        _urlController.text.trim().isNotEmpty
+            ? _urlController.text.trim()
+            : null;
 
     final updated = TreeModel(
       id: widget.tree.id,
@@ -190,113 +216,135 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
     TextInputType? type,
     TextCapitalization caps = TextCapitalization.none,
     String? errorText,
-  }) =>
-      TextField(
-        controller: controller,
-        decoration: InputDecoration(
-          labelText: label,
-          border: const OutlineInputBorder(),
-          errorText: errorText,
-        ),
-        keyboardType: type,
-        textCapitalization: caps,
-      );
+  }) => TextField(
+    controller: controller,
+    decoration: InputDecoration(
+      labelText: label,
+      border: const OutlineInputBorder(),
+      errorText: errorText,
+    ),
+    keyboardType: type,
+    textCapitalization: caps,
+  );
 
   Widget _dualFields(Widget left, Widget right) => Row(
-        children: [
-          Expanded(child: left),
-          const SizedBox(width: 8),
-          Expanded(child: right),
-        ],
-      );
+    children: [
+      Expanded(child: left),
+      const SizedBox(width: 8),
+      Expanded(child: right),
+    ],
+  );
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text("Edit Pohon"),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              initialValue: _clusterLabel,
-              readOnly: true,
-              decoration: const InputDecoration(
-                labelText: "Klaster",
-                border: OutlineInputBorder(),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isLightModeNotifier,
+      builder: (context, isLightMode, _) {
+        final isDark = !isLightMode;
+        return AlertDialog(
+          backgroundColor:
+              isDark ? const Color.fromARGB(255, 36, 67, 42) : null,
+          title: Text(
+            "Edit Pohon",
+            style: TextStyle(color: isDark ? Colors.white : null),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  initialValue: _clusterLabel,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: "Klaster",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextFormField(
+                  initialValue: _plotLabel,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: "Plot",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                _textField(
+                  controller: _kodeController,
+                  label: "Kode Pohon",
+                  type: TextInputType.number,
+                  errorText: _isDuplicate ? "Kode pohon sudah ada" : null,
+                ),
+                const SizedBox(height: 8),
+                _textField(
+                  controller: _namaController,
+                  label: "Nama Pohon",
+                  caps: TextCapitalization.words,
+                ),
+                const SizedBox(height: 8),
+                _textField(
+                  controller: _ilmiahController,
+                  label: "Nama Ilmiah",
+                  caps: TextCapitalization.words,
+                ),
+                const SizedBox(height: 8),
+                _dualFields(
+                  _textField(
+                    controller: _latitudeController,
+                    label: "Latitude",
+                    type: const TextInputType.numberWithOptions(
+                      decimal: true,
+                      signed: true,
+                    ),
+                  ),
+                  _textField(
+                    controller: _longitudeController,
+                    label: "Longitude",
+                    type: const TextInputType.numberWithOptions(
+                      decimal: true,
+                      signed: true,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                _textField(
+                  controller: _altitudeController,
+                  label: "Altitude (opsional)",
+                  type: const TextInputType.numberWithOptions(decimal: true),
+                ),
+                const SizedBox(height: 8),
+                _textField(
+                  controller: _urlController,
+                  label: "URL Foto",
+                  type: TextInputType.url,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Batal",
+                style: TextStyle(color: isDark ? Colors.white : null),
               ),
             ),
-            const SizedBox(height: 8),
-            TextFormField(
-              initialValue: _plotLabel,
-              readOnly: true,
-              decoration: const InputDecoration(
-                labelText: "Plot",
-                border: OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 10),
-            _textField(
-              controller: _kodeController,
-              label: "Kode Pohon",
-              type: TextInputType.number,
-              errorText: _isDuplicate ? "Kode pohon sudah ada" : null,
-            ),
-            const SizedBox(height: 8),
-            _textField(
-              controller: _namaController,
-              label: "Nama Pohon",
-              caps: TextCapitalization.words,
-            ),
-            const SizedBox(height: 8),
-            _textField(
-              controller: _ilmiahController,
-              label: "Nama Ilmiah",
-              caps: TextCapitalization.words,
-            ),
-            const SizedBox(height: 8),
-            _dualFields(
-              _textField(
-                controller: _latitudeController,
-                label: "Latitude",
-                type: const TextInputType.numberWithOptions(decimal: true, signed: true),
-              ),
-              _textField(
-                controller: _longitudeController,
-                label: "Longitude",
-                type: const TextInputType.numberWithOptions(decimal: true, signed: true),
-              ),
-            ),
-            const SizedBox(height: 8),
-            _textField(
-              controller: _altitudeController,
-              label: "Altitude (opsional)",
-              type: const TextInputType.numberWithOptions(decimal: true),
-            ),
-            const SizedBox(height: 8),
-            _textField(
-              controller: _urlController,
-              label: "URL Foto",
-              type: TextInputType.url,
+            ValueListenableBuilder<bool>(
+              valueListenable: _isFormValid,
+              builder: (context, isValid, _) {
+                return TextButton(
+                  onPressed: isValid ? _save : null,
+                  child: Text(
+                    "Simpan",
+                    style: TextStyle(color: isDark ? Colors.white : null),
+                  ),
+                );
+              },
             ),
           ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text("Batal"),
-        ),
-        ValueListenableBuilder<bool>(
-          valueListenable: _isFormValid,
-          builder: (context, isValid, _) {
-            return TextButton(
-              onPressed: isValid ? _save : null,
-              child: const Text("Simpan"),
-            );
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }

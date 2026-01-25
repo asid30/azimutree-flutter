@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 
 class DialogAddClusterWidget extends StatefulWidget {
@@ -168,83 +169,98 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Colors.white,
-      title: const Text("Tambah Klaster Baru"),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Kode Klaster
-            TextField(
-              controller: _kodeClusterController,
-              decoration: InputDecoration(
-                labelText: "Kode Klaster (wajib)",
-                border: const OutlineInputBorder(),
-                helperText: "Contoh: CL1 (otomatis huruf besar)",
-                helperMaxLines: 2,
-                errorText:
-                    _isDuplicateCode
-                        ? 'Kode klaster sudah ada, gunakan kode lain.'
-                        : null,
-                errorMaxLines: 2,
-              ),
-              textCapitalization: TextCapitalization.characters,
-            ),
-            const SizedBox(height: 8),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isLightModeNotifier,
+      builder: (context, isLightMode, _) {
+        final isDark = !isLightMode;
+        return AlertDialog(
+          backgroundColor:
+              isDark ? const Color.fromARGB(255, 36, 67, 42) : Colors.white,
+          title: Text(
+            "Tambah Klaster Baru",
+            style: TextStyle(color: isDark ? Colors.white : null),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Kode Klaster
+                TextField(
+                  controller: _kodeClusterController,
+                  decoration: InputDecoration(
+                    labelText: "Kode Klaster (wajib)",
+                    border: const OutlineInputBorder(),
+                    helperText: "Contoh: CL1 (otomatis huruf besar)",
+                    helperMaxLines: 2,
+                    errorText:
+                        _isDuplicateCode
+                            ? 'Kode klaster sudah ada, gunakan kode lain.'
+                            : null,
+                    errorMaxLines: 2,
+                  ),
+                  textCapitalization: TextCapitalization.characters,
+                ),
+                const SizedBox(height: 8),
 
-            // Nama Pengukur
-            TextField(
-              controller: _namaPengukurController,
-              decoration: const InputDecoration(
-                labelText: "Nama Pengukur (wajib)",
-                border: OutlineInputBorder(),
-              ),
-              textCapitalization: TextCapitalization.words,
-            ),
-            const SizedBox(height: 8),
-
-            // Tanggal opsional
-            GestureDetector(
-              onTap: _selectDate,
-              child: AbsorbPointer(
-                child: TextField(
-                  controller: _tanggalPengukuranController,
-                  readOnly: true,
+                // Nama Pengukur
+                TextField(
+                  controller: _namaPengukurController,
                   decoration: const InputDecoration(
-                    labelText: "Tanggal Pengukuran (opsional)",
+                    labelText: "Nama Pengukur (wajib)",
                     border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.calendar_today),
-                    hintText: "YYYY-MM-DD",
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 8),
+
+                // Tanggal opsional
+                GestureDetector(
+                  onTap: _selectDate,
+                  child: AbsorbPointer(
+                    child: TextField(
+                      controller: _tanggalPengukuranController,
+                      readOnly: true,
+                      decoration: const InputDecoration(
+                        labelText: "Tanggal Pengukuran (opsional)",
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.calendar_today),
+                        hintText: "YYYY-MM-DD",
+                      ),
+                    ),
                   ),
                 ),
+              ],
+            ),
+          ),
+
+          // Tombol aksi
+          actions: [
+            TextButton(
+              child: Text(
+                "Batal",
+                style: TextStyle(color: isDark ? Colors.white : null),
               ),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+
+            // Tombol Simpan pakai ValueListenableBuilder
+            ValueListenableBuilder<bool>(
+              valueListenable: _isFormValid,
+              builder: (context, isValid, _) {
+                return TextButton(
+                  onPressed: isValid ? _saveCluster : null,
+                  child: Text(
+                    "Simpan",
+                    style: TextStyle(
+                      color: isValid ? Colors.blue : Colors.grey,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
-        ),
-      ),
-
-      // Tombol aksi
-      actions: [
-        TextButton(
-          child: const Text("Batal"),
-          onPressed: () => Navigator.of(context).pop(false),
-        ),
-
-        // Tombol Simpan pakai ValueListenableBuilder
-        ValueListenableBuilder<bool>(
-          valueListenable: _isFormValid,
-          builder: (context, isValid, _) {
-            return TextButton(
-              onPressed: isValid ? _saveCluster : null,
-              child: Text(
-                "Simpan",
-                style: TextStyle(color: isValid ? Colors.blue : Colors.grey),
-              ),
-            );
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }

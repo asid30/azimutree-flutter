@@ -334,305 +334,337 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
     final hasPlotsForSelectedCluster = plotsForSelectedCluster.isNotEmpty;
     final bool fieldsEnabled = hasPlotsForSelectedCluster;
 
-    return AlertDialog(
-      backgroundColor: Colors.white,
-      title: const Text("Tambah Pohon Baru"),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            SizedBox(height: 8),
-            // Dropdown Klaster
-            DropdownButtonFormField<int>(
-              initialValue: _selectedClusterId,
-              decoration: const InputDecoration(
-                labelText: "Klaster",
-                border: OutlineInputBorder(),
-              ),
-              isExpanded: true,
-              items:
-                  widget.clusters.map((cluster) {
-                    return DropdownMenuItem<int>(
-                      value: cluster.id,
-                      child: Text(cluster.kodeCluster),
-                    );
-                  }).toList(),
-              onChanged: (value) {
-                setState(() {
-                  _selectedClusterId = value;
-                  final filtered = _filteredPlots;
-                  _selectedPlotId =
-                      filtered.isNotEmpty ? filtered.first.id : null;
-                });
-                _validateForm();
-              },
-            ),
-            const SizedBox(height: 8),
-
-            // Dropdown Plot
-            DropdownButtonFormField<int>(
-              initialValue: _selectedPlotId,
-              decoration: const InputDecoration(
-                labelText: "Plot",
-                border: OutlineInputBorder(),
-              ),
-              isExpanded: true,
-              items:
-                  plotsForSelectedCluster.map((plot) {
-                    return DropdownMenuItem<int>(
-                      value: plot.id,
-                      child: Text('Plot ${plot.kodePlot}'),
-                    );
-                  }).toList(),
-              onChanged:
-                  fieldsEnabled
-                      ? (value) {
-                        setState(() {
-                          _selectedPlotId = value;
-                        });
-                        _validateForm();
-                      }
-                      : null,
-            ),
-            if (!hasPlotsForSelectedCluster)
-              const Padding(
-                padding: EdgeInsets.only(top: 4.0),
-                child: Text(
-                  "Belum ada plot untuk klaster ini. Tambahkan plot terlebih dahulu.",
-                  style: TextStyle(fontSize: 12, color: Colors.redAccent),
-                ),
-              ),
-            const SizedBox(height: 8),
-
-            // Metode input posisi
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    return ValueListenableBuilder<bool>(
+      valueListenable: isLightModeNotifier,
+      builder: (context, isLightMode, _) {
+        final isDark = !isLightMode;
+        return AlertDialog(
+          backgroundColor:
+              isDark ? const Color.fromARGB(255, 36, 67, 42) : Colors.white,
+          title: Text(
+            "Tambah Pohon Baru",
+            style: TextStyle(color: isDark ? Colors.white : null),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                const Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    "Metode input posisi",
-                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                SizedBox(height: 8),
+                // Dropdown Klaster
+                DropdownButtonFormField<int>(
+                  initialValue: _selectedClusterId,
+                  decoration: const InputDecoration(
+                    labelText: "Klaster",
+                    border: OutlineInputBorder(),
                   ),
+                  isExpanded: true,
+                  items:
+                      widget.clusters.map((cluster) {
+                        return DropdownMenuItem<int>(
+                          value: cluster.id,
+                          child: Text(cluster.kodeCluster),
+                        );
+                      }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedClusterId = value;
+                      final filtered = _filteredPlots;
+                      _selectedPlotId =
+                          filtered.isNotEmpty ? filtered.first.id : null;
+                    });
+                    _validateForm();
+                  },
                 ),
-                const SizedBox(height: 4),
-                SegmentedButton<TreePositionInputMode>(
-                  segments: const [
-                    ButtonSegment<TreePositionInputMode>(
-                      value: TreePositionInputMode.azimuthDistance,
-                      label: Text(
-                        "Azimut & Jarak",
-                        style: TextStyle(fontSize: 12),
-                      ),
-                      icon: Icon(Icons.explore_outlined, size: 16),
-                    ),
-                    ButtonSegment<TreePositionInputMode>(
-                      value: TreePositionInputMode.coordinates,
-                      label: Text("Koordinat", style: TextStyle(fontSize: 12)),
-                      icon: Icon(Icons.location_on_outlined, size: 16),
-                    ),
-                  ],
-                  selected: {_positionMode},
-                  onSelectionChanged:
+                const SizedBox(height: 8),
+
+                // Dropdown Plot
+                DropdownButtonFormField<int>(
+                  initialValue: _selectedPlotId,
+                  decoration: const InputDecoration(
+                    labelText: "Plot",
+                    border: OutlineInputBorder(),
+                  ),
+                  isExpanded: true,
+                  items:
+                      plotsForSelectedCluster.map((plot) {
+                        return DropdownMenuItem<int>(
+                          value: plot.id,
+                          child: Text('Plot ${plot.kodePlot}'),
+                        );
+                      }).toList(),
+                  onChanged:
                       fieldsEnabled
-                          ? (newSelection) {
+                          ? (value) {
                             setState(() {
-                              _positionMode = newSelection.first;
+                              _selectedPlotId = value;
                             });
                             _validateForm();
                           }
                           : null,
-                  multiSelectionEnabled: false,
-                  showSelectedIcon: false,
+                ),
+                if (!hasPlotsForSelectedCluster)
+                  const Padding(
+                    padding: EdgeInsets.only(top: 4.0),
+                    child: Text(
+                      "Belum ada plot untuk klaster ini. Tambahkan plot terlebih dahulu.",
+                      style: TextStyle(fontSize: 12, color: Colors.redAccent),
+                    ),
+                  ),
+                const SizedBox(height: 8),
+
+                // Metode input posisi
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        "Metode input posisi",
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    SegmentedButton<TreePositionInputMode>(
+                      segments: const [
+                        ButtonSegment<TreePositionInputMode>(
+                          value: TreePositionInputMode.azimuthDistance,
+                          label: Text(
+                            "Azimut & Jarak",
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          icon: Icon(Icons.explore_outlined, size: 16),
+                        ),
+                        ButtonSegment<TreePositionInputMode>(
+                          value: TreePositionInputMode.coordinates,
+                          label: Text(
+                            "Koordinat",
+                            style: TextStyle(fontSize: 12),
+                          ),
+                          icon: Icon(Icons.location_on_outlined, size: 16),
+                        ),
+                      ],
+                      selected: {_positionMode},
+                      onSelectionChanged:
+                          fieldsEnabled
+                              ? (newSelection) {
+                                setState(() {
+                                  _positionMode = newSelection.first;
+                                });
+                                _validateForm();
+                              }
+                              : null,
+                      multiSelectionEnabled: false,
+                      showSelectedIcon: false,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // Field posisi sesuai mode
+                if (_positionMode == TreePositionInputMode.azimuthDistance) ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _azimutController,
+                          decoration: const InputDecoration(
+                            labelText: "Azimut (°)",
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          inputFormatters: [
+                            _CommaToDotNoSpaceFormatter(),
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[0-9\.,]'),
+                            ),
+                          ],
+                          enabled: fieldsEnabled,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: _jarakPusatController,
+                          decoration: const InputDecoration(
+                            labelText: "Jarak dari pusat (m)",
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                          ),
+                          inputFormatters: [
+                            _CommaToDotNoSpaceFormatter(),
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[0-9\.,]'),
+                            ),
+                          ],
+                          enabled: fieldsEnabled,
+                        ),
+                      ),
+                    ],
+                  ),
+                ] else ...[
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: _latitudeController,
+                          decoration: const InputDecoration(
+                            labelText: "Latitude",
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                            signed: true,
+                          ),
+                          inputFormatters: [
+                            _CommaToDotNoSpaceFormatter(),
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[-0-9\.,]'),
+                            ),
+                          ],
+                          enabled: fieldsEnabled,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: TextField(
+                          controller: _longitudeController,
+                          decoration: const InputDecoration(
+                            labelText: "Longitude",
+                            border: OutlineInputBorder(),
+                          ),
+                          keyboardType: const TextInputType.numberWithOptions(
+                            decimal: true,
+                            signed: true,
+                          ),
+                          inputFormatters: [
+                            _CommaToDotNoSpaceFormatter(),
+                            FilteringTextInputFormatter.allow(
+                              RegExp(r'[-0-9\.,]'),
+                            ),
+                          ],
+                          enabled: fieldsEnabled,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+                const SizedBox(height: 8),
+
+                // Altitude
+                TextField(
+                  controller: _altitudeController,
+                  decoration: const InputDecoration(
+                    labelText: "Altitude (opsional)",
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  inputFormatters: [
+                    _CommaToDotNoSpaceFormatter(),
+                    FilteringTextInputFormatter.allow(RegExp(r'[0-9\.,-]')),
+                  ],
+                  enabled: fieldsEnabled,
+                ),
+                const SizedBox(height: 8),
+
+                // Identitas pohon
+                TextField(
+                  controller: _kodePohonController,
+                  decoration: InputDecoration(
+                    labelText: "Kode Pohon",
+                    border: const OutlineInputBorder(),
+                    errorText:
+                        _isDuplicateCode
+                            ? 'Kode pohon sudah ada, gunakan kode lain.'
+                            : null,
+                    errorMaxLines: 2,
+                  ),
+                  keyboardType: TextInputType.number,
+                  inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                  enabled: fieldsEnabled,
+                ),
+                const SizedBox(height: 8),
+
+                TextField(
+                  controller: _namaPohonController,
+                  decoration: const InputDecoration(
+                    labelText: "Nama Pohon",
+                    border: OutlineInputBorder(),
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                  enabled: fieldsEnabled,
+                ),
+                const SizedBox(height: 8),
+
+                TextField(
+                  controller: _namaIlmiahController,
+                  decoration: const InputDecoration(
+                    labelText: "Nama Ilmiah",
+                    border: OutlineInputBorder(),
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                  enabled: fieldsEnabled,
+                ),
+                const SizedBox(height: 8),
+
+                // Opsional
+                TextField(
+                  controller: _keteranganController,
+                  decoration: const InputDecoration(
+                    labelText: "Keterangan (opsional)",
+                    border: OutlineInputBorder(),
+                  ),
+                  maxLines: 2,
+                  textCapitalization: TextCapitalization.sentences,
+                  enabled: fieldsEnabled,
+                ),
+                const SizedBox(height: 8),
+
+                TextField(
+                  controller: _urlFotoController,
+                  decoration: const InputDecoration(
+                    labelText: "URL Foto (opsional)",
+                    border: OutlineInputBorder(),
+                  ),
+                  enabled: fieldsEnabled,
                 ),
               ],
             ),
-            const SizedBox(height: 8),
-
-            // Field posisi sesuai mode
-            if (_positionMode == TreePositionInputMode.azimuthDistance) ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _azimutController,
-                      decoration: const InputDecoration(
-                        labelText: "Azimut (°)",
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      inputFormatters: [
-                        _CommaToDotNoSpaceFormatter(),
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9\.,]')),
-                      ],
-                      enabled: fieldsEnabled,
-                    ),
+          ),
+          actions: [
+            TextButton(
+              child: Text(
+                "Batal",
+                style: TextStyle(color: isDark ? Colors.white : null),
+              ),
+              onPressed: () => Navigator.of(context).pop(false),
+            ),
+            ValueListenableBuilder<bool>(
+              valueListenable: _isFormValid,
+              builder: (context, isValid, _) {
+                return TextButton(
+                  onPressed:
+                      (isValid && hasPlotsForSelectedCluster)
+                          ? _saveTree
+                          : null,
+                  child: Text(
+                    "Simpan",
+                    style: TextStyle(color: isDark ? Colors.white : null),
                   ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _jarakPusatController,
-                      decoration: const InputDecoration(
-                        labelText: "Jarak dari pusat (m)",
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      inputFormatters: [
-                        _CommaToDotNoSpaceFormatter(),
-                        FilteringTextInputFormatter.allow(RegExp(r'[0-9\.,]')),
-                      ],
-                      enabled: fieldsEnabled,
-                    ),
-                  ),
-                ],
-              ),
-            ] else ...[
-              Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      controller: _latitudeController,
-                      decoration: const InputDecoration(
-                        labelText: "Latitude",
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
-                      inputFormatters: [
-                        _CommaToDotNoSpaceFormatter(),
-                        FilteringTextInputFormatter.allow(RegExp(r'[-0-9\.,]')),
-                      ],
-                      enabled: fieldsEnabled,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: TextField(
-                      controller: _longitudeController,
-                      decoration: const InputDecoration(
-                        labelText: "Longitude",
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                        signed: true,
-                      ),
-                      inputFormatters: [
-                        _CommaToDotNoSpaceFormatter(),
-                        FilteringTextInputFormatter.allow(RegExp(r'[-0-9\.,]')),
-                      ],
-                      enabled: fieldsEnabled,
-                    ),
-                  ),
-                ],
-              ),
-            ],
-            const SizedBox(height: 8),
-
-            // Altitude
-            TextField(
-              controller: _altitudeController,
-              decoration: const InputDecoration(
-                labelText: "Altitude (opsional)",
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              inputFormatters: [
-                _CommaToDotNoSpaceFormatter(),
-                FilteringTextInputFormatter.allow(RegExp(r'[0-9\.,-]')),
-              ],
-              enabled: fieldsEnabled,
-            ),
-            const SizedBox(height: 8),
-
-            // Identitas pohon
-            TextField(
-              controller: _kodePohonController,
-              decoration: InputDecoration(
-                labelText: "Kode Pohon",
-                border: const OutlineInputBorder(),
-                errorText:
-                    _isDuplicateCode
-                        ? 'Kode pohon sudah ada, gunakan kode lain.'
-                        : null,
-                errorMaxLines: 2,
-              ),
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              enabled: fieldsEnabled,
-            ),
-            const SizedBox(height: 8),
-
-            TextField(
-              controller: _namaPohonController,
-              decoration: const InputDecoration(
-                labelText: "Nama Pohon",
-                border: OutlineInputBorder(),
-              ),
-              textCapitalization: TextCapitalization.words,
-              enabled: fieldsEnabled,
-            ),
-            const SizedBox(height: 8),
-
-            TextField(
-              controller: _namaIlmiahController,
-              decoration: const InputDecoration(
-                labelText: "Nama Ilmiah",
-                border: OutlineInputBorder(),
-              ),
-              textCapitalization: TextCapitalization.words,
-              enabled: fieldsEnabled,
-            ),
-            const SizedBox(height: 8),
-
-            // Opsional
-            TextField(
-              controller: _keteranganController,
-              decoration: const InputDecoration(
-                labelText: "Keterangan (opsional)",
-                border: OutlineInputBorder(),
-              ),
-              maxLines: 2,
-              textCapitalization: TextCapitalization.sentences,
-              enabled: fieldsEnabled,
-            ),
-            const SizedBox(height: 8),
-
-            TextField(
-              controller: _urlFotoController,
-              decoration: const InputDecoration(
-                labelText: "URL Foto (opsional)",
-                border: OutlineInputBorder(),
-              ),
-              enabled: fieldsEnabled,
+                );
+              },
             ),
           ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          child: const Text("Batal"),
-          onPressed: () => Navigator.of(context).pop(false),
-        ),
-        ValueListenableBuilder<bool>(
-          valueListenable: _isFormValid,
-          builder: (context, isValid, _) {
-            return TextButton(
-              onPressed:
-                  (isValid && hasPlotsForSelectedCluster) ? _saveTree : null,
-              child: const Text("Simpan"),
-            );
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }
