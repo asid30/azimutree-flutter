@@ -75,106 +75,119 @@ class _LocationMapPageState extends State<LocationMapPage> {
         ),
         drawer: SidebarWidget(),
         endDrawerEnableOpenDragGesture: false,
-        endDrawer: Drawer(
-          backgroundColor: Color.fromARGB(255, 205, 237, 211),
-          child: SafeArea(
-            child: Padding(
-              padding: const EdgeInsets.all(12.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: const [
-                      Text(
-                        'Map Tools',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
+        endDrawer: ValueListenableBuilder<bool>(
+          valueListenable: isLightModeNotifier,
+          builder: (context, isLightMode, _) {
+            final isDark = !isLightMode;
+            return Drawer(
+              backgroundColor:
+                  isDark
+                      ? const Color(0xFF1F4226)
+                      : Color.fromARGB(255, 205, 237, 211),
+              child: SafeArea(
+                child: Padding(
+                  padding: const EdgeInsets.all(12.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            'Map Tools',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color:
+                                  isDark
+                                      ? const Color(0xFFC1FF72)
+                                      : Colors.black,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      _endDrawerToggleRow(
+                        prefKey: 'enddrawer_tooltip_marker_click_dismissed',
+                        tooltipMessage: 'Nyalakan/Matikan klik marker',
+                        icon: const Icon(Icons.touch_app),
+                        title: 'Klik marker',
+                        subtitle:
+                            'Aktifkan untuk memilih marker dengan menahan sebentar',
+                        valueListenable: isMarkerActivationEnabledNotifier,
+                        onChanged:
+                            (v) => isMarkerActivationEnabledNotifier.value = v,
+                      ),
+                      const SizedBox(height: 12),
+                      _endDrawerToggleRow(
+                        prefKey: 'enddrawer_tooltip_legend_dismissed',
+                        tooltipMessage:
+                            'Tampilkan / Sembunyikan legenda di peta',
+                        icon: const Icon(Icons.list),
+                        title: 'Tampilkan legenda di peta',
+                        subtitle:
+                            'Menampilkan keterangan warna marker di pojok kiri atas',
+                        valueListenable: isMapLegendVisibleNotifier,
+                        onChanged: (v) => isMapLegendVisibleNotifier.value = v,
+                      ),
+                      const SizedBox(height: 12),
+                      _endDrawerToggleRow(
+                        prefKey: 'enddrawer_tooltip_marker_info_dismissed',
+                        tooltipMessage:
+                            'Tampilkan kartu info saat marker dipilih',
+                        icon: const Icon(Icons.info_outline),
+                        title: 'Tampilkan info marker',
+                        subtitle:
+                            'Tampilkan kartu informasi saat marker dipilih di peta',
+                        valueListenable: isMarkerInfoOnSelectNotifier,
+                        onChanged:
+                            (v) => isMarkerInfoOnSelectNotifier.value = v,
+                      ),
+                      const SizedBox(height: 12),
+                      _endDrawerToggleRow(
+                        prefKey: 'enddrawer_tooltip_inspection_dismissed',
+                        tooltipMessage: 'Aktifkan workflow inspeksi lapangan',
+                        icon: const Icon(Icons.checklist),
+                        title: 'Workflow inspeksi',
+                        subtitle:
+                            'Aktifkan untuk menandai pohon sebagai "Done" saat inspeksi',
+                        valueListenable: isInspectionWorkflowEnabledNotifier,
+                        onChanged:
+                            (v) =>
+                                isInspectionWorkflowEnabledNotifier.value = v,
+                      ),
+                      const SizedBox(height: 12),
+                      const SizedBox(height: 12),
+                      _endDrawerToggleRow(
+                        prefKey:
+                            'enddrawer_tooltip_tree_to_plot_lines_dismissed',
+                        tooltipMessage:
+                            'Tampilkan garis dari pohon ke pusat plot',
+                        icon: const Icon(Icons.show_chart),
+                        title: 'Tampilkan garis pohon → plot',
+                        subtitle:
+                            'Garis bantu dari tiap pohon menuju pusat plot',
+                        valueListenable: isTreeToPlotLineVisibleNotifier,
+                        onChanged:
+                            (v) => isTreeToPlotLineVisibleNotifier.value = v,
+                      ),
+                      const SizedBox(height: 12),
+                      _endDrawerToggleRow(
+                        prefKey:
+                            'enddrawer_tooltip_plot_to_plot_lines_dismissed',
+                        tooltipMessage: 'Tampilkan garis penghubung antar plot',
+                        icon: const Icon(Icons.linear_scale),
+                        title: 'Tampilkan garis plot → plot',
+                        subtitle: 'Tampilkan koneksi antar plot jika tersedia',
+                        valueListenable: isPlotToPlotLineVisibleNotifier,
+                        onChanged:
+                            (v) => isPlotToPlotLineVisibleNotifier.value = v,
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  _endDrawerToggleRow(
-                    prefKey: 'enddrawer_tooltip_marker_click_dismissed',
-                    tooltipMessage: 'Nyalakan/Matikan klik marker',
-                    icon: const Icon(Icons.touch_app, color: Color(0xFF1F4226)),
-                    title: 'Klik marker',
-                    subtitle:
-                        'Aktifkan untuk memilih marker dengan menahan sebentar',
-                    valueListenable: isMarkerActivationEnabledNotifier,
-                    onChanged:
-                        (v) => isMarkerActivationEnabledNotifier.value = v,
-                  ),
-                  const SizedBox(height: 12),
-                  _endDrawerToggleRow(
-                    prefKey: 'enddrawer_tooltip_legend_dismissed',
-                    tooltipMessage: 'Tampilkan / Sembunyikan legenda di peta',
-                    icon: const Icon(Icons.list, color: Color(0xFF1F4226)),
-                    title: 'Tampilkan legenda di peta',
-                    subtitle:
-                        'Menampilkan keterangan warna marker di pojok kiri atas',
-                    valueListenable: isMapLegendVisibleNotifier,
-                    onChanged: (v) => isMapLegendVisibleNotifier.value = v,
-                  ),
-                  const SizedBox(height: 12),
-                  _endDrawerToggleRow(
-                    prefKey: 'enddrawer_tooltip_marker_info_dismissed',
-                    tooltipMessage: 'Tampilkan kartu info saat marker dipilih',
-                    icon: const Icon(
-                      Icons.info_outline,
-                      color: Color(0xFF1F4226),
-                    ),
-                    title: 'Tampilkan info marker',
-                    subtitle:
-                        'Tampilkan kartu informasi saat marker dipilih di peta',
-                    valueListenable: isMarkerInfoOnSelectNotifier,
-                    onChanged: (v) => isMarkerInfoOnSelectNotifier.value = v,
-                  ),
-                  const SizedBox(height: 12),
-                  // Inspection workflow toggle
-                  _endDrawerToggleRow(
-                    prefKey: 'enddrawer_tooltip_inspection_dismissed',
-                    tooltipMessage: 'Aktifkan workflow inspeksi lapangan',
-                    icon: const Icon(Icons.checklist, color: Color(0xFF1F4226)),
-                    title: 'Workflow inspeksi',
-                    subtitle:
-                        'Aktifkan untuk menandai pohon sebagai "Done" saat inspeksi',
-                    valueListenable: isInspectionWorkflowEnabledNotifier,
-                    onChanged:
-                        (v) => isInspectionWorkflowEnabledNotifier.value = v,
-                  ),
-                  const SizedBox(height: 12),
-                  const SizedBox(height: 12),
-                  _endDrawerToggleRow(
-                    prefKey: 'enddrawer_tooltip_tree_to_plot_lines_dismissed',
-                    tooltipMessage: 'Tampilkan garis dari pohon ke pusat plot',
-                    icon: const Icon(
-                      Icons.show_chart,
-                      color: Color(0xFF1F4226),
-                    ),
-                    title: 'Tampilkan garis pohon → plot',
-                    subtitle: 'Garis bantu dari tiap pohon menuju pusat plot',
-                    valueListenable: isTreeToPlotLineVisibleNotifier,
-                    onChanged: (v) => isTreeToPlotLineVisibleNotifier.value = v,
-                  ),
-                  const SizedBox(height: 12),
-                  _endDrawerToggleRow(
-                    prefKey: 'enddrawer_tooltip_plot_to_plot_lines_dismissed',
-                    tooltipMessage: 'Tampilkan garis penghubung antar plot',
-                    icon: const Icon(
-                      Icons.linear_scale,
-                      color: Color(0xFF1F4226),
-                    ),
-                    title: 'Tampilkan garis plot → plot',
-                    subtitle: 'Tampilkan koneksi antar plot jika tersedia',
-                    valueListenable: isPlotToPlotLineVisibleNotifier,
-                    onChanged: (v) => isPlotToPlotLineVisibleNotifier.value = v,
-                  ),
-                ],
+                ),
               ),
-            ),
-          ),
+            );
+          },
         ),
         body: Stack(
           alignment: Alignment.topCenter,
@@ -317,52 +330,72 @@ class _EndDrawerToggleRowState extends State<_EndDrawerToggleRow> {
   @override
   Widget build(BuildContext context) {
     if (_loading) return const SizedBox.shrink();
+    return ValueListenableBuilder<bool>(
+      valueListenable: isLightModeNotifier,
+      builder: (context, isLightMode, _) {
+        final isDark = !isLightMode;
 
-    final row = Row(
-      children: [
-        widget.icon,
-        const SizedBox(width: 8),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                widget.title,
-                style: const TextStyle(color: Color(0xFF1F4226)),
+        final row = Row(
+          children: [
+            Icon(
+              widget.icon.icon,
+              color: isDark ? Colors.white : const Color(0xFF1F4226),
+              size: widget.icon.size,
+            ),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    widget.title,
+                    style: TextStyle(
+                      color: isDark ? Colors.white : const Color(0xFF1F4226),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    widget.subtitle,
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 4),
-              Text(
-                widget.subtitle,
-                style: const TextStyle(fontSize: 12, color: Colors.black54),
-              ),
-            ],
-          ),
-        ),
-        ValueListenableBuilder<bool>(
-          valueListenable: widget.valueListenable,
-          builder: (context, enabled, child) {
-            return Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Switch(
-                  activeTrackColor: const Color(0xFF1F4226),
-                  activeThumbColor: Color.fromARGB(255, 205, 237, 211),
-                  value: enabled,
-                  onChanged: (v) {
-                    // Persist and propagate the change
-                    _persistValue(v);
-                    widget.onChanged(v);
-                  },
-                ),
-                // Dismissal removed: no close button shown.
-              ],
-            );
-          },
-        ),
-      ],
+            ),
+            ValueListenableBuilder<bool>(
+              valueListenable: widget.valueListenable,
+              builder: (context, enabled, child) {
+                return Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Switch(
+                      activeTrackColor:
+                          isDark
+                              ? const Color(0xFFC1FF72)
+                              : const Color(0xFF1F4226),
+                      activeThumbColor:
+                          isDark
+                              ? const Color(0xFF1F4226)
+                              : Color.fromARGB(255, 205, 237, 211),
+                      value: enabled,
+                      onChanged: (v) {
+                        // Persist and propagate the change
+                        _persistValue(v);
+                        widget.onChanged(v);
+                      },
+                    ),
+                  ],
+                );
+              },
+            ),
+          ],
+        );
+
+        return Tooltip(message: widget.tooltipMessage, child: row);
+      },
     );
-
-    return Tooltip(message: widget.tooltipMessage, child: row);
   }
 }
