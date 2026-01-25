@@ -67,7 +67,15 @@ class _LocationMapPageState extends State<LocationMapPage> {
                 return IconButton(
                   tooltip: 'Tools',
                   icon: const Icon(Icons.tune),
-                  onPressed: () => Scaffold.of(ctx).openEndDrawer(),
+                  onPressed: () {
+                    try {
+                      FocusManager.instance.primaryFocus?.unfocus();
+                    } catch (_) {}
+                    try {
+                      isSearchFieldFocusedNotifier.value = false;
+                    } catch (_) {}
+                    Scaffold.of(ctx).openEndDrawer();
+                  },
                 );
               },
             ),
