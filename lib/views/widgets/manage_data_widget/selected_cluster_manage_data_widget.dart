@@ -112,78 +112,98 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                     "Tidak ada data / belum ada klaster dipilih",
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
                   )
-                  : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Data Cluster",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  : Card(
+                    color: const Color.fromARGB(239, 188, 228, 196),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    margin: EdgeInsets.zero,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
                       ),
-                      const SizedBox(height: 8),
-                      Table(
-                        columnWidths: const {
-                          0: FlexColumnWidth(2),
-                          1: FlexColumnWidth(3),
-                        },
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          _row("Kode Klaster", selectedCluster.kodeCluster),
-                          _row("Pengukur", selectedCluster.namaPengukur ?? "-"),
-                          _row("Jumlah Plot", plotCount.toString()),
-                          _row("Jumlah Pohon", treeCount.toString()),
-                          _row(
-                            "Pusat Klaster",
-                            usedPlot1
-                                ? 'Plot 1'
-                                : (clusterLat != null
-                                    ? 'Generated Centroid'
-                                    : (coordinateNote ?? '-')),
-                          ),
-                          _row(
-                            "Latitude",
-                            clusterLat != null
-                                ? clusterLat.toStringAsFixed(6)
-                                : '-',
-                          ),
-                          _row(
-                            "Longitude",
-                            clusterLon != null
-                                ? clusterLon.toStringAsFixed(6)
-                                : '-',
-                          ),
-                          _row(
-                            "Tanggal Pengukuran",
-                            selectedCluster.tanggalPengukuran != null
-                                ? _formatDate(
-                                  selectedCluster.tanggalPengukuran!,
-                                )
-                                : "-",
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          IconButton(
-                            tooltip: "Edit klaster",
-                            onPressed:
-                                () => _editCluster(context, selectedCluster!),
-                            icon: const Icon(Icons.edit),
-                          ),
-                          IconButton(
-                            tooltip: "Hapus klaster",
-                            onPressed:
-                                () => _deleteCluster(context, selectedCluster!),
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Color.fromARGB(255, 98, 32, 32),
+                          const Text(
+                            "Data Cluster",
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
+                          const SizedBox(height: 8),
+                          Table(
+                            columnWidths: const {
+                              0: FlexColumnWidth(2),
+                              1: FlexColumnWidth(3),
+                            },
+                            children: [
+                              _row("Kode Klaster", selectedCluster.kodeCluster),
+                              _row(
+                                "Pengukur",
+                                selectedCluster.namaPengukur ?? "-",
+                              ),
+                              _row("Jumlah Plot", plotCount.toString()),
+                              _row("Jumlah Pohon", treeCount.toString()),
+                              _row(
+                                "Pusat Klaster",
+                                usedPlot1
+                                    ? 'Plot 1'
+                                    : (clusterLat != null
+                                        ? 'Generated Centroid'
+                                        : (coordinateNote ?? '-')),
+                              ),
+                              _row(
+                                "Latitude",
+                                clusterLat != null
+                                    ? clusterLat.toStringAsFixed(6)
+                                    : '-',
+                              ),
+                              _row(
+                                "Longitude",
+                                clusterLon != null
+                                    ? clusterLon.toStringAsFixed(6)
+                                    : '-',
+                              ),
+                              _row(
+                                "Tanggal Pengukuran",
+                                selectedCluster.tanggalPengukuran != null
+                                    ? _formatDate(
+                                      selectedCluster.tanggalPengukuran!,
+                                    )
+                                    : "-",
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            children: [
+                              IconButton(
+                                tooltip: "Edit klaster",
+                                onPressed:
+                                    () =>
+                                        _editCluster(context, selectedCluster!),
+                                icon: const Icon(Icons.edit),
+                              ),
+                              IconButton(
+                                tooltip: "Hapus klaster",
+                                onPressed:
+                                    () => _deleteCluster(
+                                      context,
+                                      selectedCluster!,
+                                    ),
+                                icon: const Icon(
+                                  Icons.delete,
+                                  color: Color.fromARGB(255, 98, 32, 32),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
         );
       },
