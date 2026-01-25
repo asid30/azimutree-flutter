@@ -229,8 +229,8 @@ class _LocationMapPageState extends State<LocationMapPage> {
                   // it uses the same width without relying on intrinsics.
                   final markerWidth =
                       _legendWidth ??
-                      (MediaQuery.of(context).size.width * 0.45).clamp(
-                        200.0,
+                      (MediaQuery.of(context).size.width * 0.5).clamp(
+                        240.0,
                         MediaQuery.of(context).size.width,
                       );
 
@@ -257,8 +257,8 @@ class _LocationMapPageState extends State<LocationMapPage> {
                 }
 
                 // Legend hidden: give MarkerInfo a reasonable finite width.
-                final defaultWidth = (MediaQuery.of(context).size.width * 0.45)
-                    .clamp(200.0, MediaQuery.of(context).size.width);
+                final defaultWidth = (MediaQuery.of(context).size.width * 0.5)
+                    .clamp(240.0, MediaQuery.of(context).size.width);
                 return Positioned(
                   top: 35,
                   left: 12,

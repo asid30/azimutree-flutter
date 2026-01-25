@@ -45,6 +45,7 @@ class MapLegendWidget extends StatelessWidget {
         return Material(
           color: Colors.transparent,
           child: Container(
+            constraints: const BoxConstraints(minWidth: 180),
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               color: bgColor,
