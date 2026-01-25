@@ -111,7 +111,12 @@ class _SettingsPageState extends State<SettingsPage> {
                                           isDark ? Colors.white : Colors.black,
                                     ),
                                   ),
-                                  activeTrackColor: const Color(0xFF1F4226),
+                                  activeTrackColor:
+                                      isDark
+                                          ? const Color(0xFFC1FF72)
+                                          : const Color(0xFF1F4226),
+                                  activeThumbColor:
+                                      isDark ? const Color(0xFF1F4226) : null,
                                   subtitle: Text(
                                     isLightMode ? 'Tema Terang' : 'Tema Gelap',
                                     style: TextStyle(
@@ -159,7 +164,14 @@ class _SettingsPageState extends State<SettingsPage> {
                                                   : Colors.black,
                                         ),
                                       ),
-                                      activeTrackColor: const Color(0xFF1F4226),
+                                      activeTrackColor:
+                                          isDark
+                                              ? const Color(0xFFC1FF72)
+                                              : const Color(0xFF1F4226),
+                                      activeThumbColor:
+                                          isDark
+                                              ? const Color(0xFF1F4226)
+                                              : null,
                                       subtitle: Text(
                                         'Tampilkan fitur debug (generate/hapus data) di Kelola Data',
                                         style: TextStyle(
