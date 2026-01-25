@@ -180,10 +180,15 @@ class _PlotClusterManageDataWidgetState
                                             ),
                                             if (plot.kodePlot == 1) ...[
                                               const SizedBox(width: 6),
-                                              const Icon(
+                                              Icon(
                                                 Icons.star,
                                                 size: 18,
-                                                color: Color(0xFF1F4226),
+                                                color:
+                                                    isDark
+                                                        ? Colors.white
+                                                        : const Color(
+                                                          0xFF1F4226,
+                                                        ),
                                               ),
                                             ],
                                           ],
