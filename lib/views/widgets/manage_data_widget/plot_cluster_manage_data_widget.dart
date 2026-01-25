@@ -159,25 +159,7 @@ class _PlotClusterManageDataWidgetState
                                 ],
                               ),
                             ),
-                            IconButton(
-                              icon: const Icon(Icons.edit),
-                              tooltip: "Edit plot",
-                              onPressed:
-                                  plot.id != null
-                                      ? () => _editPlot(context, plot)
-                                      : null,
-                            ),
-                            IconButton(
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Color.fromARGB(255, 98, 32, 32),
-                              ),
-                              tooltip: "Hapus plot",
-                              onPressed:
-                                  plot.id != null
-                                      ? () => _deletePlot(context, plot)
-                                      : null,
-                            ),
+                            const SizedBox(width: 8),
                           ],
                         ),
                         const SizedBox(height: 6),
@@ -266,6 +248,30 @@ class _PlotClusterManageDataWidgetState
                               ],
                             ),
                           ),
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            IconButton(
+                              tooltip: "Edit plot",
+                              onPressed:
+                                  plot.id != null
+                                      ? () => _editPlot(context, plot)
+                                      : null,
+                              icon: const Icon(Icons.edit),
+                            ),
+                            IconButton(
+                              tooltip: "Hapus plot",
+                              onPressed:
+                                  plot.id != null
+                                      ? () => _deletePlot(context, plot)
+                                      : null,
+                              icon: const Icon(
+                                Icons.delete,
+                                color: Color.fromARGB(255, 98, 32, 32),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
