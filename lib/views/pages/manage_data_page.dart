@@ -274,12 +274,30 @@ class _ManageDataPageState extends State<ManageDataPage> {
                       : const Color(0xFF1F4226),
               foregroundColor: Colors.white,
               onPressed: () {
-                // expand bottom sheet to near-fullscreen
-                _draggableController.animateTo(
-                  0.9,
-                  duration: const Duration(milliseconds: 400),
-                  curve: Curves.easeOutCubic,
-                );
+                // Toggle bottom sheet: expand if collapsed, collapse if expanded
+                try {
+                  final currentSize = _draggableController.size;
+                  if (currentSize > 0.5) {
+                    _draggableController.animateTo(
+                      0.03,
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeOutCubic,
+                    );
+                  } else {
+                    _draggableController.animateTo(
+                      0.9,
+                      duration: const Duration(milliseconds: 400),
+                      curve: Curves.easeOutCubic,
+                    );
+                  }
+                } catch (_) {
+                  // Fallback: just expand
+                  _draggableController.animateTo(
+                    0.9,
+                    duration: const Duration(milliseconds: 400),
+                    curve: Curves.easeOutCubic,
+                  );
+                }
               },
               child: const Icon(Icons.menu_open),
             );
