@@ -1287,6 +1287,14 @@ class _MapboxWidgetState extends State<MapboxWidget> {
               Position(centroidLon, centroidLat),
               circleColor: kCentroidColor,
               circleRadius: kPlotRadius,
+              circleStrokeColor:
+                  isSelectedCentroid
+                      ? kPlotSelectedStrokeColor
+                      : kPlotStrokeColor,
+              circleStrokeWidth:
+                  isSelectedCentroid
+                      ? kPlotSelectedStrokeWidth
+                      : kPlotStrokeWidth,
               circleOpacity: 1.0,
             ),
           ),
@@ -1309,6 +1317,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             Position(plot.longitude, plot.latitude),
             circleColor: kPlotColor,
             circleRadius: kPlotRadius,
+            circleStrokeColor:
+                selected ? kPlotSelectedStrokeColor : kPlotStrokeColor,
+            circleStrokeWidth:
+                selected ? kPlotSelectedStrokeWidth : kPlotStrokeWidth,
             circleOpacity: kPlotOpacity,
           ),
         ),
@@ -1408,6 +1420,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             Position(tree.longitude!, tree.latitude!),
             circleColor: circleColor,
             circleRadius: kTreeRadius,
+            circleStrokeColor:
+                selected ? kTreeSelectedStrokeColor : kTreeStrokeColor,
+            circleStrokeWidth:
+                selected ? kTreeSelectedStrokeWidth : kTreeStrokeWidth,
             circleOpacity: kTreeOpacity,
           ),
         ),
