@@ -16,7 +16,6 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   void initState() {
     super.initState();
-    // Ensure preference is loaded (main() already calls init, but keep this safe).
     DebugModeService.instance.init();
   }
 
@@ -25,9 +24,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          return;
-        }
+        if (didPop) return;
         Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
       },
       child: Scaffold(
@@ -35,72 +32,172 @@ class _SettingsPageState extends State<SettingsPage> {
         drawer: const SidebarWidget(),
         body: Stack(
           children: [
-            //* Background App
+            // Background
             BackgroundAppWidget(
               lightBackgroundImage: "assets/images/light-bg-notitle.png",
               darkBackgroundImage: "assets/images/dark-bg-notitle.png",
             ),
-            //* Content
+            // Content
             SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
                   vertical: 0,
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        BackButton(
-                          onPressed: () {
-                            Navigator.popAndPushNamed(context, "home");
-                          },
-                        ),
-                        const Text("Kembali", style: TextStyle(fontSize: 18)),
-                      ],
-                    ),
-                    Card(
-                      color: Color.fromARGB(240, 180, 216, 187),
-                      child: ValueListenableBuilder<bool>(
-                        valueListenable: isLightModeNotifier,
-                        builder: (context, isLightMode, _) {
-                          return SwitchListTile(
-                            title: const Text('Tema'),
-                            activeTrackColor: Color(0xFF1F4226),
-                            subtitle: Text(
-                              isLightMode ? 'Tema Terang' : 'Tema Gelap',
-                            ),
-                            value: isLightMode,
-                            onChanged: (value) {
-                              isLightModeNotifier.value = value;
-                            },
-                          );
-                        },
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: isLightModeNotifier,
+                  builder: (context, isLight, child) {
+                    final isDark = !isLight;
+                    return DefaultTextStyle(
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black,
                       ),
-                    ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.start,
+                            children: [
+                              ValueListenableBuilder<bool>(
+                                valueListenable: isLightModeNotifier,
+                                builder: (context, isLight, child) {
+                                  return BackButton(
+                                    color: isLight ? null : Colors.white,
+                                    onPressed: () {
+                                      Navigator.popAndPushNamed(
+                                        context,
+                                        "home",
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                              ValueListenableBuilder<bool>(
+                                valueListenable: isLightModeNotifier,
+                                builder: (context, isLight, child) {
+                                  return Text(
+                                    "Kembali",
+                                    style: TextStyle(
+                                      fontSize: 18,
+                                      color: isLight ? null : Colors.white,
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
 
-                    Card(
-                      color: Color.fromARGB(240, 180, 216, 187),
-                      child: ValueListenableBuilder<bool>(
-                        valueListenable: DebugModeService.instance.enabled,
-                        builder: (context, enabled, _) {
-                          return SwitchListTile(
-                            title: const Text('Mode Debug'),
-                            activeTrackColor: Color(0xFF1F4226),
-                            subtitle: const Text(
-                              'Tampilkan fitur debug (generate/hapus data) di Kelola Data',
-                            ),
-                            value: enabled,
-                            onChanged: (value) async {
-                              await DebugModeService.instance.setEnabled(value);
+                          // Theme switch
+                          ValueListenableBuilder<bool>(
+                            valueListenable: isLightModeNotifier,
+                            builder: (context, isLightMode, _) {
+                              final isDark = !isLightMode;
+                              return Card(
+                                color:
+                                    isDark
+                                        ? const Color.fromARGB(255, 36, 67, 42)
+                                        : const Color.fromARGB(
+                                          240,
+                                          180,
+                                          216,
+                                          187,
+                                        ),
+                                child: SwitchListTile(
+                                  title: Text(
+                                    'Tema',
+                                    style: TextStyle(
+                                      color:
+                                          isDark ? Colors.white : Colors.black,
+                                    ),
+                                  ),
+                                  activeTrackColor:
+                                      isDark
+                                          ? const Color(0xFFC1FF72)
+                                          : const Color(0xFF1F4226),
+                                  activeThumbColor:
+                                      isDark ? const Color(0xFF1F4226) : null,
+                                  subtitle: Text(
+                                    isLightMode ? 'Tema Terang' : 'Tema Gelap',
+                                    style: TextStyle(
+                                      color:
+                                          isDark ? Colors.white : Colors.black,
+                                    ),
+                                  ),
+                                  value: isLightMode,
+                                  onChanged: (value) {
+                                    isLightModeNotifier.value = value;
+                                  },
+                                ),
+                              );
                             },
-                          );
-                        },
+                          ),
+
+                          const SizedBox(height: 12),
+
+                          // Debug mode switch
+                          ValueListenableBuilder<bool>(
+                            valueListenable: isLightModeNotifier,
+                            builder: (context, isLightMode, _) {
+                              final isDark = !isLightMode;
+                              return Card(
+                                color:
+                                    isDark
+                                        ? const Color.fromARGB(255, 36, 67, 42)
+                                        : const Color.fromARGB(
+                                          240,
+                                          180,
+                                          216,
+                                          187,
+                                        ),
+                                child: ValueListenableBuilder<bool>(
+                                  valueListenable:
+                                      DebugModeService.instance.enabled,
+                                  builder: (context, enabled, _) {
+                                    return SwitchListTile(
+                                      title: Text(
+                                        'Mode Debug',
+                                        style: TextStyle(
+                                          color:
+                                              isDark
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                        ),
+                                      ),
+                                      activeTrackColor:
+                                          isDark
+                                              ? const Color(0xFFC1FF72)
+                                              : const Color(0xFF1F4226),
+                                      activeThumbColor:
+                                          isDark
+                                              ? const Color(0xFF1F4226)
+                                              : null,
+                                      subtitle: Text(
+                                        'Tampilkan fitur debug (generate/hapus data) di Kelola Data',
+                                        style: TextStyle(
+                                          color:
+                                              isDark
+                                                  ? Colors.white
+                                                  : Colors.black,
+                                        ),
+                                      ),
+                                      value: enabled,
+                                      onChanged: (value) async {
+                                        await DebugModeService.instance
+                                            .setEnabled(value);
+                                      },
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+
+                          const SizedBox(height: 24),
+                        ],
                       ),
-                    ),
-                  ],
+                    );
+                  },
                 ),
               ),
             ),

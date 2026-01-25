@@ -572,665 +572,1070 @@ class _BottomsheetLocationMapWidgetState
       minChildSize: _minChildSize,
       maxChildSize: _maxChildSize,
       builder: (context, scrollController) {
-        return Container(
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(255, 205, 237, 211),
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-            boxShadow: const [BoxShadow(color: Colors.black26, blurRadius: 8)],
-          ),
-          child: Padding(
-            padding: const EdgeInsets.all(12.0),
-            child: ListView(
-              controller: scrollController,
-              children: [
-                const SearchbarBottomsheetWidget(),
-                const SizedBox(height: 8),
-
-                ValueListenableBuilder<int>(
-                  valueListenable: selectedMenuBottomSheetNotifier,
-                  builder: (context, selectedMenuBottomSheet, child) {
-                    return Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 6,
+        return ValueListenableBuilder<bool>(
+          valueListenable: isLightModeNotifier,
+          builder: (context, isLightMode, child) {
+            final isDark = !isLightMode;
+            return Container(
+              decoration: BoxDecoration(
+                color:
+                    isDark
+                        ? const Color.fromARGB(255, 34, 66, 40)
+                        : const Color.fromARGB(255, 205, 237, 211),
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(16),
+                ),
+                boxShadow: const [
+                  BoxShadow(color: Colors.black26, blurRadius: 8),
+                ],
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: ValueListenableBuilder<bool>(
+                  valueListenable: isLightModeNotifier,
+                  builder: (context, isLightMode, _) {
+                    final isDark = !isLightMode;
+                    return DefaultTextStyle(
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black87,
                       ),
-                      decoration: BoxDecoration(
-                        color: const Color.fromARGB(255, 205, 237, 211),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
+                      child: ListView(
+                        controller: scrollController,
                         children: [
-                          Expanded(
-                            child: NavigationBarTheme(
-                              data: NavigationBarThemeData(
-                                indicatorColor: const Color.fromARGB(
-                                  255,
-                                  195,
-                                  208,
-                                  197,
-                                ),
-                                backgroundColor: Colors.transparent,
-                                elevation: 0,
-                              ),
-                              child: NavigationBar(
-                                backgroundColor: Colors.transparent,
-                                elevation: 0,
-                                selectedIndex: selectedMenuBottomSheet,
-                                onDestinationSelected: (value) {
-                                  selectedMenuBottomSheetNotifier.value = value;
+                          const SearchbarBottomsheetWidget(),
+                          const SizedBox(height: 8),
+
+                          ValueListenableBuilder<int>(
+                            valueListenable: selectedMenuBottomSheetNotifier,
+                            builder: (context, selectedMenuBottomSheet, child) {
+                              return ValueListenableBuilder(
+                                valueListenable: isLightModeNotifier,
+                                builder: (context, isLightMode, _) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          isLightMode
+                                              ? const Color.fromARGB(
+                                                255,
+                                                205,
+                                                237,
+                                                211,
+                                              )
+                                              : const Color.fromARGB(
+                                                255,
+                                                34,
+                                                66,
+                                                40,
+                                              ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: ValueListenableBuilder<bool>(
+                                            valueListenable:
+                                                isLightModeNotifier,
+                                            builder: (context, isLightMode, _) {
+                                              final isDark = !isLightMode;
+                                              return NavigationBarTheme(
+                                                data: NavigationBarThemeData(
+                                                  indicatorColor:
+                                                      isDark
+                                                          ? const Color.fromARGB(
+                                                            255,
+                                                            23,
+                                                            110,
+                                                            38,
+                                                          )
+                                                          : const Color.fromARGB(
+                                                            255,
+                                                            195,
+                                                            208,
+                                                            197,
+                                                          ),
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  elevation: 0,
+                                                  labelTextStyle:
+                                                      WidgetStateProperty.resolveWith(
+                                                        (states) => TextStyle(
+                                                          color:
+                                                              isDark
+                                                                  ? Colors.white
+                                                                  : Colors
+                                                                      .black87,
+                                                        ),
+                                                      ),
+                                                ),
+                                                child: NavigationBar(
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  elevation: 0,
+                                                  selectedIndex:
+                                                      selectedMenuBottomSheet,
+                                                  onDestinationSelected: (
+                                                    value,
+                                                  ) {
+                                                    selectedMenuBottomSheetNotifier
+                                                        .value = value;
+                                                  },
+                                                  destinations: [
+                                                    NavigationDestination(
+                                                      icon: Icon(
+                                                        Icons.satellite,
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : Colors
+                                                                    .black87,
+                                                      ),
+                                                      selectedIcon: Icon(
+                                                        Icons.satellite,
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : Colors
+                                                                    .black87,
+                                                      ),
+                                                      label: 'Satelit',
+                                                    ),
+                                                    NavigationDestination(
+                                                      icon: Icon(
+                                                        Icons.map_outlined,
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : Colors
+                                                                    .black87,
+                                                      ),
+                                                      selectedIcon: Icon(
+                                                        Icons.map,
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : Colors
+                                                                    .black87,
+                                                      ),
+                                                      label: 'Medan',
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        ValueListenableBuilder<bool>(
+                                          valueListenable: isLightModeNotifier,
+                                          builder: (context, isLightMode, _) {
+                                            final isDark = !isLightMode;
+                                            return Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  onPressed:
+                                                      () => _centerToMyLocation(
+                                                        context,
+                                                      ),
+                                                  icon: ValueListenableBuilder<
+                                                    dynamic
+                                                  >(
+                                                    valueListenable:
+                                                        userLocationNotifier,
+                                                    builder: (
+                                                      context,
+                                                      pos,
+                                                      child,
+                                                    ) {
+                                                      return Icon(
+                                                        pos == null
+                                                            ? Icons
+                                                                .location_on_outlined
+                                                            : Icons.location_on,
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : null,
+                                                      );
+                                                    },
+                                                  ),
+                                                  style: ButtonStyle(
+                                                    foregroundColor:
+                                                        WidgetStateProperty.resolveWith(
+                                                          (states) =>
+                                                              states.contains(
+                                                                    WidgetState
+                                                                        .pressed,
+                                                                  )
+                                                                  ? Colors
+                                                                      .lightGreen
+                                                                      .shade200
+                                                                  : null,
+                                                        ),
+                                                    overlayColor: WidgetStateProperty.resolveWith(
+                                                      (states) =>
+                                                          states.contains(
+                                                                WidgetState
+                                                                    .pressed,
+                                                              )
+                                                              ? Colors
+                                                                  .lightGreen
+                                                                  .shade100
+                                                                  .withAlpha(
+                                                                    (0.4 * 255)
+                                                                        .round(),
+                                                                  )
+                                                              : null,
+                                                    ),
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  onPressed: () {
+                                                    northResetRequestNotifier
+                                                            .value =
+                                                        northResetRequestNotifier
+                                                            .value +
+                                                        1;
+                                                  },
+                                                  icon: Transform.rotate(
+                                                    angle: -45 * math.pi / 180,
+                                                    child: Icon(
+                                                      Icons.explore_outlined,
+                                                      color:
+                                                          isDark
+                                                              ? Colors.white
+                                                              : null,
+                                                    ),
+                                                  ),
+                                                  style: ButtonStyle(
+                                                    foregroundColor:
+                                                        WidgetStateProperty.resolveWith(
+                                                          (states) =>
+                                                              states.contains(
+                                                                    WidgetState
+                                                                        .pressed,
+                                                                  )
+                                                                  ? const Color.fromARGB(
+                                                                    255,
+                                                                    197,
+                                                                    225,
+                                                                    165,
+                                                                  )
+                                                                  : null,
+                                                        ),
+                                                    overlayColor: WidgetStateProperty.resolveWith(
+                                                      (states) =>
+                                                          states.contains(
+                                                                WidgetState
+                                                                    .pressed,
+                                                              )
+                                                              ? Colors
+                                                                  .lightGreen
+                                                                  .shade100
+                                                                  .withAlpha(
+                                                                    (0.4 * 255)
+                                                                        .round(),
+                                                                  )
+                                                              : null,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        ),
+                                      ],
+                                    ),
+                                  );
                                 },
-                                destinations: const [
-                                  NavigationDestination(
-                                    icon: Icon(Icons.satellite),
-                                    selectedIcon: Icon(Icons.satellite),
-                                    label: 'Satelit',
-                                  ),
-                                  NavigationDestination(
-                                    icon: Icon(Icons.map_outlined),
-                                    selectedIcon: Icon(Icons.map),
-                                    label: 'Medan',
-                                  ),
-                                ],
-                              ),
-                            ),
+                              );
+                            },
                           ),
-                          const SizedBox(width: 8),
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                onPressed: () => _centerToMyLocation(context),
-                                icon: ValueListenableBuilder<dynamic>(
-                                  valueListenable: userLocationNotifier,
-                                  builder: (context, pos, child) {
-                                    return Icon(
-                                      pos == null
-                                          ? Icons.location_on_outlined
-                                          : Icons.location_on,
+
+                          const SizedBox(height: 8),
+                          const Divider(),
+                          const SizedBox(height: 8),
+
+                          ValueListenableBuilder<TreeModel?>(
+                            valueListenable: selectedTreeNotifier,
+                            builder: (context, tree, child) {
+                              // If a tree is selected, show tree detail UI (existing behavior).
+                              if (tree == null) {
+                                // If no tree selected but a plot is selected, show plot summary
+                                if (_selectedPlot != null) {
+                                  final plot = _selectedPlot!;
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            'Plot ${plot.kodePlot}',
+                                            style: const TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          ValueListenableBuilder<bool>(
+                                            valueListenable:
+                                                isLightModeNotifier,
+                                            builder: (context, isLightMode, _) {
+                                              final isDark = !isLightMode;
+                                              return Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  IconButton(
+                                                    tooltip: 'Plot sebelumnya',
+                                                    onPressed: () async {
+                                                      await _goToPreviousPlot();
+                                                    },
+                                                    icon: Icon(
+                                                      Icons.arrow_back,
+                                                      color:
+                                                          isDark
+                                                              ? Colors.white
+                                                              : null,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  IconButton(
+                                                    tooltip: 'Center on plot',
+                                                    onPressed: () async {
+                                                      isFollowingUserLocationNotifier
+                                                          .value = false;
+                                                      selectedLocationNotifier
+                                                          .value = null;
+                                                      await Future.delayed(
+                                                        const Duration(
+                                                          milliseconds: 60,
+                                                        ),
+                                                      );
+                                                      preserveZoomOnNextCenterNotifier
+                                                          .value = true;
+                                                      selectedLocationFromSearchNotifier
+                                                          .value = false;
+                                                      selectedLocationNotifier
+                                                          .value = Position(
+                                                        plot.longitude,
+                                                        plot.latitude,
+                                                      );
+                                                      // center applied; no snackbar
+                                                    },
+                                                    icon: Icon(
+                                                      Icons
+                                                          .my_location_outlined,
+                                                      color:
+                                                          isDark
+                                                              ? Colors.white
+                                                              : null,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  IconButton(
+                                                    tooltip: 'Plot berikutnya',
+                                                    onPressed: () async {
+                                                      await _goToNextPlot();
+                                                    },
+                                                    icon: Icon(
+                                                      Icons.arrow_forward,
+                                                      color:
+                                                          isDark
+                                                              ? Colors.white
+                                                              : null,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  IconButton(
+                                                    onPressed: () {
+                                                      selectedPlotNotifier
+                                                          .value = null;
+                                                    },
+                                                    icon: Icon(
+                                                      Icons.close,
+                                                      color:
+                                                          isDark
+                                                              ? Colors.white
+                                                              : null,
+                                                    ),
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          ),
+                                        ],
+                                      ),
+
+                                      const SizedBox(height: 8),
+
+                                      // Plot and Cluster summary
+                                      Padding(
+                                        padding: const EdgeInsets.only(
+                                          bottom: 8.0,
+                                        ),
+                                        child: Row(
+                                          children: [
+                                            Text(
+                                              'Cluster: ${_selectedCluster?.kodeCluster ?? '-'}',
+                                            ),
+                                            const SizedBox(width: 12),
+                                            Text(
+                                              'Plot: ${_selectedPlot?.kodePlot ?? '-'}',
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+
+                                      const SizedBox(height: 8),
+
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: isLightModeNotifier,
+                                        builder: (context, isLightMode, _) {
+                                          final isDark = !isLightMode;
+                                          return Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Text(
+                                                'Pohon dalam plot ini:',
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                  color:
+                                                      isDark
+                                                          ? Colors.white
+                                                          : null,
+                                                ),
+                                              ),
+                                              const SizedBox(height: 8),
+                                              if (_treesForSelectedPlot.isEmpty)
+                                                Text(
+                                                  'Tidak ada pohon di plot ini',
+                                                  style: TextStyle(
+                                                    color:
+                                                        isDark
+                                                            ? Colors.white
+                                                            : null,
+                                                  ),
+                                                )
+                                              else
+                                                Column(
+                                                  children:
+                                                      _treesForSelectedPlot.map((
+                                                        t,
+                                                      ) {
+                                                        final title =
+                                                            (t.namaPohon
+                                                                        ?.trim()
+                                                                        .isNotEmpty ??
+                                                                    false)
+                                                                ? (t.namaPohon ??
+                                                                    'Pohon')
+                                                                : (t.namaIlmiah
+                                                                        ?.trim()
+                                                                        .isNotEmpty ??
+                                                                    false)
+                                                                ? t.namaIlmiah!
+                                                                : 'Pohon ${t.kodePohon}';
+
+                                                        return ListTile(
+                                                          contentPadding:
+                                                              EdgeInsets.zero,
+                                                          title: Text(
+                                                            title,
+                                                            style: TextStyle(
+                                                              color:
+                                                                  isDark
+                                                                      ? Colors
+                                                                          .white
+                                                                      : null,
+                                                            ),
+                                                          ),
+                                                          subtitle: Text(
+                                                            'Kode: ${t.kodePohon}',
+                                                            style: TextStyle(
+                                                              color:
+                                                                  isDark
+                                                                      ? Colors
+                                                                          .white70
+                                                                      : null,
+                                                            ),
+                                                          ),
+                                                          trailing: ValueListenableBuilder<
+                                                            bool
+                                                          >(
+                                                            valueListenable:
+                                                                isLightModeNotifier,
+                                                            builder: (
+                                                              context,
+                                                              isLightMode2,
+                                                              _,
+                                                            ) {
+                                                              final isDark2 =
+                                                                  !isLightMode2;
+                                                              return IconButton(
+                                                                tooltip:
+                                                                    'Center to this tree',
+                                                                icon: Icon(
+                                                                  Icons
+                                                                      .my_location,
+                                                                  color:
+                                                                      isDark2
+                                                                          ? Colors
+                                                                              .white
+                                                                          : null,
+                                                                ),
+                                                                onPressed:
+                                                                    (t.latitude !=
+                                                                                null &&
+                                                                            t.longitude !=
+                                                                                null)
+                                                                        ? () async {
+                                                                          // Select the tree and center
+                                                                          selectedTreeNotifier.value =
+                                                                              t;
+                                                                          await Future.delayed(
+                                                                            const Duration(
+                                                                              milliseconds:
+                                                                                  40,
+                                                                            ),
+                                                                          );
+                                                                          isFollowingUserLocationNotifier.value =
+                                                                              false;
+                                                                          preserveZoomOnNextCenterNotifier.value =
+                                                                              true;
+                                                                          selectedLocationFromSearchNotifier.value =
+                                                                              false;
+                                                                          selectedLocationNotifier
+                                                                              .value = Position(
+                                                                            t.longitude!,
+                                                                            t.latitude!,
+                                                                          );
+                                                                        }
+                                                                        : null,
+                                                              );
+                                                            },
+                                                          ),
+                                                          onTap: () {
+                                                            // Show tree details in bottomsheet
+                                                            selectedTreeNotifier
+                                                                .value = t;
+                                                          },
+                                                        );
+                                                      }).toList(),
+                                                ),
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  );
+                                }
+
+                                // If no plot selected but a centroid is selected, show centroid UI
+                                return ValueListenableBuilder<ClusterModel?>(
+                                  valueListenable: selectedCentroidNotifier,
+                                  builder: (context, cluster, child) {
+                                    if (cluster != null) {
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              const Text(
+                                                'Centroid',
+                                                style: TextStyle(
+                                                  fontSize: 18,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  ValueListenableBuilder<bool>(
+                                                    valueListenable:
+                                                        isLightModeNotifier,
+                                                    builder: (
+                                                      context,
+                                                      isLightMode,
+                                                      _,
+                                                    ) {
+                                                      final isDark =
+                                                          !isLightMode;
+                                                      return Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: [
+                                                          IconButton(
+                                                            tooltip:
+                                                                'Plot sebelumnya',
+                                                            onPressed: () async {
+                                                              await _goToPreviousPlotFromCentroid(
+                                                                cluster,
+                                                              );
+                                                            },
+                                                            icon: Icon(
+                                                              Icons.arrow_back,
+                                                              color:
+                                                                  isDark
+                                                                      ? Colors
+                                                                          .white
+                                                                      : null,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 8,
+                                                          ),
+                                                          IconButton(
+                                                            tooltip:
+                                                                'Center on centroid',
+                                                            onPressed: () async {
+                                                              await _centerToCentroid(
+                                                                cluster,
+                                                              );
+                                                            },
+                                                            icon: Icon(
+                                                              Icons
+                                                                  .my_location_outlined,
+                                                              color:
+                                                                  isDark
+                                                                      ? Colors
+                                                                          .white
+                                                                      : null,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 8,
+                                                          ),
+                                                          IconButton(
+                                                            tooltip:
+                                                                'Plot berikutnya',
+                                                            onPressed: () async {
+                                                              await _goToNextPlotFromCentroid(
+                                                                cluster,
+                                                              );
+                                                            },
+                                                            icon: Icon(
+                                                              Icons
+                                                                  .arrow_forward,
+                                                              color:
+                                                                  isDark
+                                                                      ? Colors
+                                                                          .white
+                                                                      : null,
+                                                            ),
+                                                          ),
+                                                          const SizedBox(
+                                                            width: 8,
+                                                          ),
+                                                          IconButton(
+                                                            onPressed: () {
+                                                              selectedCentroidNotifier
+                                                                  .value = null;
+                                                            },
+                                                            icon: Icon(
+                                                              Icons.close,
+                                                              color:
+                                                                  isDark
+                                                                      ? Colors
+                                                                          .white
+                                                                      : null,
+                                                            ),
+                                                          ),
+                                                        ],
+                                                      );
+                                                    },
+                                                  ),
+                                                ],
+                                              ),
+                                            ],
+                                          ),
+                                          const SizedBox(height: 8),
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              bottom: 8.0,
+                                            ),
+                                            child: Row(
+                                              children: [
+                                                Text(
+                                                  'Cluster: ${cluster.kodeCluster}',
+                                                ),
+                                                const SizedBox(width: 12),
+                                                const Text('Centroid'),
+                                              ],
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                          const Text(
+                                            'Centroid ini dihasilkan dari plot di klaster ini.',
+                                            style: TextStyle(
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 8),
+                                        ],
+                                      );
+                                    }
+                                    return Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        vertical: 12,
+                                      ),
+                                      child: Text(
+                                        _hasAnyData
+                                            ? 'Pilih marker di peta untuk menampilkan informasi.'
+                                            : 'Kamu tidak memiliki data, silahkan tambah data terlebih dahulu.',
+                                      ),
                                     );
                                   },
-                                ),
-                                style: ButtonStyle(
-                                  foregroundColor:
-                                      WidgetStateProperty.resolveWith(
-                                        (states) =>
-                                            states.contains(WidgetState.pressed)
-                                                ? Colors.lightGreen.shade200
-                                                : null,
+                                );
+                              }
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        tree.namaPohon ?? 'Pohon',
+                                        style: const TextStyle(
+                                          fontSize: 18,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
-                                  overlayColor: WidgetStateProperty.resolveWith(
-                                    (states) =>
-                                        states.contains(WidgetState.pressed)
-                                            ? Colors.lightGreen.shade100
-                                                .withAlpha((0.4 * 255).round())
-                                            : null,
-                                  ),
-                                ),
-                              ),
-                              IconButton(
-                                onPressed: () {
-                                  northResetRequestNotifier.value =
-                                      northResetRequestNotifier.value + 1;
-                                },
-                                icon: Transform.rotate(
-                                  angle: -45 * math.pi / 180,
-                                  child: const Icon(Icons.explore_outlined),
-                                ),
-                                style: ButtonStyle(
-                                  foregroundColor:
-                                      WidgetStateProperty.resolveWith(
-                                        (states) =>
-                                            states.contains(WidgetState.pressed)
-                                                ? const Color.fromARGB(
-                                                  255,
-                                                  197,
-                                                  225,
-                                                  165,
-                                                )
-                                                : null,
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable: isLightModeNotifier,
+                                        builder: (context, isLightMode, _) {
+                                          final isDark = !isLightMode;
+                                          return Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                tooltip: 'Pohon sebelumnya',
+                                                onPressed: _goToPreviousTree,
+                                                icon: Icon(
+                                                  Icons.arrow_back,
+                                                  color:
+                                                      isDark
+                                                          ? Colors.white
+                                                          : null,
+                                                ),
+                                              ),
+                                              IconButton(
+                                                tooltip: 'Center on tree',
+                                                onPressed:
+                                                    (tree.latitude != null &&
+                                                            tree.longitude !=
+                                                                null)
+                                                        ? () async {
+                                                          isFollowingUserLocationNotifier
+                                                              .value = false;
+                                                          selectedLocationNotifier
+                                                              .value = null;
+                                                          await Future.delayed(
+                                                            const Duration(
+                                                              milliseconds: 60,
+                                                            ),
+                                                          );
+                                                          preserveZoomOnNextCenterNotifier
+                                                              .value = true;
+                                                          selectedLocationFromSearchNotifier
+                                                              .value = false;
+                                                          selectedLocationNotifier
+                                                              .value = Position(
+                                                            tree.longitude!,
+                                                            tree.latitude!,
+                                                          );
+                                                          // center applied; no snackbar
+                                                        }
+                                                        : null,
+                                                icon: Icon(
+                                                  Icons.my_location_outlined,
+                                                  color:
+                                                      isDark
+                                                          ? Colors.white
+                                                          : null,
+                                                ),
+                                              ),
+                                              IconButton(
+                                                tooltip: 'Pohon berikutnya',
+                                                onPressed: _goToNextTree,
+                                                icon: Icon(
+                                                  Icons.arrow_forward,
+                                                  color:
+                                                      isDark
+                                                          ? Colors.white
+                                                          : null,
+                                                ),
+                                              ),
+                                              IconButton(
+                                                onPressed: () {
+                                                  selectedTreeNotifier.value =
+                                                      null;
+                                                },
+                                                icon: Icon(
+                                                  Icons.close,
+                                                  color:
+                                                      isDark
+                                                          ? Colors.white
+                                                          : null,
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
                                       ),
-                                  overlayColor: WidgetStateProperty.resolveWith(
-                                    (states) =>
-                                        states.contains(WidgetState.pressed)
-                                            ? Colors.lightGreen.shade100
-                                                .withAlpha((0.4 * 255).round())
-                                            : null,
+                                    ],
                                   ),
-                                ),
-                              ),
-                            ],
+
+                                  const SizedBox(height: 8),
+
+                                  // Plot and Cluster summary (loaded asynchronously in initState listener)
+                                  Padding(
+                                    padding: const EdgeInsets.only(bottom: 8.0),
+                                    child: Row(
+                                      children: [
+                                        Text(
+                                          'Cluster: ${_selectedCluster?.kodeCluster ?? '-'}',
+                                        ),
+                                        const SizedBox(width: 12),
+                                        Text(
+                                          'Plot: ${_selectedPlot?.kodePlot ?? '-'}',
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+
+                                  if (tree.urlFoto != null)
+                                    GestureDetector(
+                                      onTap: () {
+                                        Navigator.of(context).push(
+                                          MaterialPageRoute(
+                                            builder:
+                                                (_) => _TreePhotoPreviewPage(
+                                                  imageUrl:
+                                                      GDriveThumbnailService.toThumbnailUrl(
+                                                        tree.urlFoto!,
+                                                      ),
+                                                  heroTag:
+                                                      'tree-photo-${tree.id ?? DateTime.now().millisecondsSinceEpoch}',
+                                                ),
+                                          ),
+                                        );
+                                      },
+                                      child: Hero(
+                                        tag:
+                                            'tree-photo-${tree.id ?? DateTime.now().millisecondsSinceEpoch}',
+                                        child: SizedBox(
+                                          height: 160,
+                                          width: double.infinity,
+                                          child: Builder(
+                                            builder: (ctx) {
+                                              final url = tree.urlFoto!;
+                                              final resolved =
+                                                  GDriveThumbnailService.toThumbnailUrl(
+                                                    url,
+                                                  );
+                                              return CachedNetworkImage(
+                                                imageUrl: resolved,
+                                                fit: BoxFit.cover,
+                                                placeholder:
+                                                    (
+                                                      context,
+                                                      _,
+                                                    ) => const Center(
+                                                      child: SizedBox(
+                                                        width: 28,
+                                                        height: 28,
+                                                        child:
+                                                            CircularProgressIndicator(
+                                                              strokeWidth: 2.5,
+                                                            ),
+                                                      ),
+                                                    ),
+                                                errorWidget:
+                                                    (context, _, __) =>
+                                                        const Center(
+                                                          child: Icon(
+                                                            Icons.broken_image,
+                                                            color: Colors.grey,
+                                                          ),
+                                                        ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+
+                                  const SizedBox(height: 8),
+                                  Table(
+                                    columnWidths: const {
+                                      0: IntrinsicColumnWidth(),
+                                      1: FlexColumnWidth(),
+                                    },
+                                    defaultVerticalAlignment:
+                                        TableCellVerticalAlignment.top,
+                                    children: [
+                                      _row('Ilmiah', tree.namaIlmiah ?? '-'),
+                                      _row(
+                                        'Azimut',
+                                        tree.azimut?.toStringAsFixed(1) ?? '-',
+                                      ),
+                                      _row(
+                                        'Jarak (m)',
+                                        tree.jarakPusatM?.toStringAsFixed(2) ??
+                                            '-',
+                                      ),
+                                      _row(
+                                        'Latitude',
+                                        tree.latitude?.toStringAsFixed(6) ??
+                                            '-',
+                                      ),
+                                      _row(
+                                        'Longitude',
+                                        tree.longitude?.toStringAsFixed(6) ??
+                                            '-',
+                                      ),
+                                      if (tree.keterangan != null)
+                                        TableRow(
+                                          children: [
+                                            const Padding(
+                                              padding: EdgeInsets.only(
+                                                top: 2,
+                                                right: 4,
+                                              ),
+                                              child: Text('Keterangan'),
+                                            ),
+                                            Padding(
+                                              padding: const EdgeInsets.only(
+                                                top: 2,
+                                              ),
+                                              child: Text(tree.keterangan!),
+                                            ),
+                                          ],
+                                        ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 8),
+                                  // Mark/Done button for inspection workflow (bottomsheet)
+                                  Row(
+                                    children: [
+                                      const Spacer(),
+                                      ValueListenableBuilder<bool>(
+                                        valueListenable:
+                                            isInspectionWorkflowEnabledNotifier,
+                                        builder: (
+                                          context,
+                                          workflowEnabled,
+                                          child,
+                                        ) {
+                                          if (!workflowEnabled) {
+                                            return const SizedBox.shrink();
+                                          }
+                                          return ValueListenableBuilder<
+                                            Set<int>
+                                          >(
+                                            valueListenable:
+                                                inspectedTreeIdsNotifier,
+                                            builder: (
+                                              context,
+                                              inspectedSet,
+                                              child,
+                                            ) {
+                                              final inspected =
+                                                  (tree.id != null &&
+                                                      inspectedSet.contains(
+                                                        tree.id,
+                                                      ));
+                                              return ConstrainedBox(
+                                                constraints:
+                                                    const BoxConstraints(
+                                                      minWidth: 72,
+                                                    ),
+                                                child: ElevatedButton.icon(
+                                                  style: ElevatedButton.styleFrom(
+                                                    elevation: 0,
+                                                    backgroundColor:
+                                                        inspected
+                                                            ? Colors.green
+                                                            : Colors.orange,
+                                                    foregroundColor:
+                                                        const Color(0xFF1F4226),
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 8,
+                                                        ),
+                                                  ),
+                                                  onPressed: () async {
+                                                    final setCopy =
+                                                        Set<int>.from(
+                                                          inspectedSet,
+                                                        );
+                                                    if (inspected) {
+                                                      setCopy.remove(tree.id);
+                                                    } else {
+                                                      if (tree.id != null) {
+                                                        setCopy.add(tree.id!);
+                                                      }
+                                                    }
+                                                    inspectedTreeIdsNotifier
+                                                        .value = setCopy;
+                                                    try {
+                                                      if (tree.id != null) {
+                                                        await TreeDao.setInspectedForTree(
+                                                          tree.id!,
+                                                          setCopy.contains(
+                                                            tree.id,
+                                                          ),
+                                                        );
+                                                      }
+                                                    } catch (_) {}
+                                                  },
+                                                  icon: Icon(
+                                                    inspected
+                                                        ? Icons.check
+                                                        : Icons.checklist,
+                                                    size: 16,
+                                                  ),
+                                                  label: FittedBox(
+                                                    fit: BoxFit.scaleDown,
+                                                    child: Text(
+                                                      inspected
+                                                          ? 'Done'
+                                                          : 'Mark',
+                                                    ),
+                                                  ),
+                                                ),
+                                              );
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                         ],
                       ),
                     );
                   },
                 ),
-
-                const SizedBox(height: 8),
-                const Divider(),
-                const SizedBox(height: 8),
-
-                ValueListenableBuilder<TreeModel?>(
-                  valueListenable: selectedTreeNotifier,
-                  builder: (context, tree, child) {
-                    // If a tree is selected, show tree detail UI (existing behavior).
-                    if (tree == null) {
-                      // If no tree selected but a plot is selected, show plot summary
-                      if (_selectedPlot != null) {
-                        final plot = _selectedPlot!;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Plot ${plot.kodePlot}',
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      tooltip: 'Plot sebelumnya',
-                                      onPressed: () async {
-                                        await _goToPreviousPlot();
-                                      },
-                                      icon: const Icon(Icons.arrow_back),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      tooltip: 'Center on plot',
-                                      onPressed: () async {
-                                        isFollowingUserLocationNotifier.value =
-                                            false;
-                                        selectedLocationNotifier.value = null;
-                                        await Future.delayed(
-                                          const Duration(milliseconds: 60),
-                                        );
-                                        preserveZoomOnNextCenterNotifier.value =
-                                            true;
-                                        selectedLocationFromSearchNotifier
-                                            .value = false;
-                                        selectedLocationNotifier
-                                            .value = Position(
-                                          plot.longitude,
-                                          plot.latitude,
-                                        );
-                                        // center applied; no snackbar
-                                      },
-                                      icon: const Icon(
-                                        Icons.my_location_outlined,
-                                      ),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      tooltip: 'Plot berikutnya',
-                                      onPressed: () async {
-                                        await _goToNextPlot();
-                                      },
-                                      icon: const Icon(Icons.arrow_forward),
-                                    ),
-                                    const SizedBox(width: 8),
-                                    IconButton(
-                                      onPressed: () {
-                                        selectedPlotNotifier.value = null;
-                                      },
-                                      icon: const Icon(Icons.close),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-
-                            const SizedBox(height: 8),
-
-                            // Plot and Cluster summary
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8.0),
-                              child: Row(
-                                children: [
-                                  Text(
-                                    'Cluster: ${_selectedCluster?.kodeCluster ?? '-'}',
-                                  ),
-                                  const SizedBox(width: 12),
-                                  Text(
-                                    'Plot: ${_selectedPlot?.kodePlot ?? '-'}',
-                                  ),
-                                ],
-                              ),
-                            ),
-
-                            const SizedBox(height: 8),
-
-                            const Text(
-                              'Pohon dalam plot ini:',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                            const SizedBox(height: 8),
-                            if (_treesForSelectedPlot.isEmpty)
-                              const Text('Tidak ada pohon di plot ini')
-                            else
-                              Column(
-                                children:
-                                    _treesForSelectedPlot.map((t) {
-                                      final title =
-                                          (t.namaPohon?.trim().isNotEmpty ??
-                                                  false)
-                                              ? (t.namaPohon ?? 'Pohon')
-                                              : (t.namaIlmiah
-                                                      ?.trim()
-                                                      .isNotEmpty ??
-                                                  false)
-                                              ? t.namaIlmiah!
-                                              : 'Pohon ${t.kodePohon}';
-
-                                      return ListTile(
-                                        contentPadding: EdgeInsets.zero,
-                                        title: Text(title),
-                                        subtitle: Text('Kode: ${t.kodePohon}'),
-                                        trailing: IconButton(
-                                          tooltip: 'Center to this tree',
-                                          icon: const Icon(Icons.my_location),
-                                          onPressed:
-                                              (t.latitude != null &&
-                                                      t.longitude != null)
-                                                  ? () async {
-                                                    // Select the tree and center
-                                                    selectedTreeNotifier.value =
-                                                        t;
-                                                    await Future.delayed(
-                                                      const Duration(
-                                                        milliseconds: 40,
-                                                      ),
-                                                    );
-                                                    isFollowingUserLocationNotifier
-                                                        .value = false;
-                                                    preserveZoomOnNextCenterNotifier
-                                                        .value = true;
-                                                    selectedLocationFromSearchNotifier
-                                                        .value = false;
-                                                    selectedLocationNotifier
-                                                        .value = Position(
-                                                      t.longitude!,
-                                                      t.latitude!,
-                                                    );
-                                                  }
-                                                  : null,
-                                        ),
-                                        onTap: () {
-                                          // Show tree details in bottomsheet
-                                          selectedTreeNotifier.value = t;
-                                        },
-                                      );
-                                    }).toList(),
-                              ),
-                          ],
-                        );
-                      }
-
-                      // If no plot selected but a centroid is selected, show centroid UI
-                      return ValueListenableBuilder<ClusterModel?>(
-                        valueListenable: selectedCentroidNotifier,
-                        builder: (context, cluster, child) {
-                          if (cluster != null) {
-                            return Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    const Text(
-                                      'Centroid',
-                                      style: TextStyle(
-                                        fontSize: 18,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                                    Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        IconButton(
-                                          tooltip: 'Plot sebelumnya',
-                                          onPressed: () async {
-                                            await _goToPreviousPlotFromCentroid(
-                                              cluster,
-                                            );
-                                          },
-                                          icon: const Icon(Icons.arrow_back),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        IconButton(
-                                          tooltip: 'Center on centroid',
-                                          onPressed: () async {
-                                            await _centerToCentroid(cluster);
-                                          },
-                                          icon: const Icon(
-                                            Icons.my_location_outlined,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        IconButton(
-                                          tooltip: 'Plot berikutnya',
-                                          onPressed: () async {
-                                            await _goToNextPlotFromCentroid(
-                                              cluster,
-                                            );
-                                          },
-                                          icon: const Icon(Icons.arrow_forward),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        IconButton(
-                                          onPressed: () {
-                                            selectedCentroidNotifier.value =
-                                                null;
-                                          },
-                                          icon: const Icon(Icons.close),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 8.0),
-                                  child: Row(
-                                    children: [
-                                      Text('Cluster: ${cluster.kodeCluster}'),
-                                      const SizedBox(width: 12),
-                                      const Text('Centroid'),
-                                    ],
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                const Text(
-                                  'Centroid ini dihasilkan dari plot di klaster ini.',
-                                  style: TextStyle(fontWeight: FontWeight.bold),
-                                ),
-                                const SizedBox(height: 8),
-                              ],
-                            );
-                          }
-                          return Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: Text(
-                              _hasAnyData
-                                  ? 'Pilih marker di peta untuk menampilkan informasi.'
-                                  : 'Kamu tidak memiliki data, silahkan tambah data terlebih dahulu.',
-                            ),
-                          );
-                        },
-                      );
-                    }
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              tree.namaPohon ?? 'Pohon',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  tooltip: 'Pohon sebelumnya',
-                                  onPressed: _goToPreviousTree,
-                                  icon: const Icon(Icons.arrow_back),
-                                ),
-                                IconButton(
-                                  tooltip: 'Center on tree',
-                                  onPressed:
-                                      (tree.latitude != null &&
-                                              tree.longitude != null)
-                                          ? () async {
-                                            isFollowingUserLocationNotifier
-                                                .value = false;
-                                            selectedLocationNotifier.value =
-                                                null;
-                                            await Future.delayed(
-                                              const Duration(milliseconds: 60),
-                                            );
-                                            preserveZoomOnNextCenterNotifier
-                                                .value = true;
-                                            selectedLocationFromSearchNotifier
-                                                .value = false;
-                                            selectedLocationNotifier
-                                                .value = Position(
-                                              tree.longitude!,
-                                              tree.latitude!,
-                                            );
-                                            // center applied; no snackbar
-                                          }
-                                          : null,
-                                  icon: const Icon(Icons.my_location_outlined),
-                                ),
-                                IconButton(
-                                  tooltip: 'Pohon berikutnya',
-                                  onPressed: _goToNextTree,
-                                  icon: const Icon(Icons.arrow_forward),
-                                ),
-                                IconButton(
-                                  onPressed: () {
-                                    selectedTreeNotifier.value = null;
-                                  },
-                                  icon: const Icon(Icons.close),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-
-                        const SizedBox(height: 8),
-
-                        // Plot and Cluster summary (loaded asynchronously in initState listener)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 8.0),
-                          child: Row(
-                            children: [
-                              Text(
-                                'Cluster: ${_selectedCluster?.kodeCluster ?? '-'}',
-                              ),
-                              const SizedBox(width: 12),
-                              Text('Plot: ${_selectedPlot?.kodePlot ?? '-'}'),
-                            ],
-                          ),
-                        ),
-
-                        if (tree.urlFoto != null)
-                          GestureDetector(
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder:
-                                      (_) => _TreePhotoPreviewPage(
-                                        imageUrl:
-                                            GDriveThumbnailService.toThumbnailUrl(
-                                              tree.urlFoto!,
-                                            ),
-                                        heroTag:
-                                            'tree-photo-${tree.id ?? DateTime.now().millisecondsSinceEpoch}',
-                                      ),
-                                ),
-                              );
-                            },
-                            child: Hero(
-                              tag:
-                                  'tree-photo-${tree.id ?? DateTime.now().millisecondsSinceEpoch}',
-                              child: SizedBox(
-                                height: 160,
-                                width: double.infinity,
-                                child: Builder(
-                                  builder: (ctx) {
-                                    final url = tree.urlFoto!;
-                                    final resolved =
-                                        GDriveThumbnailService.toThumbnailUrl(
-                                          url,
-                                        );
-                                    return CachedNetworkImage(
-                                      imageUrl: resolved,
-                                      fit: BoxFit.cover,
-                                      placeholder:
-                                          (context, _) => const Center(
-                                            child: SizedBox(
-                                              width: 28,
-                                              height: 28,
-                                              child: CircularProgressIndicator(
-                                                strokeWidth: 2.5,
-                                              ),
-                                            ),
-                                          ),
-                                      errorWidget:
-                                          (context, _, __) => const Center(
-                                            child: Icon(
-                                              Icons.broken_image,
-                                              color: Colors.grey,
-                                            ),
-                                          ),
-                                    );
-                                  },
-                                ),
-                              ),
-                            ),
-                          ),
-
-                        const SizedBox(height: 8),
-                        Table(
-                          columnWidths: const {
-                            0: IntrinsicColumnWidth(),
-                            1: FlexColumnWidth(),
-                          },
-                          defaultVerticalAlignment:
-                              TableCellVerticalAlignment.top,
-                          children: [
-                            _row('Ilmiah', tree.namaIlmiah ?? '-'),
-                            _row(
-                              'Azimut',
-                              tree.azimut?.toStringAsFixed(1) ?? '-',
-                            ),
-                            _row(
-                              'Jarak (m)',
-                              tree.jarakPusatM?.toStringAsFixed(2) ?? '-',
-                            ),
-                            _row(
-                              'Latitude',
-                              tree.latitude?.toStringAsFixed(6) ?? '-',
-                            ),
-                            _row(
-                              'Longitude',
-                              tree.longitude?.toStringAsFixed(6) ?? '-',
-                            ),
-                            if (tree.keterangan != null)
-                              TableRow(
-                                children: [
-                                  const Padding(
-                                    padding: EdgeInsets.only(top: 2, right: 4),
-                                    child: Text('Keterangan'),
-                                  ),
-                                  Padding(
-                                    padding: const EdgeInsets.only(top: 2),
-                                    child: Text(tree.keterangan!),
-                                  ),
-                                ],
-                              ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
-                        // Mark/Done button for inspection workflow (bottomsheet)
-                        Row(
-                          children: [
-                            const Spacer(),
-                            ValueListenableBuilder<bool>(
-                              valueListenable:
-                                  isInspectionWorkflowEnabledNotifier,
-                              builder: (context, workflowEnabled, child) {
-                                if (!workflowEnabled) {
-                                  return const SizedBox.shrink();
-                                }
-                                return ValueListenableBuilder<Set<int>>(
-                                  valueListenable: inspectedTreeIdsNotifier,
-                                  builder: (context, inspectedSet, child) {
-                                    final inspected =
-                                        (tree.id != null &&
-                                            inspectedSet.contains(tree.id));
-                                    return ConstrainedBox(
-                                      constraints: const BoxConstraints(
-                                        minWidth: 72,
-                                      ),
-                                      child: ElevatedButton.icon(
-                                        style: ElevatedButton.styleFrom(
-                                          elevation: 0,
-                                          backgroundColor:
-                                              inspected
-                                                  ? Colors.green
-                                                  : Colors.orange,
-                                          foregroundColor: const Color(
-                                            0xFF1F4226,
-                                          ),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 8,
-                                            vertical: 8,
-                                          ),
-                                        ),
-                                        onPressed: () async {
-                                          final setCopy = Set<int>.from(
-                                            inspectedSet,
-                                          );
-                                          if (inspected) {
-                                            setCopy.remove(tree.id);
-                                          } else {
-                                            if (tree.id != null) {
-                                              setCopy.add(tree.id!);
-                                            }
-                                          }
-                                          inspectedTreeIdsNotifier.value =
-                                              setCopy;
-                                          try {
-                                            if (tree.id != null) {
-                                              await TreeDao.setInspectedForTree(
-                                                tree.id!,
-                                                setCopy.contains(tree.id),
-                                              );
-                                            }
-                                          } catch (_) {}
-                                        },
-                                        icon: Icon(
-                                          inspected
-                                              ? Icons.check
-                                              : Icons.checklist,
-                                          size: 16,
-                                        ),
-                                        label: FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: Text(
-                                            inspected ? 'Done' : 'Mark',
-                                          ),
-                                        ),
-                                      ),
-                                    );
-                                  },
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
+              ),
+            );
+          },
         );
       },
     );

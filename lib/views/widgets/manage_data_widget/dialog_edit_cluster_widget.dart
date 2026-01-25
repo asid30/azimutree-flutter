@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 
 class DialogEditClusterWidget extends StatefulWidget {
   final ClusterModel cluster;
@@ -13,7 +14,8 @@ class DialogEditClusterWidget extends StatefulWidget {
   });
 
   @override
-  State<DialogEditClusterWidget> createState() => _DialogEditClusterWidgetState();
+  State<DialogEditClusterWidget> createState() =>
+      _DialogEditClusterWidgetState();
 }
 
 class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
@@ -27,14 +29,17 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
   void initState() {
     super.initState();
     _kodeController = TextEditingController(text: widget.cluster.kodeCluster);
-    _namaController = TextEditingController(text: widget.cluster.namaPengukur ?? "");
+    _namaController = TextEditingController(
+      text: widget.cluster.namaPengukur ?? "",
+    );
     _tanggalController = TextEditingController(
-      text: widget.cluster.tanggalPengukuran != null
-          ? widget.cluster.tanggalPengukuran!
-              .toIso8601String()
-              .split('T')
-              .first
-          : "",
+      text:
+          widget.cluster.tanggalPengukuran != null
+              ? widget.cluster.tanggalPengukuran!
+                  .toIso8601String()
+                  .split('T')
+                  .first
+              : "",
     );
 
     _kodeController.addListener(_validateForm);
@@ -54,7 +59,8 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
   }
 
   void _validateForm() {
-    final kode = _kodeController.text.replaceAll(RegExp(r'\s+'), '').toUpperCase();
+    final kode =
+        _kodeController.text.replaceAll(RegExp(r'\s+'), '').toUpperCase();
     final nama = _namaController.text.trim();
 
     final duplicate = widget.clusterNotifier.value.any(
@@ -76,7 +82,8 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
   }
 
   Future<void> _save() async {
-    final kodeCluster = _kodeController.text.replaceAll(RegExp(r'\s+'), '').toUpperCase();
+    final kodeCluster =
+        _kodeController.text.replaceAll(RegExp(r'\s+'), '').toUpperCase();
     final namaPengukur = _capitalizeWords(_namaController.text.trim());
     final tanggalText = _tanggalController.text.trim();
     DateTime? tanggalPengukuran;
@@ -139,64 +146,81 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text("Edit Klaster"),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _kodeController,
-              decoration: InputDecoration(
-                labelText: "Kode Klaster",
-                border: const OutlineInputBorder(),
-                errorText: _isDuplicate ? "Kode klaster sudah ada" : null,
-              ),
-              textCapitalization: TextCapitalization.characters,
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _namaController,
-              decoration: const InputDecoration(
-                labelText: "Nama Pengukur",
-                border: OutlineInputBorder(),
-              ),
-              textCapitalization: TextCapitalization.words,
-            ),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: _pickDate,
-              child: AbsorbPointer(
-                child: TextField(
-                  controller: _tanggalController,
-                  readOnly: true,
+    return ValueListenableBuilder<bool>(
+      valueListenable: isLightModeNotifier,
+      builder: (context, isLightMode, _) {
+        final isDark = !isLightMode;
+        return AlertDialog(
+          backgroundColor:
+              isDark ? const Color.fromARGB(255, 36, 67, 42) : null,
+          title: Text(
+            "Edit Klaster",
+            style: TextStyle(color: isDark ? Colors.white : null),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: _kodeController,
+                  decoration: InputDecoration(
+                    labelText: "Kode Klaster",
+                    border: const OutlineInputBorder(),
+                    errorText: _isDuplicate ? "Kode klaster sudah ada" : null,
+                  ),
+                  textCapitalization: TextCapitalization.characters,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _namaController,
                   decoration: const InputDecoration(
-                    labelText: "Tanggal Pengukuran",
+                    labelText: "Nama Pengukur",
                     border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.calendar_today),
-                    hintText: "YYYY-MM-DD",
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: _pickDate,
+                  child: AbsorbPointer(
+                    child: TextField(
+                      controller: _tanggalController,
+                      readOnly: true,
+                      decoration: const InputDecoration(
+                        labelText: "Tanggal Pengukuran",
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.calendar_today),
+                        hintText: "YYYY-MM-DD",
+                      ),
+                    ),
                   ),
                 ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Batal",
+                style: TextStyle(color: isDark ? Colors.white : null),
               ),
             ),
+            ValueListenableBuilder<bool>(
+              valueListenable: _isFormValid,
+              builder: (context, isValid, _) {
+                return TextButton(
+                  onPressed: isValid ? _save : null,
+                  child: Text(
+                    "Simpan",
+                    style: TextStyle(color: isDark ? Colors.white : null),
+                  ),
+                );
+              },
+            ),
           ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text("Batal"),
-        ),
-        ValueListenableBuilder<bool>(
-          valueListenable: _isFormValid,
-          builder: (context, isValid, _) {
-            return TextButton(
-              onPressed: isValid ? _save : null,
-              child: const Text("Simpan"),
-            );
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }

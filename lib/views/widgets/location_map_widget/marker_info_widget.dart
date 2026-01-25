@@ -105,97 +105,102 @@ class MarkerInfoWidget extends StatelessWidget {
                 Row(
                   children: [
                     Flexible(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            tree.namaPohon ?? 'Pohon #${tree.kodePohon}',
-                            style: const TextStyle(fontWeight: FontWeight.w600),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (tree.namaIlmiah != null)
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 44.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
                             Text(
-                              tree.namaIlmiah!,
+                              tree.namaPohon ?? 'Pohon #${tree.kodePohon}',
                               style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.black54,
+                                fontWeight: FontWeight.w600,
                               ),
-                              maxLines: 1,
+                              maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                          const SizedBox(height: 4),
-                          if (plot != null)
-                            Text(
-                              'Plot ${plot.kodePlot}',
-                              style: const TextStyle(fontSize: 12),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          if (cluster != null)
-                            Text(
-                              'Cluster ${cluster.kodeCluster}',
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: Colors.black54,
+                            if (tree.namaIlmiah != null)
+                              Text(
+                                tree.namaIlmiah!,
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black54,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          // Inspection: show bearing and distance to user when enabled
-                          ValueListenableBuilder<bool>(
-                            valueListenable:
-                                isInspectionWorkflowEnabledNotifier,
-                            builder: (context, enabled, child) {
-                              if (!enabled) return const SizedBox.shrink();
-                              return ValueListenableBuilder<dynamic>(
-                                valueListenable: userLocationNotifier,
-                                builder: (context, userPos, child) {
-                                  if (userPos == null ||
-                                      tree.latitude == null ||
-                                      tree.longitude == null) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  final fromLat = _posLat(userPos);
-                                  final fromLng = _posLng(userPos);
-                                  final toLat = tree.latitude!;
-                                  final toLng = tree.longitude!;
-                                  if (fromLat == null || fromLng == null) {
-                                    return const SizedBox.shrink();
-                                  }
-                                  final bearing =
-                                      _computeBearing(
-                                        fromLat,
-                                        fromLng,
-                                        toLat,
-                                        toLng,
-                                      ).round();
-                                  final distanceMeters = _haversineDistance(
-                                    fromLat,
-                                    fromLng,
-                                    toLat,
-                                    toLng,
-                                  );
-                                  final distText =
-                                      (distanceMeters < 1000)
-                                          ? '${distanceMeters.round()} m'
-                                          : '${(distanceMeters / 1000).toStringAsFixed(2)} km';
-                                  return Padding(
-                                    padding: const EdgeInsets.only(top: 6.0),
-                                    child: Text(
-                                      'Arah: $bearing° • Jarak: $distText',
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.black54,
+                            const SizedBox(height: 4),
+                            if (plot != null)
+                              Text(
+                                'Plot ${plot.kodePlot}',
+                                style: const TextStyle(fontSize: 12),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            if (cluster != null)
+                              Text(
+                                'Cluster ${cluster.kodeCluster}',
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.black54,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            // Inspection: show bearing and distance to user when enabled
+                            ValueListenableBuilder<bool>(
+                              valueListenable:
+                                  isInspectionWorkflowEnabledNotifier,
+                              builder: (context, enabled, child) {
+                                if (!enabled) return const SizedBox.shrink();
+                                return ValueListenableBuilder<dynamic>(
+                                  valueListenable: userLocationNotifier,
+                                  builder: (context, userPos, child) {
+                                    if (userPos == null ||
+                                        tree.latitude == null ||
+                                        tree.longitude == null) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    final fromLat = _posLat(userPos);
+                                    final fromLng = _posLng(userPos);
+                                    final toLat = tree.latitude!;
+                                    final toLng = tree.longitude!;
+                                    if (fromLat == null || fromLng == null) {
+                                      return const SizedBox.shrink();
+                                    }
+                                    final bearing =
+                                        _computeBearing(
+                                          fromLat,
+                                          fromLng,
+                                          toLat,
+                                          toLng,
+                                        ).round();
+                                    final distanceMeters = _haversineDistance(
+                                      fromLat,
+                                      fromLng,
+                                      toLat,
+                                      toLng,
+                                    );
+                                    final distText =
+                                        (distanceMeters < 1000)
+                                            ? '${distanceMeters.round()} m'
+                                            : '${(distanceMeters / 1000).toStringAsFixed(2)} km';
+                                    return Padding(
+                                      padding: const EdgeInsets.only(top: 6.0),
+                                      child: Text(
+                                        'Arah: $bearing° • Jarak: $distText',
+                                        style: const TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.black54,
+                                        ),
                                       ),
-                                    ),
-                                  );
-                                },
-                              );
-                            },
-                          ),
-                        ],
+                                    );
+                                  },
+                                );
+                              },
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -263,11 +268,11 @@ class MarkerInfoWidget extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 6,
-            right: 6,
+            top: -8,
+            right: 8,
             child: SizedBox(
-              width: 36,
-              height: 36,
+              width: 44,
+              height: 44,
               child: Material(
                 color: Colors.transparent,
                 child: IconButton(
@@ -373,11 +378,11 @@ class MarkerInfoWidget extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 6,
-            right: 6,
+            top: -8,
+            right: 8,
             child: SizedBox(
-              width: 36,
-              height: 36,
+              width: 44,
+              height: 44,
               child: Material(
                 color: Colors.transparent,
                 child: IconButton(
@@ -432,11 +437,11 @@ class MarkerInfoWidget extends StatelessWidget {
             ),
           ),
           Positioned(
-            top: 6,
-            right: 6,
+            top: -8,
+            right: 8,
             child: SizedBox(
-              width: 36,
-              height: 36,
+              width: 44,
+              height: 44,
               child: Material(
                 color: Colors.transparent,
                 child: IconButton(
@@ -466,8 +471,10 @@ class MarkerInfoWidget extends StatelessWidget {
         return LayoutBuilder(
           builder: (context, constraints) {
             // Limit card width so it doesn't become too narrow and wrap badly on
-            // small devices. Use up to 85% of available width.
-            final maxCardWidth = math.max(200.0, constraints.maxWidth * 0.85);
+            // small devices. Use up to ~92% of available width and a minimum
+            // that matches the legend widget's `minWidth` so they can be
+            // visually similar without clipping internal content.
+            final maxCardWidth = math.max(180.0, constraints.maxWidth * 0.92);
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
