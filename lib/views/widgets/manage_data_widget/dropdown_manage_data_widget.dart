@@ -40,7 +40,10 @@ class DropdownManageDataWidget extends StatelessWidget {
           builder: (context, isLightMode, child) {
             final isDark = !isLightMode;
             final textColor = isDark ? Colors.white : Colors.black87;
-            final dropdownBg = isDark ? Colors.grey[800] : defaultDropdownColor;
+            final dropdownBg =
+                isDark
+                    ? const Color.fromARGB(255, 36, 67, 42)
+                    : defaultDropdownColor;
 
             return DropdownButtonHideUnderline(
               child: DropdownButton<String>(
