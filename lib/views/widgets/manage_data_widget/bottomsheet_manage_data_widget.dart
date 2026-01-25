@@ -256,35 +256,56 @@ class _BottomsheetManageDataWidgetState
                           borderRadius: BorderRadius.circular(6),
                         ),
                       ),
-                      Center(
-                        child: OutlinedButton.icon(
-                          onPressed: _expandBottomSheet,
-                          icon: const Icon(Icons.menu, size: 18),
-                          label: const Text(
-                            'Menu Kelola Data',
-                            style: TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: Colors.transparent,
-                            foregroundColor: Colors.black87,
-                            side: BorderSide.none,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 18.0,
-                              vertical: 12.0,
+                      ValueListenableBuilder<bool>(
+                        valueListenable: isLightModeNotifier,
+                        builder: (context, isLightMode, _) {
+                          final isDark = !isLightMode;
+                          return Center(
+                            child: OutlinedButton.icon(
+                              onPressed: _expandBottomSheet,
+                              icon: Icon(
+                                Icons.menu,
+                                size: 18,
+                                color: isDark ? Colors.white : null,
+                              ),
+                              label: Text(
+                                'Menu Kelola Data',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : null,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: Colors.transparent,
+                                foregroundColor:
+                                    isDark ? Colors.white : Colors.black87,
+                                side: BorderSide.none,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 18.0,
+                                  vertical: 12.0,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(24.0),
+                                ),
+                              ),
                             ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(24.0),
-                            ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ],
                   ),
                 ),
                 SizedBox(height: 30),
-                const Text(
-                  'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor data untuk menambahkan data dari file eksternal (sheet), ekspor data untuk menyimpan salinan data Anda, atau unduh template untuk format data (sheet) yang benar.',
-                  textAlign: TextAlign.justify,
+                ValueListenableBuilder<bool>(
+                  valueListenable: isLightModeNotifier,
+                  builder: (context, isLightMode, _) {
+                    final isDark = !isLightMode;
+                    return Text(
+                      'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor data untuk menambahkan data dari file eksternal (sheet), ekspor data untuk menyimpan salinan data Anda, atau unduh template untuk format data (sheet) yang benar.',
+                      textAlign: TextAlign.justify,
+                      style: TextStyle(color: isDark ? Colors.white : null),
+                    );
+                  },
                 ),
                 const SizedBox(height: 20),
                 Wrap(
@@ -326,29 +347,67 @@ class _BottomsheetManageDataWidgetState
                                             alignment: Alignment.centerLeft,
                                             child: Text('Pilih klaster:'),
                                           ),
-                                          const SizedBox(height: 8),
-                                          DropdownButton<String>(
-                                            isExpanded: true,
-                                            value: selectedKode,
-                                            items:
-                                                clusters
-                                                    .map(
-                                                      (c) => DropdownMenuItem(
-                                                        value: c.kodeCluster,
-                                                        child: Text(
-                                                          c.kodeCluster +
-                                                              (c.namaPengukur !=
-                                                                      null
-                                                                  ? ' - ${c.namaPengukur}'
-                                                                  : ''),
-                                                        ),
-                                                      ),
-                                                    )
-                                                    .toList(),
-                                            onChanged:
-                                                (v) => setState(
-                                                  () => selectedKode = v,
+                                          const SizedBox(height: 30),
+                                          ValueListenableBuilder<bool>(
+                                            valueListenable:
+                                                isLightModeNotifier,
+                                            builder: (context, isLightMode, _) {
+                                              final isDark = !isLightMode;
+                                              return Text(
+                                                'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor data untuk menambahkan data dari file eksternal (sheet), ekspor data untuk menyimpan salinan data Anda, atau unduh template untuk format data (sheet) yang benar.',
+                                                textAlign: TextAlign.justify,
+                                                style: TextStyle(
+                                                  color:
+                                                      isDark
+                                                          ? Colors.white
+                                                          : null,
                                                 ),
+                                              );
+                                            },
+                                          ),
+                                          const SizedBox(height: 20),
+                                          ValueListenableBuilder<bool>(
+                                            valueListenable:
+                                                isLightModeNotifier,
+                                            builder: (context, isLightMode, _) {
+                                              final isDark = !isLightMode;
+                                              return DropdownButton<String>(
+                                                value: selectedKode,
+                                                isExpanded: true,
+                                                dropdownColor:
+                                                    isDark
+                                                        ? Colors.grey[850]
+                                                        : null,
+                                                style: TextStyle(
+                                                  color:
+                                                      isDark
+                                                          ? Colors.white
+                                                          : null,
+                                                ),
+                                                items:
+                                                    clusters
+                                                        .map(
+                                                          (
+                                                            c,
+                                                          ) => DropdownMenuItem(
+                                                            value:
+                                                                c.kodeCluster,
+                                                            child: Text(
+                                                              c.kodeCluster +
+                                                                  (c.namaPengukur !=
+                                                                          null
+                                                                      ? ' - ${c.namaPengukur}'
+                                                                      : ''),
+                                                            ),
+                                                          ),
+                                                        )
+                                                        .toList(),
+                                                onChanged:
+                                                    (v) => setState(
+                                                      () => selectedKode = v,
+                                                    ),
+                                              );
+                                            },
                                           ),
                                           const SizedBox(height: 12),
                                           const Align(
@@ -554,7 +613,16 @@ class _BottomsheetManageDataWidgetState
                   ],
                 ),
                 const SizedBox(height: 20),
-                const Text("Atau tambah data baru secara manual:"),
+                ValueListenableBuilder<bool>(
+                  valueListenable: isLightModeNotifier,
+                  builder: (context, isLightMode, _) {
+                    final isDark = !isLightMode;
+                    return Text(
+                      "Atau tambah data baru secara manual:",
+                      style: TextStyle(color: isDark ? Colors.white : null),
+                    );
+                  },
+                ),
                 ValueListenableBuilder(
                   valueListenable: widget.clusterNotifier,
                   builder: (context, clusterState, child) {
@@ -692,10 +760,30 @@ class _BottomsheetManageDataWidgetState
                     return Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Debug options:"),
+                        ValueListenableBuilder<bool>(
+                          valueListenable: isLightModeNotifier,
+                          builder: (context, isLightMode, _) {
+                            final isDark = !isLightMode;
+                            return Text(
+                              "Debug options:",
+                              style: TextStyle(
+                                color: isDark ? Colors.white : null,
+                              ),
+                            );
+                          },
+                        ),
                         const SizedBox(height: 8),
                         ElevatedButton(
                           onPressed: _generateRandomData,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color.fromARGB(
+                              255,
+                              48,
+                              101,
+                              59,
+                            ),
+                            foregroundColor: Colors.white,
+                          ),
                           child: const Text("Generate Data Random"),
                         ),
                         const SizedBox(height: 8),

@@ -221,7 +221,18 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                                           context,
                                           selectedCluster!,
                                         ),
-                                    icon: const Icon(Icons.edit),
+                                    icon: Icon(
+                                      Icons.edit,
+                                      color:
+                                          isDark
+                                              ? const Color.fromARGB(
+                                                255,
+                                                219,
+                                                219,
+                                                219,
+                                              )
+                                              : null,
+                                    ),
                                   ),
                                   IconButton(
                                     tooltip: "Hapus klaster",
@@ -230,9 +241,22 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                                           context,
                                           selectedCluster!,
                                         ),
-                                    icon: const Icon(
+                                    icon: Icon(
                                       Icons.delete,
-                                      color: Color.fromARGB(255, 98, 32, 32),
+                                      color:
+                                          isDark
+                                              ? const Color.fromARGB(
+                                                255,
+                                                215,
+                                                83,
+                                                83,
+                                              )
+                                              : const Color.fromARGB(
+                                                255,
+                                                98,
+                                                32,
+                                                32,
+                                              ),
                                     ),
                                   ),
                                 ],

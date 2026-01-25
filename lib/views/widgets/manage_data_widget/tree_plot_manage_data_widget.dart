@@ -146,7 +146,10 @@ class TreePlotManageDataWidget extends StatelessWidget {
                       SlidableAction(
                         onPressed: (_) => _editTree(context, tree),
                         backgroundColor: Colors.blue.shade100,
-                        foregroundColor: Colors.blue.shade900,
+                        foregroundColor:
+                            isDark
+                                ? const Color.fromARGB(255, 219, 219, 219)
+                                : Colors.blue.shade900,
                         icon: Icons.edit,
                         label: "Edit",
                         borderRadius: BorderRadius.circular(12),
@@ -160,7 +163,10 @@ class TreePlotManageDataWidget extends StatelessWidget {
                       SlidableAction(
                         onPressed: (_) => _deleteTree(context, tree),
                         backgroundColor: Colors.red.shade100,
-                        foregroundColor: Colors.red.shade900,
+                        foregroundColor:
+                            isDark
+                                ? const Color.fromARGB(255, 215, 83, 83)
+                                : Colors.red.shade900,
                         icon: Icons.delete,
                         label: "Hapus",
                         borderRadius: BorderRadius.circular(12),
