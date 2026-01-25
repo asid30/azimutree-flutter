@@ -400,7 +400,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             ),
             // Zoom controls (inset on top of the map).
             Positioned(
-              right: 12,
+              left: 12,
               // Compute a dynamic bottom offset so the controls sit above
               // the bottomsheet on most device sizes rather than being
               // occluded. This uses a fraction of the screen height.

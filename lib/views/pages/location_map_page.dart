@@ -234,22 +234,26 @@ class _LocationMapPageState extends State<LocationMapPage> {
                         MediaQuery.of(context).size.width,
                       );
 
-                  return Positioned(
-                    top: 35,
-                    left: 12,
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  // Place MarkerInfo at top-left (where the legend used to be)
+                  // and move the legend to the right side (previous FAB area).
+                  return SizedBox.expand(
+                    child: Stack(
                       children: [
-                        // Attach key to legend so we can measure it.
-                        Container(
-                          key: _legendKey,
-                          child: const MapLegendWidget(),
+                        Positioned(
+                          top: 35,
+                          left: 12,
+                          child: SizedBox(
+                            width: markerWidth,
+                            child: const MarkerInfoWidget(),
+                          ),
                         ),
-                        const SizedBox(height: 8),
-                        SizedBox(
-                          width: markerWidth,
-                          child: const MarkerInfoWidget(),
+                        Positioned(
+                          top: 72,
+                          right: 12,
+                          child: Container(
+                            key: _legendKey,
+                            child: const MapLegendWidget(),
+                          ),
                         ),
                       ],
                     ),
