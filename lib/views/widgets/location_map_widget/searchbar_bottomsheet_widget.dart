@@ -76,47 +76,72 @@ class _SearchbarBottomsheetWidgetState
         return Row(
           children: [
             Expanded(
-              child: TextFormField(
-                focusNode: _focusNode,
-                controller: _searchController,
-                decoration: InputDecoration(
-                  prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.close, color: Colors.grey),
-                    onPressed: () {
-                      _searchController.clear();
-                      FocusScope.of(context).unfocus();
-                      userInputSearchBarNotifier.value = "";
-                      // Request the bottomsheet to minimize so the map regains focus.
-                      bottomsheetMinimizeRequestNotifier.value =
-                          bottomsheetMinimizeRequestNotifier.value + 1;
-                    },
-                  ),
-                  hintText: 'Cari lokasi...',
-                  contentPadding: const EdgeInsets.symmetric(
-                    vertical: 9,
-                    horizontal: 16,
-                  ),
-                ),
-                onChanged: _onSearchChanged,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: isLightModeNotifier,
+                builder: (context, isLightMode, _) {
+                  final isDark = !isLightMode;
+                  return TextFormField(
+                    focusNode: _focusNode,
+                    controller: _searchController,
+                    style: TextStyle(color: isDark ? Colors.white : null),
+                    decoration: InputDecoration(
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: isDark ? Colors.white70 : Colors.grey,
+                      ),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          Icons.close,
+                          color: isDark ? Colors.white70 : Colors.grey,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                          FocusScope.of(context).unfocus();
+                          userInputSearchBarNotifier.value = "";
+                          // Request the bottomsheet to minimize so the map regains focus.
+                          bottomsheetMinimizeRequestNotifier.value =
+                              bottomsheetMinimizeRequestNotifier.value + 1;
+                        },
+                      ),
+                      hintText: 'Cari lokasi...',
+                      hintStyle: TextStyle(
+                        color: isDark ? Colors.white54 : null,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        vertical: 9,
+                        horizontal: 16,
+                      ),
+                    ),
+                    onChanged: _onSearchChanged,
+                  );
+                },
               ),
             ),
             const SizedBox(width: 8),
-            IconButton(
-              tooltip: 'Minimize bottomsheet',
-              onPressed: () {
-                try {
-                  bottomsheetMinimizeRequestNotifier.value =
-                      bottomsheetMinimizeRequestNotifier.value + 1;
-                } catch (_) {}
-                try {
-                  FocusScope.of(context).unfocus();
-                } catch (_) {}
-                try {
-                  isSearchFieldFocusedNotifier.value = false;
-                } catch (_) {}
+            ValueListenableBuilder<bool>(
+              valueListenable: isLightModeNotifier,
+              builder: (context, isLightMode, _) {
+                final isDark = !isLightMode;
+                return IconButton(
+                  tooltip: 'Minimize bottomsheet',
+                  onPressed: () {
+                    try {
+                      bottomsheetMinimizeRequestNotifier.value =
+                          bottomsheetMinimizeRequestNotifier.value + 1;
+                    } catch (_) {}
+                    try {
+                      FocusScope.of(context).unfocus();
+                    } catch (_) {}
+                    try {
+                      isSearchFieldFocusedNotifier.value = false;
+                    } catch (_) {}
+                  },
+                  icon: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: isDark ? Colors.white : null,
+                  ),
+                );
               },
-              icon: const Icon(Icons.keyboard_arrow_down),
             ),
           ],
         );
