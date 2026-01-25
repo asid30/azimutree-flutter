@@ -39,7 +39,7 @@ class SidebarWidget extends StatelessWidget {
                     child: Text(
                       "Menu",
                       style: TextStyle(
-                        color: isDark ? Colors.white : Colors.white,
+                        color: isDark ? const Color(0xFFC1FF72) : Colors.white,
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                       ),

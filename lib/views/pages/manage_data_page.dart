@@ -263,18 +263,27 @@ class _ManageDataPageState extends State<ManageDataPage> {
             ),
           ],
         ),
-        floatingActionButton: FloatingActionButton(
-          backgroundColor: Color(0xFF1F4226),
-          foregroundColor: Colors.white,
-          onPressed: () {
-            // expand bottom sheet to near-fullscreen
-            _draggableController.animateTo(
-              0.9,
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeOutCubic,
+        floatingActionButton: ValueListenableBuilder<bool>(
+          valueListenable: isLightModeNotifier,
+          builder: (context, isLight, _) {
+            final isDark = !isLight;
+            return FloatingActionButton(
+              backgroundColor:
+                  isDark
+                      ? const Color.fromARGB(255, 19, 41, 23)
+                      : const Color(0xFF1F4226),
+              foregroundColor: Colors.white,
+              onPressed: () {
+                // expand bottom sheet to near-fullscreen
+                _draggableController.animateTo(
+                  0.9,
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeOutCubic,
+                );
+              },
+              child: const Icon(Icons.menu_open),
             );
           },
-          child: const Icon(Icons.menu_open),
         ),
       ),
     );

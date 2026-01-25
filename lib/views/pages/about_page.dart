@@ -227,35 +227,6 @@ class AboutPage extends StatelessWidget {
                               );
                             },
                           ),
-                          const SizedBox(height: 12),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isLightModeNotifier,
-                            builder: (context, isLightMode, _) {
-                              final isDark = !isLightMode;
-                              return Center(
-                                child: Text(
-                                  'Dikembangkan oleh Asid30 © 2026',
-                                  style: TextStyle(
-                                    fontSize: 12,
-                                    backgroundColor:
-                                        isDark
-                                            ? const Color.fromARGB(
-                                              255,
-                                              36,
-                                              67,
-                                              42,
-                                            )
-                                            : const Color.fromARGB(
-                                              240,
-                                              180,
-                                              216,
-                                              187,
-                                            ),
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
                           const SizedBox(height: 24),
                         ],
                       ),
