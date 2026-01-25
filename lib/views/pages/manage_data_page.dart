@@ -67,39 +67,42 @@ class _ManageDataPageState extends State<ManageDataPage> {
               darkBackgroundImage: "assets/images/dark-bg-notitle.png",
             ),
             SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.start,
-                      children: [
-                        ValueListenableBuilder<bool>(
-                          valueListenable: isLightModeNotifier,
-                          builder: (context, isLight, child) {
-                            return BackButton(
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      ValueListenableBuilder<bool>(
+                        valueListenable: isLightModeNotifier,
+                        builder: (context, isLight, child) {
+                          return BackButton(
+                            color: isLight ? null : Colors.white,
+                            onPressed: () {
+                              Navigator.popAndPushNamed(context, "home");
+                            },
+                          );
+                        },
+                      ),
+                      ValueListenableBuilder<bool>(
+                        valueListenable: isLightModeNotifier,
+                        builder: (context, isLight, child) {
+                          return Text(
+                            "Kembali",
+                            style: TextStyle(
+                              fontSize: 18,
                               color: isLight ? null : Colors.white,
-                              onPressed: () {
-                                Navigator.popAndPushNamed(context, "home");
-                              },
-                            );
-                          },
-                        ),
-                        ValueListenableBuilder<bool>(
-                          valueListenable: isLightModeNotifier,
-                          builder: (context, isLight, child) {
-                            return Text(
-                              "Kembali",
-                              style: TextStyle(
-                                fontSize: 18,
-                                color: isLight ? null : Colors.white,
-                              ),
-                            );
-                          },
-                        ),
-                      ],
+                            ),
+                          );
+                        },
+                      ),
+                    ],
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 0,
                     ),
-                    ValueListenableBuilder(
+                    child: ValueListenableBuilder(
                       valueListenable: clusterNotifier,
                       builder: (context, clusterData, child) {
                         final clusters = clusterData; // List<ClusterModel>
@@ -211,10 +214,10 @@ class _ManageDataPageState extends State<ManageDataPage> {
                         );
                       },
                     ),
-                    SizedBox(height: 8),
-                    SizedBox(height: 70),
-                  ],
-                ),
+                  ),
+                  SizedBox(height: 8),
+                  SizedBox(height: 70),
+                ],
               ),
             ),
 
