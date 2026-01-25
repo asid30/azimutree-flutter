@@ -7,6 +7,7 @@ import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_plot_widg
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/tree_plot_manage_data_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 
 class PlotClusterManageDataWidget extends StatefulWidget {
   final List<PlotModel> plotData;
@@ -41,260 +42,305 @@ class _PlotClusterManageDataWidgetState
 
   @override
   Widget build(BuildContext context) {
-    // Kalau dari parent sudah dibilang klaster ini tidak punya plot,
-    // langsung tampilkan pesan dan jangan render list plot sama sekali.
-    if (widget.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(240, 180, 216, 187),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Data Plot",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isLightModeNotifier,
+      builder: (context, isLightMode, child) {
+        final isDark = !isLightMode;
+        // Kalau dari parent sudah dibilang klaster ini tidak punya plot,
+        // langsung tampilkan pesan dan jangan render list plot sama sekali.
+        if (widget.isEmpty) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(240, 180, 216, 187),
+              borderRadius: BorderRadius.circular(8),
             ),
-            SizedBox(height: 8),
-            Text("Tidak ada data plot untuk klaster ini"),
-          ],
-        ),
-      );
-    }
-
-    // Fallback: kalau isEmpty == false tapi plotData kosong (just in case)
-    if (widget.plotData.isEmpty) {
-      return Container(
-        width: double.infinity,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        decoration: BoxDecoration(
-          color: const Color.fromARGB(240, 180, 216, 187),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              "Data Plot",
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text("Tidak ada data plot untuk klaster ini"),
-          ],
-        ),
-      );
-    }
-
-    // Normal case: ada plot untuk klaster ini
-    final sortedPlotData = [...widget.plotData]
-      ..sort((a, b) => a.kodePlot.compareTo(b.kodePlot));
-
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: const Color.fromARGB(240, 180, 216, 187),
-        borderRadius: BorderRadius.circular(10),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Data Plot",
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 10),
-          for (final plot in sortedPlotData) ...[
-            Builder(
-              builder: (context) {
-                final tileKey = _tileKey(plot);
-                final isExpanded = _expandedKey == tileKey;
-
-                return Card(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(8),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Data Plot",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : null,
                   ),
-                  color: const Color.fromARGB(239, 188, 228, 196),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 8,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Row(
-                                children: [
-                                  Flexible(
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Flexible(
-                                          child: Text(
-                                            "Plot ${plot.kodePlot}",
-                                            overflow: TextOverflow.ellipsis,
-                                            style: const TextStyle(
-                                              fontWeight: FontWeight.w600,
-                                            ),
-                                          ),
-                                        ),
-                                        if (plot.kodePlot == 1) ...[
-                                          const SizedBox(width: 6),
-                                          const Icon(
-                                            Icons.star,
-                                            size: 18,
-                                            color: Color(0xFF1F4226),
-                                          ),
-                                        ],
-                                      ],
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                          ],
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Tidak ada data plot untuk klaster ini",
+                  style: TextStyle(color: isDark ? Colors.white : null),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Fallback: kalau isEmpty == false tapi plotData kosong (just in case)
+        if (widget.plotData.isEmpty) {
+          return Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+            decoration: BoxDecoration(
+              color: const Color.fromARGB(240, 180, 216, 187),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Data Plot",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: isDark ? Colors.white : null,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  "Tidak ada data plot untuk klaster ini",
+                  style: TextStyle(color: isDark ? Colors.white : null),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Normal case: ada plot untuk klaster ini
+        final sortedPlotData = [...widget.plotData]
+          ..sort((a, b) => a.kodePlot.compareTo(b.kodePlot));
+
+        return Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: const Color.fromARGB(240, 180, 216, 187),
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                "Data Plot",
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : null,
+                ),
+              ),
+              const SizedBox(height: 10),
+              for (final plot in sortedPlotData) ...[
+                Builder(
+                  builder: (context) {
+                    final tileKey = _tileKey(plot);
+                    final isExpanded = _expandedKey == tileKey;
+
+                    return Card(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      color: const Color.fromARGB(239, 188, 228, 196),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
                         ),
-                        const SizedBox(height: 6),
-                        Theme(
-                          data: ThemeData().copyWith(
-                            dividerColor: Colors.transparent,
-                          ),
-                          child: AnimatedSize(
-                            duration: const Duration(milliseconds: 800),
-                            curve: Curves.easeInOut,
-                            alignment: Alignment.topCenter,
-                            child: ExpansionTile(
-                              key: ValueKey("${isExpanded}_$tileKey"),
-                              maintainState: true,
-                              initiallyExpanded: isExpanded,
-                              onExpansionChanged: (expanded) {
-                                setState(() {
-                                  if (expanded) {
-                                    _expandedKey = tileKey;
-                                  } else if (_expandedKey == tileKey) {
-                                    _expandedKey = null;
-                                  }
-                                });
-                              },
-                              tilePadding: EdgeInsets.zero,
-                              title: const Text(
-                                "Detail plot",
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                              subtitle: Table(
-                                columnWidths: const {
-                                  0: FlexColumnWidth(2),
-                                  1: FlexColumnWidth(3),
-                                },
-                                children: [
-                                  _row(
-                                    "Latitude",
-                                    plot.latitude.toStringAsFixed(6),
-                                  ),
-                                  _row(
-                                    "Longitude",
-                                    plot.longitude.toStringAsFixed(6),
-                                  ),
-                                  _row(
-                                    "Altitude",
-                                    plot.altitude != null
-                                        ? "${plot.altitude} m"
-                                        : "-",
-                                  ),
-                                  _row(
-                                    "Jumlah Pohon",
-                                    plot.id != null
-                                        ? widget.treeData
-                                            .where(
-                                              (tree) => tree.plotId == plot.id,
-                                            )
-                                            .length
-                                            .toString()
-                                        : "0",
-                                  ),
-                                ],
-                              ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
                               children: [
-                                const Divider(height: 1),
-                                if (plot.id != null)
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 8.0,
-                                    ),
-                                    child: TreePlotManageDataWidget(
-                                      plotId: plot.id!,
-                                      treeData: widget.treeData,
-                                      plots: widget.plotData,
-                                      clusters: widget.clustersData,
-                                      treeNotifier: widget.treeNotifier,
-                                    ),
-                                  )
-                                else
-                                  const Padding(
-                                    padding: EdgeInsets.all(8.0),
-                                    child: Text("ID plot tidak tersedia"),
+                                Expanded(
+                                  child: Row(
+                                    children: [
+                                      Flexible(
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Flexible(
+                                              child: Text(
+                                                "Plot ${plot.kodePlot}",
+                                                overflow: TextOverflow.ellipsis,
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.w600,
+                                                  color:
+                                                      isDark
+                                                          ? Colors.white
+                                                          : null,
+                                                ),
+                                              ),
+                                            ),
+                                            if (plot.kodePlot == 1) ...[
+                                              const SizedBox(width: 6),
+                                              const Icon(
+                                                Icons.star,
+                                                size: 18,
+                                                color: Color(0xFF1F4226),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    ],
                                   ),
+                                ),
+                                const SizedBox(width: 8),
                               ],
                             ),
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            IconButton(
-                              tooltip: "Edit plot",
-                              onPressed:
-                                  plot.id != null
-                                      ? () => _editPlot(context, plot)
-                                      : null,
-                              icon: const Icon(Icons.edit),
-                            ),
-                            IconButton(
-                              tooltip: "Hapus plot",
-                              onPressed:
-                                  plot.id != null
-                                      ? () => _deletePlot(context, plot)
-                                      : null,
-                              icon: const Icon(
-                                Icons.delete,
-                                color: Color.fromARGB(255, 98, 32, 32),
+                            const SizedBox(height: 6),
+                            Theme(
+                              data: ThemeData().copyWith(
+                                dividerColor: Colors.transparent,
                               ),
+                              child: AnimatedSize(
+                                duration: const Duration(milliseconds: 800),
+                                curve: Curves.easeInOut,
+                                alignment: Alignment.topCenter,
+                                child: ExpansionTile(
+                                  key: ValueKey("${isExpanded}_$tileKey"),
+                                  maintainState: true,
+                                  initiallyExpanded: isExpanded,
+                                  onExpansionChanged: (expanded) {
+                                    setState(() {
+                                      if (expanded) {
+                                        _expandedKey = tileKey;
+                                      } else if (_expandedKey == tileKey) {
+                                        _expandedKey = null;
+                                      }
+                                    });
+                                  },
+                                  tilePadding: EdgeInsets.zero,
+                                  title: Text(
+                                    "Detail plot",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w500,
+                                      color: isDark ? Colors.white : null,
+                                    ),
+                                  ),
+                                  subtitle: Table(
+                                    columnWidths: const {
+                                      0: FlexColumnWidth(2),
+                                      1: FlexColumnWidth(3),
+                                    },
+                                    children: [
+                                      _row(
+                                        context,
+                                        isDark,
+                                        "Latitude",
+                                        plot.latitude.toStringAsFixed(6),
+                                      ),
+                                      _row(
+                                        context,
+                                        isDark,
+                                        "Longitude",
+                                        plot.longitude.toStringAsFixed(6),
+                                      ),
+                                      _row(
+                                        context,
+                                        isDark,
+                                        "Altitude",
+                                        plot.altitude != null
+                                            ? "${plot.altitude} m"
+                                            : "-",
+                                      ),
+                                      _row(
+                                        context,
+                                        isDark,
+                                        "Jumlah Pohon",
+                                        plot.id != null
+                                            ? widget.treeData
+                                                .where(
+                                                  (tree) =>
+                                                      tree.plotId == plot.id,
+                                                )
+                                                .length
+                                                .toString()
+                                            : "0",
+                                      ),
+                                    ],
+                                  ),
+                                  children: [
+                                    const Divider(height: 1),
+                                    if (plot.id != null)
+                                      Padding(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8.0,
+                                        ),
+                                        child: TreePlotManageDataWidget(
+                                          plotId: plot.id!,
+                                          treeData: widget.treeData,
+                                          plots: widget.plotData,
+                                          clusters: widget.clustersData,
+                                          treeNotifier: widget.treeNotifier,
+                                        ),
+                                      )
+                                    else
+                                      Padding(
+                                        padding: const EdgeInsets.all(8.0),
+                                        child: Text(
+                                          "ID plot tidak tersedia",
+                                          style: TextStyle(
+                                            color: isDark ? Colors.white : null,
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                IconButton(
+                                  tooltip: "Edit plot",
+                                  onPressed:
+                                      plot.id != null
+                                          ? () => _editPlot(context, plot)
+                                          : null,
+                                  icon: const Icon(Icons.edit),
+                                ),
+                                IconButton(
+                                  tooltip: "Hapus plot",
+                                  onPressed:
+                                      plot.id != null
+                                          ? () => _deletePlot(context, plot)
+                                          : null,
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Color.fromARGB(255, 98, 32, 32),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-        ],
-      ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            ],
+          ),
+        );
+      },
     );
   }
 
-  TableRow _row(String label, String value) {
+  TableRow _row(BuildContext context, bool isDark, String label, String value) {
+    final style = TextStyle(color: isDark ? Colors.white : null);
+
     return TableRow(
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 0),
-          child: Text(label),
+          child: Text(label, style: style),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 0),
-          child: Text(": $value"),
+          child: Text(": $value", style: style),
         ),
       ],
     );

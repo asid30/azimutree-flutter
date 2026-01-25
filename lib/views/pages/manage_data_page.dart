@@ -67,151 +67,173 @@ class _ManageDataPageState extends State<ManageDataPage> {
               darkBackgroundImage: "assets/images/dark-bg-notitle.png",
             ),
             SingleChildScrollView(
-              child: Column(
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.start,
+              child: ValueListenableBuilder<bool>(
+                valueListenable: isLightModeNotifier,
+                builder: (context, isLight, child) {
+                  final content = Column(
                     children: [
-                      ValueListenableBuilder<bool>(
-                        valueListenable: isLightModeNotifier,
-                        builder: (context, isLight, child) {
-                          return BackButton(
-                            color: isLight ? null : Colors.white,
-                            onPressed: () {
-                              Navigator.popAndPushNamed(context, "home");
-                            },
-                          );
-                        },
-                      ),
-                      ValueListenableBuilder<bool>(
-                        valueListenable: isLightModeNotifier,
-                        builder: (context, isLight, child) {
-                          return Text(
-                            "Kembali",
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: isLight ? null : Colors.white,
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                  ValueListenableBuilder(
-                    valueListenable: clusterNotifier,
-                    builder: (context, clusterData, child) {
-                      final clusters = clusterData; // List<ClusterModel>
-                      final hasCluster = clusters.isNotEmpty;
-                      final clusterOptions =
-                          clusters
-                              .map((cluster) => cluster.kodeCluster)
-                              .toList();
-
-                      return Column(
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          // Dropdown tetap sama, karena sudah pakai selectedDropdownClusterNotifier
-                          Container(
-                            width: double.infinity,
-                            padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
-                            decoration: BoxDecoration(
-                              color:
-                                  DropdownManageDataWidget
-                                      .defaultBackgroundColor,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  "Pilih Klaster",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                                const SizedBox(height: 4),
-                                DropdownManageDataWidget(
-                                  clusterOptions: clusterOptions,
-                                  isEmpty: clusterOptions.isEmpty,
-                                  embedded: true,
-                                ),
-                              ],
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-
-                          ValueListenableBuilder(
-                            valueListenable: plotNotifier,
-                            builder: (context, plotData, _) {
-                              return ValueListenableBuilder(
-                                valueListenable: treeNotifier,
-                                builder: (context, treeData, __) {
-                                  return SelectedClusterManageDataWidget(
-                                    clustersData: clusters,
-                                    plotData: plotData,
-                                    treeData: treeData,
-                                    clusterNotifier: clusterNotifier,
-                                    plotNotifier: plotNotifier,
-                                    treeNotifier: treeNotifier,
-                                  );
+                          ValueListenableBuilder<bool>(
+                            valueListenable: isLightModeNotifier,
+                            builder: (context, isLight, child) {
+                              return BackButton(
+                                color: isLight ? null : Colors.white,
+                                onPressed: () {
+                                  Navigator.popAndPushNamed(context, "home");
                                 },
                               );
                             },
                           ),
-                          const SizedBox(height: 8),
+                          ValueListenableBuilder<bool>(
+                            valueListenable: isLightModeNotifier,
+                            builder: (context, isLight, child) {
+                              return Text(
+                                "Kembali",
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: isLight ? null : Colors.white,
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      ValueListenableBuilder(
+                        valueListenable: clusterNotifier,
+                        builder: (context, clusterData, child) {
+                          final clusters = clusterData; // List<ClusterModel>
+                          final hasCluster = clusters.isNotEmpty;
+                          final clusterOptions =
+                              clusters
+                                  .map((cluster) => cluster.kodeCluster)
+                                  .toList();
 
-                          if (hasCluster)
-                            // 🔥 Dengarkan dropdown pilihan klaster
-                            ValueListenableBuilder<String?>(
-                              valueListenable: selectedDropdownClusterNotifier,
-                              builder: (context, selectedKodeCluster, _) {
-                                // Cari cluster yang cocok dengan kode yang dipilih
-                                final selectedCluster = clusters.firstWhere(
-                                  (c) => c.kodeCluster == selectedKodeCluster,
-                                  orElse: () => clusters.first,
-                                );
+                          return Column(
+                            children: [
+                              // Dropdown tetap sama, karena sudah pakai selectedDropdownClusterNotifier
+                              Container(
+                                width: double.infinity,
+                                padding: const EdgeInsets.fromLTRB(
+                                  12,
+                                  10,
+                                  12,
+                                  6,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      DropdownManageDataWidget
+                                          .defaultBackgroundColor,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      "Pilih Klaster",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    DropdownManageDataWidget(
+                                      clusterOptions: clusterOptions,
+                                      isEmpty: clusterOptions.isEmpty,
+                                      embedded: true,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
 
-                                return ValueListenableBuilder(
-                                  valueListenable: plotNotifier,
-                                  builder: (context, plotData, child) {
-                                    final plots = plotData; // List<PlotModel>
+                              ValueListenableBuilder(
+                                valueListenable: plotNotifier,
+                                builder: (context, plotData, _) {
+                                  return ValueListenableBuilder(
+                                    valueListenable: treeNotifier,
+                                    builder: (context, treeData, __) {
+                                      return SelectedClusterManageDataWidget(
+                                        clustersData: clusters,
+                                        plotData: plotData,
+                                        treeData: treeData,
+                                        clusterNotifier: clusterNotifier,
+                                        plotNotifier: plotNotifier,
+                                        treeNotifier: treeNotifier,
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 8),
 
-                                    // 💡 Filter plot berdasarkan idCluster dari cluster terpilih
-                                    final plotsForSelectedCluster =
-                                        plots
-                                            .where(
-                                              (plot) =>
-                                                  plot.idCluster ==
-                                                  selectedCluster.id,
-                                            )
-                                            .toList();
+                              if (hasCluster)
+                                // 🔥 Dengarkan dropdown pilihan klaster
+                                ValueListenableBuilder<String?>(
+                                  valueListenable:
+                                      selectedDropdownClusterNotifier,
+                                  builder: (context, selectedKodeCluster, _) {
+                                    // Cari cluster yang cocok dengan kode yang dipilih
+                                    final selectedCluster = clusters.firstWhere(
+                                      (c) =>
+                                          c.kodeCluster == selectedKodeCluster,
+                                      orElse: () => clusters.first,
+                                    );
 
                                     return ValueListenableBuilder(
-                                      valueListenable: treeNotifier,
-                                      builder: (context, treeData, child) {
-                                        return PlotClusterManageDataWidget(
-                                          plotData: plotsForSelectedCluster,
-                                          treeData: treeData,
-                                          clustersData: clusters,
-                                          plotNotifier: plotNotifier,
-                                          treeNotifier: treeNotifier,
-                                          isEmpty:
-                                              plotsForSelectedCluster.isEmpty,
+                                      valueListenable: plotNotifier,
+                                      builder: (context, plotData, child) {
+                                        final plots =
+                                            plotData; // List<PlotModel>
+
+                                        // 💡 Filter plot berdasarkan idCluster dari cluster terpilih
+                                        final plotsForSelectedCluster =
+                                            plots
+                                                .where(
+                                                  (plot) =>
+                                                      plot.idCluster ==
+                                                      selectedCluster.id,
+                                                )
+                                                .toList();
+
+                                        return ValueListenableBuilder(
+                                          valueListenable: treeNotifier,
+                                          builder: (context, treeData, child) {
+                                            return PlotClusterManageDataWidget(
+                                              plotData: plotsForSelectedCluster,
+                                              treeData: treeData,
+                                              clustersData: clusters,
+                                              plotNotifier: plotNotifier,
+                                              treeNotifier: treeNotifier,
+                                              isEmpty:
+                                                  plotsForSelectedCluster
+                                                      .isEmpty,
+                                            );
+                                          },
                                         );
                                       },
                                     );
                                   },
-                                );
-                              },
-                            ),
-                        ],
-                      );
-                    },
-                  ),
+                                ),
+                            ],
+                          );
+                        },
+                      ),
 
-                  SizedBox(height: 8),
-                  SizedBox(height: 70),
-                ],
+                      const SizedBox(height: 8),
+                      const SizedBox(height: 70),
+                    ],
+                  );
+
+                  if (isLight) return content;
+
+                  // Dark mode: force text to white for this page's content (icons unchanged)
+                  return DefaultTextStyle(
+                    style: const TextStyle(color: Colors.white),
+                    child: content,
+                  );
+                },
               ),
             ),
 

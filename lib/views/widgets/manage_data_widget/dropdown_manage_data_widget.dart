@@ -35,28 +35,45 @@ class DropdownManageDataWidget extends StatelessWidget {
           });
         }
 
-        final dropdown = DropdownButtonHideUnderline(
-          child: DropdownButton<String>(
-            value:
-                clusterOptions.contains(selectedValue) ? selectedValue : null,
-            hint: Text(isEmpty ? "Tidak ada Klaster" : "Pilih Klaster"),
-            isExpanded: true,
-            dropdownColor: defaultDropdownColor,
-            style: const TextStyle(
-              color: Colors.black87,
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-            items:
-                clusterOptions.map((e) {
-                  return DropdownMenuItem<String>(value: e, child: Text(e));
-                }).toList(),
-            onChanged: (newValue) {
-              if (newValue != null) {
-                selectedDropdownClusterNotifier.value = newValue;
-              }
-            },
-          ),
+        final dropdown = ValueListenableBuilder<bool>(
+          valueListenable: isLightModeNotifier,
+          builder: (context, isLightMode, child) {
+            final isDark = !isLightMode;
+            final textColor = isDark ? Colors.white : Colors.black87;
+            final dropdownBg = isDark ? Colors.grey[800] : defaultDropdownColor;
+
+            return DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value:
+                    clusterOptions.contains(selectedValue)
+                        ? selectedValue
+                        : null,
+                hint: Text(
+                  isEmpty ? "Tidak ada Klaster" : "Pilih Klaster",
+                  style: TextStyle(color: textColor),
+                ),
+                isExpanded: true,
+                dropdownColor: dropdownBg,
+                style: TextStyle(
+                  color: textColor,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+                items:
+                    clusterOptions.map((e) {
+                      return DropdownMenuItem<String>(
+                        value: e,
+                        child: Text(e, style: TextStyle(color: textColor)),
+                      );
+                    }).toList(),
+                onChanged: (newValue) {
+                  if (newValue != null) {
+                    selectedDropdownClusterNotifier.value = newValue;
+                  }
+                },
+              ),
+            );
+          },
         );
 
         if (embedded) return dropdown;
