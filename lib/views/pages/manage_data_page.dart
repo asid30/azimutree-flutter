@@ -97,124 +97,118 @@ class _ManageDataPageState extends State<ManageDataPage> {
                       ),
                     ],
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 0,
-                    ),
-                    child: ValueListenableBuilder(
-                      valueListenable: clusterNotifier,
-                      builder: (context, clusterData, child) {
-                        final clusters = clusterData; // List<ClusterModel>
-                        final hasCluster = clusters.isNotEmpty;
-                        final clusterOptions =
-                            clusters
-                                .map((cluster) => cluster.kodeCluster)
-                                .toList();
+                  ValueListenableBuilder(
+                    valueListenable: clusterNotifier,
+                    builder: (context, clusterData, child) {
+                      final clusters = clusterData; // List<ClusterModel>
+                      final hasCluster = clusters.isNotEmpty;
+                      final clusterOptions =
+                          clusters
+                              .map((cluster) => cluster.kodeCluster)
+                              .toList();
 
-                        return Column(
-                          children: [
-                            // Dropdown tetap sama, karena sudah pakai selectedDropdownClusterNotifier
-                            Container(
-                              width: double.infinity,
-                              padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
-                              decoration: BoxDecoration(
-                                color:
-                                    DropdownManageDataWidget
-                                        .defaultBackgroundColor,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    "Pilih Klaster",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  DropdownManageDataWidget(
-                                    clusterOptions: clusterOptions,
-                                    isEmpty: clusterOptions.isEmpty,
-                                    embedded: true,
-                                  ),
-                                ],
-                              ),
+                      return Column(
+                        children: [
+                          // Dropdown tetap sama, karena sudah pakai selectedDropdownClusterNotifier
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+                            decoration: BoxDecoration(
+                              color:
+                                  DropdownManageDataWidget
+                                      .defaultBackgroundColor,
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            const SizedBox(height: 8),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  "Pilih Klaster",
+                                  style: TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                DropdownManageDataWidget(
+                                  clusterOptions: clusterOptions,
+                                  isEmpty: clusterOptions.isEmpty,
+                                  embedded: true,
+                                ),
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 8),
 
-                            ValueListenableBuilder(
-                              valueListenable: plotNotifier,
-                              builder: (context, plotData, _) {
+                          ValueListenableBuilder(
+                            valueListenable: plotNotifier,
+                            builder: (context, plotData, _) {
+                              return ValueListenableBuilder(
+                                valueListenable: treeNotifier,
+                                builder: (context, treeData, __) {
+                                  return SelectedClusterManageDataWidget(
+                                    clustersData: clusters,
+                                    plotData: plotData,
+                                    treeData: treeData,
+                                    clusterNotifier: clusterNotifier,
+                                    plotNotifier: plotNotifier,
+                                    treeNotifier: treeNotifier,
+                                  );
+                                },
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 8),
+
+                          if (hasCluster)
+                            // 🔥 Dengarkan dropdown pilihan klaster
+                            ValueListenableBuilder<String?>(
+                              valueListenable: selectedDropdownClusterNotifier,
+                              builder: (context, selectedKodeCluster, _) {
+                                // Cari cluster yang cocok dengan kode yang dipilih
+                                final selectedCluster = clusters.firstWhere(
+                                  (c) => c.kodeCluster == selectedKodeCluster,
+                                  orElse: () => clusters.first,
+                                );
+
                                 return ValueListenableBuilder(
-                                  valueListenable: treeNotifier,
-                                  builder: (context, treeData, __) {
-                                    return SelectedClusterManageDataWidget(
-                                      clustersData: clusters,
-                                      plotData: plotData,
-                                      treeData: treeData,
-                                      clusterNotifier: clusterNotifier,
-                                      plotNotifier: plotNotifier,
-                                      treeNotifier: treeNotifier,
+                                  valueListenable: plotNotifier,
+                                  builder: (context, plotData, child) {
+                                    final plots = plotData; // List<PlotModel>
+
+                                    // 💡 Filter plot berdasarkan idCluster dari cluster terpilih
+                                    final plotsForSelectedCluster =
+                                        plots
+                                            .where(
+                                              (plot) =>
+                                                  plot.idCluster ==
+                                                  selectedCluster.id,
+                                            )
+                                            .toList();
+
+                                    return ValueListenableBuilder(
+                                      valueListenable: treeNotifier,
+                                      builder: (context, treeData, child) {
+                                        return PlotClusterManageDataWidget(
+                                          plotData: plotsForSelectedCluster,
+                                          treeData: treeData,
+                                          clustersData: clusters,
+                                          plotNotifier: plotNotifier,
+                                          treeNotifier: treeNotifier,
+                                          isEmpty:
+                                              plotsForSelectedCluster.isEmpty,
+                                        );
+                                      },
                                     );
                                   },
                                 );
                               },
                             ),
-                            const SizedBox(height: 8),
-
-                            if (hasCluster)
-                              // 🔥 Dengarkan dropdown pilihan klaster
-                              ValueListenableBuilder<String?>(
-                                valueListenable:
-                                    selectedDropdownClusterNotifier,
-                                builder: (context, selectedKodeCluster, _) {
-                                  // Cari cluster yang cocok dengan kode yang dipilih
-                                  final selectedCluster = clusters.firstWhere(
-                                    (c) => c.kodeCluster == selectedKodeCluster,
-                                    orElse: () => clusters.first,
-                                  );
-
-                                  return ValueListenableBuilder(
-                                    valueListenable: plotNotifier,
-                                    builder: (context, plotData, child) {
-                                      final plots = plotData; // List<PlotModel>
-
-                                      // 💡 Filter plot berdasarkan idCluster dari cluster terpilih
-                                      final plotsForSelectedCluster =
-                                          plots
-                                              .where(
-                                                (plot) =>
-                                                    plot.idCluster ==
-                                                    selectedCluster.id,
-                                              )
-                                              .toList();
-
-                                      return ValueListenableBuilder(
-                                        valueListenable: treeNotifier,
-                                        builder: (context, treeData, child) {
-                                          return PlotClusterManageDataWidget(
-                                            plotData: plotsForSelectedCluster,
-                                            treeData: treeData,
-                                            clustersData: clusters,
-                                            plotNotifier: plotNotifier,
-                                            treeNotifier: treeNotifier,
-                                            isEmpty:
-                                                plotsForSelectedCluster.isEmpty,
-                                          );
-                                        },
-                                      );
-                                    },
-                                  );
-                                },
-                              ),
-                          ],
-                        );
-                      },
-                    ),
+                        ],
+                      );
+                    },
                   ),
+
                   SizedBox(height: 8),
                   SizedBox(height: 70),
                 ],
