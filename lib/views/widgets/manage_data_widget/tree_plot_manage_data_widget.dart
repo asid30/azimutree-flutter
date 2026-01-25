@@ -178,7 +178,10 @@ class TreePlotManageDataWidget extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    color: const Color.fromARGB(238, 211, 236, 215),
+                    color:
+                        isDark
+                            ? const Color.fromARGB(255, 36, 67, 42)
+                            : const Color.fromARGB(238, 211, 236, 215),
                     child: Theme(
                       data: ThemeData().copyWith(
                         dividerColor: Colors.transparent,

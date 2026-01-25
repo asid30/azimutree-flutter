@@ -107,7 +107,10 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
               width: double.infinity,
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color.fromARGB(240, 180, 216, 187),
+                color:
+                    isDark
+                        ? const Color.fromARGB(255, 36, 67, 42)
+                        : const Color.fromARGB(240, 180, 216, 187),
                 borderRadius: BorderRadius.circular(8),
               ),
               child:
@@ -121,7 +124,10 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                         ),
                       )
                       : Card(
-                        color: const Color.fromARGB(239, 188, 228, 196),
+                        color:
+                            isDark
+                                ? const Color.fromARGB(255, 36, 67, 42)
+                                : const Color.fromARGB(239, 188, 228, 196),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),
                         ),

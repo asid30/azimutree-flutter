@@ -115,7 +115,10 @@ class _PlotClusterManageDataWidgetState
           width: double.infinity,
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           decoration: BoxDecoration(
-            color: const Color.fromARGB(240, 180, 216, 187),
+            color:
+                isDark
+                    ? const Color.fromARGB(255, 36, 67, 42)
+                    : const Color.fromARGB(240, 180, 216, 187),
             borderRadius: BorderRadius.circular(10),
           ),
           child: Column(
@@ -141,7 +144,10 @@ class _PlotClusterManageDataWidgetState
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      color: const Color.fromARGB(239, 188, 228, 196),
+                      color:
+                          isDark
+                              ? const Color.fromARGB(255, 36, 67, 42)
+                              : const Color.fromARGB(239, 188, 228, 196),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 10,

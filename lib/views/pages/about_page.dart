@@ -86,80 +86,121 @@ class AboutPage extends StatelessWidget {
                       ],
                     ),
 
-                    Card(
-                      color: Color.fromARGB(240, 180, 216, 187),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Azimutree - Pemantauan Kesehatan Hutan',
-                              style: const TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.bold,
-                              ),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: isLightModeNotifier,
+                      builder: (context, isLightMode, _) {
+                        final isDark = !isLightMode;
+                        return Card(
+                          color:
+                              isDark
+                                  ? const Color.fromARGB(255, 36, 67, 42)
+                                  : const Color.fromARGB(240, 180, 216, 187),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Azimutree - Pemantauan Kesehatan Hutan',
+                                  style: const TextStyle(
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 12),
+                                const Text(
+                                  'Azimutree adalah aplikasi Android yang dikembangkan untuk membantu proses pemantauan kesehatan hutan menggunakan metode Forest Health Monitoring (FHM). Aplikasi ini dirancang untuk mendukung kegiatan penelitian lapangan dengan fitur pemetaan digital yang efisien dan akurat.',
+                                  textAlign: TextAlign.justify,
+                                ),
+                              ],
                             ),
-                            const SizedBox(height: 12),
-                            const Text(
-                              'Azimutree adalah aplikasi Android yang dikembangkan untuk membantu proses pemantauan kesehatan hutan menggunakan metode Forest Health Monitoring (FHM). Aplikasi ini dirancang untuk mendukung kegiatan penelitian lapangan dengan fitur pemetaan digital yang efisien dan akurat.',
-                              textAlign: TextAlign.justify,
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
-
-                    Card(
-                      color: Color.fromARGB(240, 180, 216, 187),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _sectionTitle(context, 'Fitur Utama'),
-                            _bullet(
-                              'Mapping Lokasi Pohon: menampilkan posisi pohon dalam satu klaster menggunakan data azimut dan jarak dari titik pusat klaster.',
+                    ValueListenableBuilder<bool>(
+                      valueListenable: isLightModeNotifier,
+                      builder: (context, isLightMode, _) {
+                        final isDark = !isLightMode;
+                        return Card(
+                          color:
+                              isDark
+                                  ? const Color.fromARGB(255, 36, 67, 42)
+                                  : const Color.fromARGB(240, 180, 216, 187),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _sectionTitle(context, 'Fitur Utama'),
+                                _bullet(
+                                  'Mapping Lokasi Pohon: menampilkan posisi pohon dalam satu klaster menggunakan data azimut dan jarak dari titik pusat klaster.',
+                                ),
+                                _bullet(
+                                  'Manajemen Data Klaster: menyimpan dan menampilkan informasi lengkap tentang plot, klaster, dan pohon-pohon yang berada dalam area monitoring.',
+                                ),
+                              ],
                             ),
-                            _bullet(
-                              'Manajemen Data Klaster: menyimpan dan menampilkan informasi lengkap tentang plot, klaster, dan pohon-pohon yang berada dalam area monitoring.',
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
-
-                    Card(
-                      color: Color.fromARGB(240, 180, 216, 187),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _sectionTitle(context, 'Teknologi yang Digunakan'),
-                            _bullet('Flutter (Frontend App Development)'),
-                            _bullet(
-                              'SQLite (Local database untuk penyimpanan data offline)',
+                    ValueListenableBuilder<bool>(
+                      valueListenable: isLightModeNotifier,
+                      builder: (context, isLightMode, _) {
+                        final isDark = !isLightMode;
+                        return Card(
+                          color:
+                              isDark
+                                  ? const Color.fromARGB(255, 36, 67, 42)
+                                  : const Color.fromARGB(240, 180, 216, 187),
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                _sectionTitle(
+                                  context,
+                                  'Teknologi yang Digunakan',
+                                ),
+                                _bullet('Flutter (Frontend App Development)'),
+                                _bullet(
+                                  'SQLite (Local database untuk penyimpanan data offline)',
+                                ),
+                                _bullet(
+                                  'MapBox (Platform peta digital untuk menampilkan dan mengelola data lokasi berbasis koordinat secara interaktif)',
+                                ),
+                              ],
                             ),
-                            _bullet(
-                              'MapBox (Platform peta digital untuk menampilkan dan mengelola data lokasi berbasis koordinat secara interaktif)',
-                            ),
-                          ],
-                        ),
-                      ),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 12),
-
-                    const Center(
-                      child: Text(
-                        'Dikembangkan oleh Asid30 © 2026',
-                        style: TextStyle(
-                          fontSize: 12,
-                          backgroundColor: Color.fromARGB(240, 180, 216, 187),
-                        ),
-                      ),
+                    ValueListenableBuilder<bool>(
+                      valueListenable: isLightModeNotifier,
+                      builder: (context, isLightMode, _) {
+                        final isDark = !isLightMode;
+                        return Center(
+                          child: Text(
+                            'Dikembangkan oleh Asid30 © 2026',
+                            style: TextStyle(
+                              fontSize: 12,
+                              backgroundColor:
+                                  isDark
+                                      ? const Color.fromARGB(255, 36, 67, 42)
+                                      : const Color.fromARGB(
+                                        240,
+                                        180,
+                                        216,
+                                        187,
+                                      ),
+                            ),
+                          ),
+                        );
+                      },
                     ),
                     const SizedBox(height: 24),
                   ],

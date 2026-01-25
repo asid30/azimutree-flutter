@@ -78,14 +78,18 @@ class _SettingsPageState extends State<SettingsPage> {
                         ),
                       ],
                     ),
-                    Card(
-                      color: Color.fromARGB(240, 180, 216, 187),
-                      child: ValueListenableBuilder<bool>(
-                        valueListenable: isLightModeNotifier,
-                        builder: (context, isLightMode, _) {
-                          return SwitchListTile(
+                    ValueListenableBuilder<bool>(
+                      valueListenable: isLightModeNotifier,
+                      builder: (context, isLightMode, _) {
+                        final isDark = !isLightMode;
+                        return Card(
+                          color:
+                              isDark
+                                  ? const Color.fromARGB(255, 36, 67, 42)
+                                  : const Color.fromARGB(240, 180, 216, 187),
+                          child: SwitchListTile(
                             title: const Text('Tema'),
-                            activeTrackColor: Color(0xFF1F4226),
+                            activeTrackColor: const Color(0xFF1F4226),
                             subtitle: Text(
                               isLightMode ? 'Tema Terang' : 'Tema Gelap',
                             ),
@@ -93,29 +97,40 @@ class _SettingsPageState extends State<SettingsPage> {
                             onChanged: (value) {
                               isLightModeNotifier.value = value;
                             },
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
                     ),
 
-                    Card(
-                      color: Color.fromARGB(240, 180, 216, 187),
-                      child: ValueListenableBuilder<bool>(
-                        valueListenable: DebugModeService.instance.enabled,
-                        builder: (context, enabled, _) {
-                          return SwitchListTile(
-                            title: const Text('Mode Debug'),
-                            activeTrackColor: Color(0xFF1F4226),
-                            subtitle: const Text(
-                              'Tampilkan fitur debug (generate/hapus data) di Kelola Data',
-                            ),
-                            value: enabled,
-                            onChanged: (value) async {
-                              await DebugModeService.instance.setEnabled(value);
+                    ValueListenableBuilder<bool>(
+                      valueListenable: isLightModeNotifier,
+                      builder: (context, isLightMode, _) {
+                        final isDark = !isLightMode;
+                        return Card(
+                          color:
+                              isDark
+                                  ? const Color.fromARGB(255, 36, 67, 42)
+                                  : const Color.fromARGB(240, 180, 216, 187),
+                          child: ValueListenableBuilder<bool>(
+                            valueListenable: DebugModeService.instance.enabled,
+                            builder: (context, enabled, _) {
+                              return SwitchListTile(
+                                title: const Text('Mode Debug'),
+                                activeTrackColor: const Color(0xFF1F4226),
+                                subtitle: const Text(
+                                  'Tampilkan fitur debug (generate/hapus data) di Kelola Data',
+                                ),
+                                value: enabled,
+                                onChanged: (value) async {
+                                  await DebugModeService.instance.setEnabled(
+                                    value,
+                                  );
+                                },
+                              );
                             },
-                          );
-                        },
-                      ),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),

@@ -78,13 +78,22 @@ class DropdownManageDataWidget extends StatelessWidget {
 
         if (embedded) return dropdown;
 
-        return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-          decoration: BoxDecoration(
-            color: defaultBackgroundColor,
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: dropdown,
+        return ValueListenableBuilder<bool>(
+          valueListenable: isLightModeNotifier,
+          builder: (context, isLightMode, _) {
+            final isDark = !isLightMode;
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              decoration: BoxDecoration(
+                color:
+                    isDark
+                        ? const Color.fromARGB(255, 36, 67, 42)
+                        : defaultBackgroundColor,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: dropdown,
+            );
+          },
         );
       },
     );
