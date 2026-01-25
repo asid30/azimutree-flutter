@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 
 class BtmButtonManageDataWidget extends StatelessWidget {
   final String label;
@@ -22,25 +23,39 @@ class BtmButtonManageDataWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return ElevatedButton(
-      onPressed: onPressed,
-      style: ElevatedButton.styleFrom(
-        foregroundColor: isEnabled! ? Colors.white : Colors.white70,
-        backgroundColor:
-            isEnabled!
-                ? (backgroundColor ?? const Color.fromARGB(255, 85, 146, 98))
-                : Colors.grey,
-        minimumSize: minSize,
-        maximumSize: maxSize,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          if (icon != null) Icon(icon, size: 30),
-          Text(label, textAlign: TextAlign.center),
-        ],
-      ),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isLightModeNotifier,
+      builder: (context, isLightMode, _) {
+        final isDark = !isLightMode;
+        final disabledBg =
+            isDark ? const Color.fromARGB(255, 67, 67, 67) : Colors.grey;
+        return ElevatedButton(
+          // Keep the button clickable even when `isEnabled` is false;
+          // visual state only changes (background color). Do not set
+          // `onPressed` to null so it is not actually disabled.
+          onPressed: onPressed,
+          style: ElevatedButton.styleFrom(
+            foregroundColor: isEnabled! ? Colors.white : Colors.white70,
+            backgroundColor:
+                isEnabled!
+                    ? (backgroundColor ??
+                        const Color.fromARGB(255, 85, 146, 98))
+                    : disabledBg,
+            minimumSize: minSize,
+            maximumSize: maxSize,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) Icon(icon, size: 30),
+              Text(label, textAlign: TextAlign.center),
+            ],
+          ),
+        );
+      },
     );
   }
 }

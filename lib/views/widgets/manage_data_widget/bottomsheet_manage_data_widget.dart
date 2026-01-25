@@ -138,6 +138,7 @@ class _BottomsheetManageDataWidgetState
     String title = 'Warning!',
     required String message,
     required Color backgroundColor,
+    Color? textColor,
   }) {
     return showDialog(
       barrierDismissible: false,
@@ -147,34 +148,47 @@ class _BottomsheetManageDataWidgetState
             title: title,
             warningMessage: message,
             backgroundColor: backgroundColor,
+            textColor: textColor,
           ),
     );
   }
 
   Future<void> _showWarningNeedCluster({required String target}) async {
     if (!mounted) return;
+    final isDark = !isLightModeNotifier.value;
+    final bg =
+        isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.orange.shade200;
+    final txt = isDark ? Colors.white : Colors.black;
     await showDialog(
       barrierDismissible: false,
       context: context,
       builder:
           (_) => AlertWarningWidget(
+            title: 'Gagal!',
             warningMessage:
                 'Harap tambahkan klaster terlebih dahulu sebelum menambahkan $target.',
-            backgroundColor: Colors.orange.shade200,
+            backgroundColor: bg,
+            textColor: txt,
           ),
     );
   }
 
   Future<void> _showWarningNeedPlot({required String target}) async {
     if (!mounted) return;
+    final isDark = !isLightModeNotifier.value;
+    final bg =
+        isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.orange.shade200;
+    final txt = isDark ? Colors.white : Colors.black;
     await showDialog(
       barrierDismissible: false,
       context: context,
       builder:
           (_) => AlertWarningWidget(
+            title: 'Gagal!',
             warningMessage:
                 'Harap tambahkan plot terlebih dahulu sebelum menambahkan $target.',
-            backgroundColor: Colors.orange.shade200,
+            backgroundColor: bg,
+            textColor: txt,
           ),
     );
   }
@@ -347,12 +361,24 @@ class _BottomsheetManageDataWidgetState
                                       valueListenable: isLightModeNotifier,
                                       builder: (context, isLightMode, _) {
                                         final isDark = !isLightMode;
+                                        final dialogTextColor =
+                                            isDark
+                                                ? Colors.white
+                                                : Colors.black;
                                         return AlertDialog(
+                                          backgroundColor:
+                                              isDark
+                                                  ? const Color.fromARGB(
+                                                    255,
+                                                    32,
+                                                    72,
+                                                    43,
+                                                  )
+                                                  : null,
                                           title: Text(
                                             'Ekspor Data ke Excel',
                                             style: TextStyle(
-                                              color:
-                                                  isDark ? Colors.white : null,
+                                              color: dialogTextColor,
                                             ),
                                           ),
                                           content: SizedBox(
@@ -364,10 +390,7 @@ class _BottomsheetManageDataWidgetState
                                                   Text(
                                                     'Belum ada klaster tersedia.',
                                                     style: TextStyle(
-                                                      color:
-                                                          isDark
-                                                              ? Colors.white
-                                                              : null,
+                                                      color: dialogTextColor,
                                                     ),
                                                   ),
                                                 ] else ...[
@@ -377,10 +400,7 @@ class _BottomsheetManageDataWidgetState
                                                     child: Text(
                                                       'Pilih klaster:',
                                                       style: TextStyle(
-                                                        color:
-                                                            isDark
-                                                                ? Colors.white
-                                                                : null,
+                                                        color: dialogTextColor,
                                                       ),
                                                     ),
                                                   ),
@@ -414,9 +434,7 @@ class _BottomsheetManageDataWidgetState
                                                                           : ''),
                                                                   style: TextStyle(
                                                                     color:
-                                                                        isDark
-                                                                            ? Colors.white
-                                                                            : null,
+                                                                        dialogTextColor,
                                                                   ),
                                                                 ),
                                                               ),
@@ -435,10 +453,7 @@ class _BottomsheetManageDataWidgetState
                                                     child: Text(
                                                       'Simpan ke folder:',
                                                       style: TextStyle(
-                                                        color:
-                                                            isDark
-                                                                ? Colors.white
-                                                                : null,
+                                                        color: dialogTextColor,
                                                       ),
                                                     ),
                                                   ),
@@ -486,10 +501,7 @@ class _BottomsheetManageDataWidgetState
                                                     child: Text(
                                                       'Pilih Folder Simpan',
                                                       style: TextStyle(
-                                                        color:
-                                                            isDark
-                                                                ? Colors.white
-                                                                : null,
+                                                        color: dialogTextColor,
                                                       ),
                                                     ),
                                                   ),
@@ -507,10 +519,7 @@ class _BottomsheetManageDataWidgetState
                                               child: Text(
                                                 'Batal',
                                                 style: TextStyle(
-                                                  color:
-                                                      isDark
-                                                          ? Colors.white
-                                                          : null,
+                                                  color: dialogTextColor,
                                                 ),
                                               ),
                                             ),
@@ -591,10 +600,7 @@ class _BottomsheetManageDataWidgetState
                                               child: Text(
                                                 'Ekspor',
                                                 style: TextStyle(
-                                                  color:
-                                                      isDark
-                                                          ? Colors.white
-                                                          : null,
+                                                  color: dialogTextColor,
                                                 ),
                                               ),
                                             ),
