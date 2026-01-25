@@ -20,8 +20,8 @@ class LocationMapPage extends StatefulWidget {
 
 class _LocationMapPageState extends State<LocationMapPage> {
   bool defaultStyleMap = true;
-  final GlobalKey _legendKey = GlobalKey();
-  double? _legendWidth;
+  // Note: removed legend measurement fields; marker width will use
+  // a fixed/fallback calculation instead of probing the legend.
 
   // Helper widget: persistent toggle row for the end-drawer that
   // shows a Tooltip until the user dismisses it. Dismissal is
@@ -213,26 +213,11 @@ class _LocationMapPageState extends State<LocationMapPage> {
               valueListenable: isMapLegendVisibleNotifier,
               builder: (context, visible, child) {
                 if (visible) {
-                  // Measure legend width after layout and store it in state.
-                  WidgetsBinding.instance.addPostFrameCallback((_) {
-                    if (!mounted) return;
-                    final ctx = _legendKey.currentContext;
-                    final w = ctx?.size?.width;
-                    if (w != null && w != _legendWidth) {
-                      setState(() {
-                        _legendWidth = w;
-                      });
-                    }
-                  });
-
-                  // Provide the measured legend width to MarkerInfoWidget so
-                  // it uses the same width without relying on intrinsics.
-                  final markerWidth =
-                      _legendWidth ??
-                      (MediaQuery.of(context).size.width * 0.5).clamp(
-                        240.0,
-                        MediaQuery.of(context).size.width,
-                      );
+                  // Legend visible: use the same fixed/fallback width as
+                  // when the legend is hidden. Removed dynamic measurement
+                  // to simplify layout.
+                  final markerWidth = (MediaQuery.of(context).size.width * 0.5)
+                      .clamp(180.0, MediaQuery.of(context).size.width);
 
                   // Place MarkerInfo at top-left (where the legend used to be)
                   // and move the legend to the right side (previous FAB area).
@@ -251,10 +236,7 @@ class _LocationMapPageState extends State<LocationMapPage> {
                           bottom:
                               MediaQuery.of(context).size.height * 0.28 - 10,
                           right: 12,
-                          child: Container(
-                            key: _legendKey,
-                            child: const MapLegendWidget(),
-                          ),
+                          child: const MapLegendWidget(),
                         ),
                       ],
                     ),
@@ -263,7 +245,7 @@ class _LocationMapPageState extends State<LocationMapPage> {
 
                 // Legend hidden: give MarkerInfo a reasonable finite width.
                 final defaultWidth = (MediaQuery.of(context).size.width * 0.5)
-                    .clamp(240.0, MediaQuery.of(context).size.width);
+                    .clamp(180.0, MediaQuery.of(context).size.width);
                 return Positioned(
                   top: 35,
                   left: 12,

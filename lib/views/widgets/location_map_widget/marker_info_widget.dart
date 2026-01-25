@@ -471,9 +471,10 @@ class MarkerInfoWidget extends StatelessWidget {
         return LayoutBuilder(
           builder: (context, constraints) {
             // Limit card width so it doesn't become too narrow and wrap badly on
-            // small devices. Use up to ~92% of available width and a larger
-            // minimum so long labels have more room.
-            final maxCardWidth = math.max(260.0, constraints.maxWidth * 0.92);
+            // small devices. Use up to ~92% of available width and a minimum
+            // that matches the legend widget's `minWidth` so they can be
+            // visually similar without clipping internal content.
+            final maxCardWidth = math.max(180.0, constraints.maxWidth * 0.92);
             return Column(
               mainAxisSize: MainAxisSize.min,
               children: [
