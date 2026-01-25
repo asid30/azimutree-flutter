@@ -235,7 +235,7 @@ class _BottomsheetManageDataWidgetState
               decoration: BoxDecoration(
                 color:
                     isDark
-                        ? const Color.fromARGB(255, 36, 67, 42)
+                        ? const Color.fromARGB(255, 34, 66, 40)
                         : const Color.fromARGB(255, 205, 237, 211),
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(20),
@@ -325,12 +325,10 @@ class _BottomsheetManageDataWidgetState
                         BtmButtonManageDataWidget(
                           label: "Ekspor Data",
                           icon: Icons.file_upload,
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            48,
-                            101,
-                            59,
-                          ),
+                          backgroundColor:
+                              isDark
+                                  ? const Color.fromARGB(255, 18, 43, 25)
+                                  : const Color.fromARGB(255, 32, 72, 43),
                           onPressed: () {
                             showDialog<void>(
                               barrierDismissible: false,
@@ -613,12 +611,10 @@ class _BottomsheetManageDataWidgetState
                         BtmButtonManageDataWidget(
                           label: "Impor Data",
                           icon: Icons.file_download,
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            48,
-                            101,
-                            59,
-                          ),
+                          backgroundColor:
+                              isDark
+                                  ? const Color.fromARGB(255, 18, 43, 25)
+                                  : const Color.fromARGB(255, 32, 72, 43),
                           onPressed: () async {
                             final result = await showDialog(
                               barrierDismissible: false,
@@ -681,12 +677,10 @@ class _BottomsheetManageDataWidgetState
                         BtmButtonManageDataWidget(
                           label: "Unduh Template",
                           icon: Icons.description,
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            48,
-                            101,
-                            59,
-                          ),
+                          backgroundColor:
+                              isDark
+                                  ? const Color.fromARGB(255, 18, 43, 25)
+                                  : const Color.fromARGB(255, 32, 72, 43),
                           onPressed: () {
                             _confirmAndOpenTemplate();
                           },
@@ -747,12 +741,20 @@ class _BottomsheetManageDataWidgetState
                                       label: "Klaster",
                                       minSize: const Size(100, 40),
                                       maxSize: const Size(150, 70),
-                                      backgroundColor: const Color.fromARGB(
-                                        255,
-                                        48,
-                                        101,
-                                        59,
-                                      ),
+                                      backgroundColor:
+                                          isDark
+                                              ? const Color.fromARGB(
+                                                255,
+                                                18,
+                                                43,
+                                                25,
+                                              )
+                                              : const Color.fromARGB(
+                                                255,
+                                                32,
+                                                72,
+                                                43,
+                                              ),
                                       onPressed: () {
                                         showDialog(
                                           barrierDismissible: false,
@@ -773,12 +775,20 @@ class _BottomsheetManageDataWidgetState
                                       maxSize: const Size(150, 70),
                                       // kalau kamu mau beda warna ketika belum ada klaster:
                                       isEnabled: hasCluster,
-                                      backgroundColor: const Color.fromARGB(
-                                        255,
-                                        48,
-                                        101,
-                                        59,
-                                      ),
+                                      backgroundColor:
+                                          isDark
+                                              ? const Color.fromARGB(
+                                                255,
+                                                18,
+                                                43,
+                                                25,
+                                              )
+                                              : const Color.fromARGB(
+                                                255,
+                                                32,
+                                                72,
+                                                43,
+                                              ),
                                       onPressed: () {
                                         if (!hasCluster) {
                                           _showWarningNeedCluster(
@@ -805,12 +815,20 @@ class _BottomsheetManageDataWidgetState
                                       minSize: const Size(100, 40),
                                       maxSize: const Size(150, 70),
                                       isEnabled: hasPlotForSelectedCluster,
-                                      backgroundColor: const Color.fromARGB(
-                                        255,
-                                        48,
-                                        101,
-                                        59,
-                                      ),
+                                      backgroundColor:
+                                          isDark
+                                              ? const Color.fromARGB(
+                                                255,
+                                                18,
+                                                43,
+                                                25,
+                                              )
+                                              : const Color.fromARGB(
+                                                255,
+                                                32,
+                                                72,
+                                                43,
+                                              ),
                                       onPressed: () {
                                         if (!hasPlotForSelectedCluster) {
                                           _showWarningNeedPlot(target: "pohon");
@@ -862,12 +880,10 @@ class _BottomsheetManageDataWidgetState
                             ElevatedButton(
                               onPressed: _generateRandomData,
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color.fromARGB(
-                                  255,
-                                  48,
-                                  101,
-                                  59,
-                                ),
+                                backgroundColor:
+                                    isDark
+                                        ? const Color.fromARGB(255, 18, 43, 25)
+                                        : const Color.fromARGB(255, 32, 72, 43),
                                 foregroundColor: Colors.white,
                               ),
                               child: const Text("Generate Data Random"),
