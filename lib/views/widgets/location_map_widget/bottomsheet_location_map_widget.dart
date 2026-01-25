@@ -608,220 +608,250 @@ class _BottomsheetLocationMapWidgetState
                           ValueListenableBuilder<int>(
                             valueListenable: selectedMenuBottomSheetNotifier,
                             builder: (context, selectedMenuBottomSheet, child) {
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 8,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: const Color.fromARGB(
-                                    255,
-                                    205,
-                                    237,
-                                    211,
-                                  ),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: ValueListenableBuilder<bool>(
-                                        valueListenable: isLightModeNotifier,
-                                        builder: (context, isLightMode, _) {
-                                          final isDark = !isLightMode;
-                                          return NavigationBarTheme(
-                                            data: NavigationBarThemeData(
-                                              indicatorColor:
-                                                  const Color.fromARGB(
-                                                    255,
-                                                    195,
-                                                    208,
-                                                    197,
+                              return ValueListenableBuilder(
+                                valueListenable: isLightModeNotifier,
+                                builder: (context, isLightMode, _) {
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color:
+                                          isLightMode
+                                              ? const Color.fromARGB(
+                                                255,
+                                                205,
+                                                237,
+                                                211,
+                                              )
+                                              : const Color.fromARGB(
+                                                255,
+                                                34,
+                                                66,
+                                                40,
+                                              ),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Expanded(
+                                          child: ValueListenableBuilder<bool>(
+                                            valueListenable:
+                                                isLightModeNotifier,
+                                            builder: (context, isLightMode, _) {
+                                              final isDark = !isLightMode;
+                                              return NavigationBarTheme(
+                                                data: NavigationBarThemeData(
+                                                  indicatorColor:
+                                                      isDark
+                                                          ? const Color.fromARGB(
+                                                            255,
+                                                            23,
+                                                            110,
+                                                            38,
+                                                          )
+                                                          : const Color.fromARGB(
+                                                            255,
+                                                            195,
+                                                            208,
+                                                            197,
+                                                          ),
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  elevation: 0,
+                                                  labelTextStyle:
+                                                      WidgetStateProperty.resolveWith(
+                                                        (states) => TextStyle(
+                                                          color:
+                                                              isDark
+                                                                  ? Colors.white
+                                                                  : Colors
+                                                                      .black87,
+                                                        ),
+                                                      ),
+                                                ),
+                                                child: NavigationBar(
+                                                  backgroundColor:
+                                                      Colors.transparent,
+                                                  elevation: 0,
+                                                  selectedIndex:
+                                                      selectedMenuBottomSheet,
+                                                  onDestinationSelected: (
+                                                    value,
+                                                  ) {
+                                                    selectedMenuBottomSheetNotifier
+                                                        .value = value;
+                                                  },
+                                                  destinations: [
+                                                    NavigationDestination(
+                                                      icon: Icon(
+                                                        Icons.satellite,
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : Colors
+                                                                    .black87,
+                                                      ),
+                                                      selectedIcon: Icon(
+                                                        Icons.satellite,
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : Colors
+                                                                    .black87,
+                                                      ),
+                                                      label: 'Satelit',
+                                                    ),
+                                                    NavigationDestination(
+                                                      icon: Icon(
+                                                        Icons.map_outlined,
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : Colors
+                                                                    .black87,
+                                                      ),
+                                                      selectedIcon: Icon(
+                                                        Icons.map,
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : Colors
+                                                                    .black87,
+                                                      ),
+                                                      label: 'Medan',
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+                                            },
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        ValueListenableBuilder<bool>(
+                                          valueListenable: isLightModeNotifier,
+                                          builder: (context, isLightMode, _) {
+                                            final isDark = !isLightMode;
+                                            return Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                IconButton(
+                                                  onPressed:
+                                                      () => _centerToMyLocation(
+                                                        context,
+                                                      ),
+                                                  icon: ValueListenableBuilder<
+                                                    dynamic
+                                                  >(
+                                                    valueListenable:
+                                                        userLocationNotifier,
+                                                    builder: (
+                                                      context,
+                                                      pos,
+                                                      child,
+                                                    ) {
+                                                      return Icon(
+                                                        pos == null
+                                                            ? Icons
+                                                                .location_on_outlined
+                                                            : Icons.location_on,
+                                                        color:
+                                                            isDark
+                                                                ? Colors.white
+                                                                : null,
+                                                      );
+                                                    },
                                                   ),
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              elevation: 0,
-                                              labelTextStyle:
-                                                  WidgetStateProperty.resolveWith(
-                                                    (states) => TextStyle(
+                                                  style: ButtonStyle(
+                                                    foregroundColor:
+                                                        WidgetStateProperty.resolveWith(
+                                                          (states) =>
+                                                              states.contains(
+                                                                    WidgetState
+                                                                        .pressed,
+                                                                  )
+                                                                  ? Colors
+                                                                      .lightGreen
+                                                                      .shade200
+                                                                  : null,
+                                                        ),
+                                                    overlayColor: WidgetStateProperty.resolveWith(
+                                                      (states) =>
+                                                          states.contains(
+                                                                WidgetState
+                                                                    .pressed,
+                                                              )
+                                                              ? Colors
+                                                                  .lightGreen
+                                                                  .shade100
+                                                                  .withAlpha(
+                                                                    (0.4 * 255)
+                                                                        .round(),
+                                                                  )
+                                                              : null,
+                                                    ),
+                                                  ),
+                                                ),
+                                                IconButton(
+                                                  onPressed: () {
+                                                    northResetRequestNotifier
+                                                            .value =
+                                                        northResetRequestNotifier
+                                                            .value +
+                                                        1;
+                                                  },
+                                                  icon: Transform.rotate(
+                                                    angle: -45 * math.pi / 180,
+                                                    child: Icon(
+                                                      Icons.explore_outlined,
                                                       color:
                                                           isDark
                                                               ? Colors.white
-                                                              : Colors.black87,
+                                                              : null,
                                                     ),
                                                   ),
-                                            ),
-                                            child: NavigationBar(
-                                              backgroundColor:
-                                                  Colors.transparent,
-                                              elevation: 0,
-                                              selectedIndex:
-                                                  selectedMenuBottomSheet,
-                                              onDestinationSelected: (value) {
-                                                selectedMenuBottomSheetNotifier
-                                                    .value = value;
-                                              },
-                                              destinations: [
-                                                NavigationDestination(
-                                                  icon: Icon(
-                                                    Icons.satellite,
-                                                    color:
-                                                        isDark
-                                                            ? Colors.white
-                                                            : Colors.black87,
+                                                  style: ButtonStyle(
+                                                    foregroundColor:
+                                                        WidgetStateProperty.resolveWith(
+                                                          (states) =>
+                                                              states.contains(
+                                                                    WidgetState
+                                                                        .pressed,
+                                                                  )
+                                                                  ? const Color.fromARGB(
+                                                                    255,
+                                                                    197,
+                                                                    225,
+                                                                    165,
+                                                                  )
+                                                                  : null,
+                                                        ),
+                                                    overlayColor: WidgetStateProperty.resolveWith(
+                                                      (states) =>
+                                                          states.contains(
+                                                                WidgetState
+                                                                    .pressed,
+                                                              )
+                                                              ? Colors
+                                                                  .lightGreen
+                                                                  .shade100
+                                                                  .withAlpha(
+                                                                    (0.4 * 255)
+                                                                        .round(),
+                                                                  )
+                                                              : null,
+                                                    ),
                                                   ),
-                                                  selectedIcon: Icon(
-                                                    Icons.satellite,
-                                                    color:
-                                                        isDark
-                                                            ? Colors.white
-                                                            : Colors.black87,
-                                                  ),
-                                                  label: 'Satelit',
-                                                ),
-                                                NavigationDestination(
-                                                  icon: Icon(
-                                                    Icons.map_outlined,
-                                                    color:
-                                                        isDark
-                                                            ? Colors.white
-                                                            : Colors.black87,
-                                                  ),
-                                                  selectedIcon: Icon(
-                                                    Icons.map,
-                                                    color:
-                                                        isDark
-                                                            ? Colors.white
-                                                            : Colors.black87,
-                                                  ),
-                                                  label: 'Medan',
                                                 ),
                                               ],
-                                            ),
-                                          );
-                                        },
-                                      ),
+                                            );
+                                          },
+                                        ),
+                                      ],
                                     ),
-                                    const SizedBox(width: 8),
-                                    ValueListenableBuilder<bool>(
-                                      valueListenable: isLightModeNotifier,
-                                      builder: (context, isLightMode, _) {
-                                        final isDark = !isLightMode;
-                                        return Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            IconButton(
-                                              onPressed:
-                                                  () => _centerToMyLocation(
-                                                    context,
-                                                  ),
-                                              icon: ValueListenableBuilder<
-                                                dynamic
-                                              >(
-                                                valueListenable:
-                                                    userLocationNotifier,
-                                                builder: (context, pos, child) {
-                                                  return Icon(
-                                                    pos == null
-                                                        ? Icons
-                                                            .location_on_outlined
-                                                        : Icons.location_on,
-                                                    color:
-                                                        isDark
-                                                            ? Colors.white
-                                                            : null,
-                                                  );
-                                                },
-                                              ),
-                                              style: ButtonStyle(
-                                                foregroundColor:
-                                                    WidgetStateProperty.resolveWith(
-                                                      (states) =>
-                                                          states.contains(
-                                                                WidgetState
-                                                                    .pressed,
-                                                              )
-                                                              ? Colors
-                                                                  .lightGreen
-                                                                  .shade200
-                                                              : null,
-                                                    ),
-                                                overlayColor:
-                                                    WidgetStateProperty.resolveWith(
-                                                      (states) =>
-                                                          states.contains(
-                                                                WidgetState
-                                                                    .pressed,
-                                                              )
-                                                              ? Colors
-                                                                  .lightGreen
-                                                                  .shade100
-                                                                  .withAlpha(
-                                                                    (0.4 * 255)
-                                                                        .round(),
-                                                                  )
-                                                              : null,
-                                                    ),
-                                              ),
-                                            ),
-                                            IconButton(
-                                              onPressed: () {
-                                                northResetRequestNotifier
-                                                        .value =
-                                                    northResetRequestNotifier
-                                                        .value +
-                                                    1;
-                                              },
-                                              icon: Transform.rotate(
-                                                angle: -45 * math.pi / 180,
-                                                child: Icon(
-                                                  Icons.explore_outlined,
-                                                  color:
-                                                      isDark
-                                                          ? Colors.white
-                                                          : null,
-                                                ),
-                                              ),
-                                              style: ButtonStyle(
-                                                foregroundColor:
-                                                    WidgetStateProperty.resolveWith(
-                                                      (states) =>
-                                                          states.contains(
-                                                                WidgetState
-                                                                    .pressed,
-                                                              )
-                                                              ? const Color.fromARGB(
-                                                                255,
-                                                                197,
-                                                                225,
-                                                                165,
-                                                              )
-                                                              : null,
-                                                    ),
-                                                overlayColor:
-                                                    WidgetStateProperty.resolveWith(
-                                                      (states) =>
-                                                          states.contains(
-                                                                WidgetState
-                                                                    .pressed,
-                                                              )
-                                                              ? Colors
-                                                                  .lightGreen
-                                                                  .shade100
-                                                                  .withAlpha(
-                                                                    (0.4 * 255)
-                                                                        .round(),
-                                                                  )
-                                                              : null,
-                                                    ),
-                                              ),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    ),
-                                  ],
-                                ),
+                                  );
+                                },
                               );
                             },
                           ),
