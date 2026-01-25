@@ -126,7 +126,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                       : Card(
                         color:
                             isDark
-                                ? const Color.fromARGB(255, 36, 67, 42)
+                                ? const Color.fromARGB(255, 25, 48, 30)
                                 : const Color.fromARGB(239, 188, 228, 196),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(8),

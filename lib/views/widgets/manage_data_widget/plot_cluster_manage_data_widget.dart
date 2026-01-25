@@ -146,7 +146,7 @@ class _PlotClusterManageDataWidgetState
                       ),
                       color:
                           isDark
-                              ? const Color.fromARGB(255, 36, 67, 42)
+                              ? const Color.fromARGB(255, 25, 48, 30)
                               : const Color.fromARGB(239, 188, 228, 196),
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
@@ -269,7 +269,10 @@ class _PlotClusterManageDataWidgetState
                                     ],
                                   ),
                                   children: [
-                                    const Divider(height: 1),
+                                    const Divider(
+                                      height: 1,
+                                      color: Colors.transparent,
+                                    ),
                                     if (plot.id != null)
                                       Padding(
                                         padding: const EdgeInsets.symmetric(

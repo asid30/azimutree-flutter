@@ -199,10 +199,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
                           ),
                         ),
                         children: [
-                          Divider(
-                            height: 1,
-                            color: isDark ? Colors.white24 : null,
-                          ),
+                          const Divider(height: 1, color: Colors.transparent),
                           Padding(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 12.0,
