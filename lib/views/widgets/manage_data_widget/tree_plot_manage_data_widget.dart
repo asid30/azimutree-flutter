@@ -29,196 +29,240 @@ class TreePlotManageDataWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final treesForPlot =
-        treeData.where((tree) => tree.plotId == plotId).toList();
+    return ValueListenableBuilder<bool>(
+      valueListenable: isLightModeNotifier,
+      builder: (context, isLightMode, child) {
+        final isDark = !isLightMode;
 
-    if (treesForPlot.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
-        child: Text("Belum ada data pohon untuk plot ini"),
-      );
-    }
+        final treesForPlot =
+            treeData.where((tree) => tree.plotId == plotId).toList();
 
-    return Column(
-      children:
-          treesForPlot.map((tree) {
-            String? nama = tree.namaPohon?.trim();
-            String? ilmiah = tree.namaIlmiah?.trim();
+        if (treesForPlot.isEmpty) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+            child: Text(
+              "Belum ada data pohon untuk plot ini",
+              style: TextStyle(color: isDark ? Colors.white : null),
+            ),
+          );
+        }
 
-            String titleText;
+        return Column(
+          children:
+              treesForPlot.map((tree) {
+                String? nama = tree.namaPohon?.trim();
+                String? ilmiah = tree.namaIlmiah?.trim();
 
-            if ((nama?.isNotEmpty ?? false) && (ilmiah?.isNotEmpty ?? false)) {
-              titleText = "$nama ($ilmiah)";
-            } else if (nama?.isNotEmpty ?? false) {
-              titleText = nama!;
-            } else if (ilmiah?.isNotEmpty ?? false) {
-              titleText = ilmiah!;
-            } else {
-              titleText = "Pohon ${tree.kodePohon}";
-            }
+                String titleText;
 
-            final subtitleText = "Kode pohon: ${tree.kodePohon}";
-            final hasImage = tree.urlFoto != null && tree.urlFoto!.isNotEmpty;
-            final hasLocation = tree.latitude != null && tree.longitude != null;
-            final heroTag =
-                'tree_photo_${tree.id ?? '${tree.plotId}_${tree.kodePohon}'}_${tree.urlFoto?.hashCode ?? 0}';
+                if ((nama?.isNotEmpty ?? false) &&
+                    (ilmiah?.isNotEmpty ?? false)) {
+                  titleText = "$nama ($ilmiah)";
+                } else if (nama?.isNotEmpty ?? false) {
+                  titleText = nama!;
+                } else if (ilmiah?.isNotEmpty ?? false) {
+                  titleText = ilmiah!;
+                } else {
+                  titleText = "Pohon ${tree.kodePohon}";
+                }
 
-            final List<TableRow> tableRows = [];
-            if (hasImage) {
-              tableRows.add(
-                TableRow(
-                  children: [
-                    SizedBox(
-                      width: 120,
-                      height: 120,
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () {
-                              _openTreePhotoPreview(context, tree, heroTag);
-                            },
-                            child: Hero(
-                              tag: heroTag,
-                              child: _buildTreeImage(tree),
+                final subtitleText = "Kode pohon: ${tree.kodePohon}";
+                final hasImage =
+                    tree.urlFoto != null && tree.urlFoto!.isNotEmpty;
+                final hasLocation =
+                    tree.latitude != null && tree.longitude != null;
+                final heroTag =
+                    'tree_photo_${tree.id ?? '${tree.plotId}_${tree.kodePohon}'}_${tree.urlFoto?.hashCode ?? 0}';
+
+                final List<TableRow> tableRows = [];
+                if (hasImage) {
+                  tableRows.add(
+                    TableRow(
+                      children: [
+                        SizedBox(
+                          width: 120,
+                          height: 120,
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Material(
+                              color: Colors.transparent,
+                              child: InkWell(
+                                onTap: () {
+                                  _openTreePhotoPreview(context, tree, heroTag);
+                                },
+                                child: Hero(
+                                  tag: heroTag,
+                                  child: _buildTreeImage(tree),
+                                ),
+                              ),
                             ),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 120),
+                      ],
                     ),
-                    const SizedBox(height: 120),
-                  ],
-                ),
-              );
-            }
+                  );
+                }
 
-            tableRows.addAll([
-              _row(
-                "Azimut",
-                tree.azimut != null
-                    ? "${tree.azimut!.toStringAsFixed(1)}°"
-                    : "-",
-              ),
-              _row(
-                "Jarak dari pusat",
-                tree.jarakPusatM != null
-                    ? "${tree.jarakPusatM!.toStringAsFixed(2)} m"
-                    : "-",
-              ),
-              _row(
-                "Latitude",
-                tree.latitude != null ? tree.latitude!.toStringAsFixed(6) : "-",
-              ),
-              _row(
-                "Longitude",
-                tree.longitude != null
-                    ? tree.longitude!.toStringAsFixed(6)
-                    : "-",
-              ),
-              _row(
-                "Altitude",
-                tree.altitude != null ? "${tree.altitude} m" : "-",
-              ),
-              if (tree.keterangan != null && tree.keterangan!.isNotEmpty)
-                _row("Keterangan", tree.keterangan!),
-            ]);
+                tableRows.addAll([
+                  _row(
+                    "Azimut",
+                    tree.azimut != null
+                        ? "${tree.azimut!.toStringAsFixed(1)}°"
+                        : "-",
+                  ),
+                  _row(
+                    "Jarak dari pusat",
+                    tree.jarakPusatM != null
+                        ? "${tree.jarakPusatM!.toStringAsFixed(2)} m"
+                        : "-",
+                  ),
+                  _row(
+                    "Latitude",
+                    tree.latitude != null
+                        ? tree.latitude!.toStringAsFixed(6)
+                        : "-",
+                  ),
+                  _row(
+                    "Longitude",
+                    tree.longitude != null
+                        ? tree.longitude!.toStringAsFixed(6)
+                        : "-",
+                  ),
+                  _row(
+                    "Altitude",
+                    tree.altitude != null ? "${tree.altitude} m" : "-",
+                  ),
+                  if (tree.keterangan != null && tree.keterangan!.isNotEmpty)
+                    _row("Keterangan", tree.keterangan!),
+                ]);
 
-            return Slidable(
-              key: ValueKey("tree_${tree.id ?? tree.kodePohon}_$plotId"),
-              startActionPane: ActionPane(
-                motion: const DrawerMotion(),
-                extentRatio: 0.33,
-                children: [
-                  SlidableAction(
-                    onPressed: (_) => _editTree(context, tree),
-                    backgroundColor: Colors.blue.shade100,
-                    foregroundColor: Colors.blue.shade900,
-                    icon: Icons.edit,
-                    label: "Edit",
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ],
-              ),
-              endActionPane: ActionPane(
-                motion: const DrawerMotion(),
-                extentRatio: 0.33,
-                children: [
-                  SlidableAction(
-                    onPressed: (_) => _deleteTree(context, tree),
-                    backgroundColor: Colors.red.shade100,
-                    foregroundColor: Colors.red.shade900,
-                    icon: Icons.delete,
-                    label: "Hapus",
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ],
-              ),
-              child: Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                color: const Color.fromARGB(238, 211, 236, 215),
-                child: Theme(
-                  data: ThemeData().copyWith(dividerColor: Colors.transparent),
-                  child: ExpansionTile(
-                    tilePadding: const EdgeInsets.symmetric(horizontal: 12),
-                    title: Text(titleText),
-                    subtitle: Text(subtitleText),
+                return Slidable(
+                  key: ValueKey("tree_${tree.id ?? tree.kodePohon}_$plotId"),
+                  startActionPane: ActionPane(
+                    motion: const DrawerMotion(),
+                    extentRatio: 0.33,
                     children: [
-                      const Divider(height: 1),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12.0,
-                          vertical: 8,
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Table(
-                              columnWidths: const {
-                                0: FlexColumnWidth(2),
-                                1: FlexColumnWidth(3),
-                              },
-                              defaultVerticalAlignment:
-                                  TableCellVerticalAlignment.middle,
-                              children: tableRows,
-                            ),
-                            if (hasLocation) ...[
-                              const SizedBox(height: 10),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: OutlinedButton.icon(
-                                  onPressed:
-                                      () => _trackTreeLocation(context, tree),
-                                  icon: const Icon(Icons.my_location),
-                                  label: const Text('Tracking Data'),
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
+                      SlidableAction(
+                        onPressed: (_) => _editTree(context, tree),
+                        backgroundColor: Colors.blue.shade100,
+                        foregroundColor:
+                            isDark
+                                ? const Color.fromARGB(255, 219, 219, 219)
+                                : Colors.blue.shade900,
+                        icon: Icons.edit,
+                        label: "Edit",
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ],
                   ),
-                ),
-              ),
-            );
-          }).toList(),
+                  endActionPane: ActionPane(
+                    motion: const DrawerMotion(),
+                    extentRatio: 0.33,
+                    children: [
+                      SlidableAction(
+                        onPressed: (_) => _deleteTree(context, tree),
+                        backgroundColor: Colors.red.shade100,
+                        foregroundColor:
+                            isDark
+                                ? const Color.fromARGB(255, 215, 83, 83)
+                                : Colors.red.shade900,
+                        icon: Icons.delete,
+                        label: "Hapus",
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ],
+                  ),
+                  child: Card(
+                    margin: const EdgeInsets.only(bottom: 8),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    color:
+                        isDark
+                            ? const Color.fromARGB(255, 36, 67, 42)
+                            : const Color.fromARGB(238, 211, 236, 215),
+                    child: Theme(
+                      data: ThemeData().copyWith(
+                        dividerColor: Colors.transparent,
+                      ),
+                      child: ExpansionTile(
+                        tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                        title: Text(
+                          titleText,
+                          style: TextStyle(color: isDark ? Colors.white : null),
+                        ),
+                        subtitle: Text(
+                          subtitleText,
+                          style: TextStyle(
+                            color: isDark ? Colors.white70 : null,
+                          ),
+                        ),
+                        children: [
+                          const Divider(height: 1, color: Colors.transparent),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12.0,
+                              vertical: 8,
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
+                              children: [
+                                Table(
+                                  columnWidths: const {
+                                    0: FlexColumnWidth(2),
+                                    1: FlexColumnWidth(3),
+                                  },
+                                  defaultVerticalAlignment:
+                                      TableCellVerticalAlignment.middle,
+                                  children: tableRows,
+                                ),
+                                if (hasLocation) ...[
+                                  const SizedBox(height: 10),
+                                  Align(
+                                    alignment: Alignment.centerRight,
+                                    child: OutlinedButton.icon(
+                                      onPressed:
+                                          () =>
+                                              _trackTreeLocation(context, tree),
+                                      icon: const Icon(Icons.my_location),
+                                      label: Text(
+                                        'Tracking Data',
+                                        style: TextStyle(
+                                          color: isDark ? Colors.white : null,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              }).toList(),
+        );
+      },
     );
   }
 
   TableRow _row(String label, String value) {
+    // will be rebuilt inside ValueListenableBuilder; determine current mode
+    final isDark = !isLightModeNotifier.value;
+    final style = TextStyle(color: isDark ? Colors.white : null);
+
     return TableRow(
       children: [
         Padding(
           padding: const EdgeInsets.only(top: 2, right: 4),
-          child: Text(label),
+          child: Text(label, style: style),
         ),
         Padding(
           padding: const EdgeInsets.only(top: 2),
-          child: Text(": $value"),
+          child: Text(": $value", style: style),
         ),
       ],
     );

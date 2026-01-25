@@ -99,108 +99,200 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
           selectedCluster = null; // kalau tidak ketemu
         }
 
-        return Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-          decoration: BoxDecoration(
-            color: const Color.fromARGB(240, 180, 216, 187),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child:
-              selectedCluster == null
-                  ? const Text(
-                    "Tidak ada data / belum ada klaster dipilih",
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
-                  )
-                  : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Text(
-                        "Data Cluster",
+        return ValueListenableBuilder<bool>(
+          valueListenable: isLightModeNotifier,
+          builder: (context, isLightMode, child) {
+            final isDark = !isLightMode;
+            return Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color:
+                    isDark
+                        ? const Color.fromARGB(255, 36, 67, 42)
+                        : const Color.fromARGB(240, 180, 216, 187),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child:
+                  selectedCluster == null
+                      ? Text(
+                        "Tidak ada data / belum ada klaster dipilih",
                         style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white : null,
+                        ),
+                      )
+                      : Card(
+                        color:
+                            isDark
+                                ? const Color.fromARGB(255, 25, 48, 30)
+                                : const Color.fromARGB(239, 188, 228, 196),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        margin: EdgeInsets.zero,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 10,
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Data Cluster",
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: isDark ? Colors.white : null,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Table(
+                                columnWidths: const {
+                                  0: FlexColumnWidth(2),
+                                  1: FlexColumnWidth(3),
+                                },
+                                children: [
+                                  _row(
+                                    context,
+                                    isDark,
+                                    "Kode Klaster",
+                                    selectedCluster.kodeCluster,
+                                  ),
+                                  _row(
+                                    context,
+                                    isDark,
+                                    "Pengukur",
+                                    selectedCluster.namaPengukur ?? "-",
+                                  ),
+                                  _row(
+                                    context,
+                                    isDark,
+                                    "Jumlah Plot",
+                                    plotCount.toString(),
+                                  ),
+                                  _row(
+                                    context,
+                                    isDark,
+                                    "Jumlah Pohon",
+                                    treeCount.toString(),
+                                  ),
+                                  _row(
+                                    context,
+                                    isDark,
+                                    "Pusat Klaster",
+                                    usedPlot1
+                                        ? 'Plot 1'
+                                        : (clusterLat != null
+                                            ? 'Generated Centroid'
+                                            : (coordinateNote ?? '-')),
+                                  ),
+                                  _row(
+                                    context,
+                                    isDark,
+                                    "Latitude",
+                                    clusterLat != null
+                                        ? clusterLat.toStringAsFixed(6)
+                                        : '-',
+                                  ),
+                                  _row(
+                                    context,
+                                    isDark,
+                                    "Longitude",
+                                    clusterLon != null
+                                        ? clusterLon.toStringAsFixed(6)
+                                        : '-',
+                                  ),
+                                  _row(
+                                    context,
+                                    isDark,
+                                    "Tanggal Pengukuran",
+                                    selectedCluster.tanggalPengukuran != null
+                                        ? _formatDate(
+                                          selectedCluster.tanggalPengukuran!,
+                                        )
+                                        : "-",
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Row(
+                                children: [
+                                  IconButton(
+                                    tooltip: "Edit klaster",
+                                    onPressed:
+                                        () => _editCluster(
+                                          context,
+                                          selectedCluster!,
+                                        ),
+                                    icon: Icon(
+                                      Icons.edit,
+                                      color:
+                                          isDark
+                                              ? const Color.fromARGB(
+                                                255,
+                                                219,
+                                                219,
+                                                219,
+                                              )
+                                              : null,
+                                    ),
+                                  ),
+                                  IconButton(
+                                    tooltip: "Hapus klaster",
+                                    onPressed:
+                                        () => _deleteCluster(
+                                          context,
+                                          selectedCluster!,
+                                        ),
+                                    icon: Icon(
+                                      Icons.delete,
+                                      color:
+                                          isDark
+                                              ? const Color.fromARGB(
+                                                255,
+                                                215,
+                                                83,
+                                                83,
+                                              )
+                                              : const Color.fromARGB(
+                                                255,
+                                                98,
+                                                32,
+                                                32,
+                                              ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Table(
-                        columnWidths: const {
-                          0: FlexColumnWidth(2),
-                          1: FlexColumnWidth(3),
-                        },
-                        children: [
-                          _row("Kode Klaster", selectedCluster.kodeCluster),
-                          _row("Pengukur", selectedCluster.namaPengukur ?? "-"),
-                          _row("Jumlah Plot", plotCount.toString()),
-                          _row("Jumlah Pohon", treeCount.toString()),
-                          _row(
-                            "Pusat Klaster",
-                            usedPlot1
-                                ? 'Plot 1'
-                                : (clusterLat != null
-                                    ? 'Generated Centroid'
-                                    : (coordinateNote ?? '-')),
-                          ),
-                          _row(
-                            "Latitude",
-                            clusterLat != null
-                                ? clusterLat.toStringAsFixed(6)
-                                : '-',
-                          ),
-                          _row(
-                            "Longitude",
-                            clusterLon != null
-                                ? clusterLon.toStringAsFixed(6)
-                                : '-',
-                          ),
-                          _row(
-                            "Tanggal Pengukuran",
-                            selectedCluster.tanggalPengukuran != null
-                                ? _formatDate(
-                                  selectedCluster.tanggalPengukuran!,
-                                )
-                                : "-",
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          IconButton(
-                            tooltip: "Edit klaster",
-                            onPressed:
-                                () => _editCluster(context, selectedCluster!),
-                            icon: const Icon(Icons.edit),
-                          ),
-                          IconButton(
-                            tooltip: "Hapus klaster",
-                            onPressed:
-                                () => _deleteCluster(context, selectedCluster!),
-                            icon: const Icon(
-                              Icons.delete,
-                              color: Color.fromARGB(255, 98, 32, 32),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
+            );
+          },
         );
       },
     );
   }
 
   /// Row helper biar kodenya ga berantakan
-  TableRow _row(String label, String value) {
+  TableRow _row(BuildContext context, bool isDark, String label, String value) {
+    final theme = Theme.of(context);
+    final color = isDark ? Colors.white : theme.textTheme.bodyMedium?.color;
+    final style = TextStyle(color: color);
+
     return TableRow(
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 0),
-          child: Text(label),
+          child: Text(label, style: style),
         ),
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 0),
-          child: Text(": $value"),
+          child: Text(": $value", style: style),
         ),
       ],
     );

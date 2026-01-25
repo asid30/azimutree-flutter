@@ -400,7 +400,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             ),
             // Zoom controls (inset on top of the map).
             Positioned(
-              right: 12,
+              left: 12,
               // Compute a dynamic bottom offset so the controls sit above
               // the bottomsheet on most device sizes rather than being
               // occluded. This uses a fraction of the screen height.
@@ -416,47 +416,60 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                       if (!hasSearchMarker) return const SizedBox.shrink();
                       return Tooltip(
                         message: 'Hapus marker pencarian',
-                        child: FloatingActionButton.small(
-                          heroTag: 'remove_search_marker_btn',
-                          onPressed: () async {
-                            final confirm = await showDialog<bool>(
-                              context: context,
-                              builder:
-                                  (_) => const AlertConfirmationWidget(
-                                    message:
-                                        'Hapus marker pencarian dari peta?',
-                                    confirmText: 'Hapus',
-                                    cancelText: 'Batal',
-                                  ),
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: isLightModeNotifier,
+                          builder: (context, isLightMode, _) {
+                            final isDark = !isLightMode;
+                            return FloatingActionButton.small(
+                              heroTag: 'remove_search_marker_btn',
+                              onPressed: () async {
+                                final confirm = await showDialog<bool>(
+                                  context: context,
+                                  builder:
+                                      (_) => const AlertConfirmationWidget(
+                                        message:
+                                            'Hapus marker pencarian dari peta?',
+                                        confirmText: 'Hapus',
+                                        cancelText: 'Batal',
+                                      ),
+                                );
+                                if (confirm != true) return;
+                                // Prevent the bottomsheet from regaining focus or
+                                // expanding after the dialog dismisses by explicitly
+                                // unfocusing and clearing the focus notifier.
+                                try {
+                                  FocusManager.instance.primaryFocus?.unfocus();
+                                } catch (_) {}
+                                try {
+                                  isSearchFieldFocusedNotifier.value = false;
+                                } catch (_) {}
+                                try {
+                                  await _removeSearchResultMarker();
+                                } catch (_) {}
+                                try {
+                                  selectedLocationFromSearchNotifier.value =
+                                      false;
+                                  selectedLocationNotifier.value = null;
+                                } catch (_) {}
+                              },
+                              backgroundColor:
+                                  isDark
+                                      ? const Color(0xFF1F4226)
+                                      : const Color.fromARGB(
+                                        255,
+                                        205,
+                                        237,
+                                        211,
+                                      ),
+                              child: Icon(
+                                Icons.clear,
+                                color:
+                                    isDark
+                                        ? Colors.white
+                                        : const Color(0xFF1F4226),
+                              ),
                             );
-                            if (confirm != true) return;
-                            // Prevent the bottomsheet from regaining focus or
-                            // expanding after the dialog dismisses by explicitly
-                            // unfocusing and clearing the focus notifier.
-                            try {
-                              FocusManager.instance.primaryFocus?.unfocus();
-                            } catch (_) {}
-                            try {
-                              isSearchFieldFocusedNotifier.value = false;
-                            } catch (_) {}
-                            try {
-                              await _removeSearchResultMarker();
-                            } catch (_) {}
-                            try {
-                              selectedLocationFromSearchNotifier.value = false;
-                              selectedLocationNotifier.value = null;
-                            } catch (_) {}
                           },
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            205,
-                            237,
-                            211,
-                          ),
-                          child: const Icon(
-                            Icons.clear,
-                            color: Color(0xFF1F4226),
-                          ),
                         ),
                       );
                     },
@@ -470,38 +483,76 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                             enabled
                                 ? 'Klik marker: Aktif'
                                 : 'Klik marker: Nonaktif',
-                        child: FloatingActionButton.small(
-                          heroTag: 'toggle_marker_activation',
-                          onPressed:
-                              () =>
-                                  isMarkerActivationEnabledNotifier.value =
-                                      !enabled,
-                          backgroundColor: const Color.fromARGB(
-                            255,
-                            205,
-                            237,
-                            211,
-                          ),
-                          child: Icon(
-                            enabled ? Icons.touch_app : Icons.block,
-                            color: const Color(0xFF1F4226),
-                          ),
+                        child: ValueListenableBuilder<bool>(
+                          valueListenable: isLightModeNotifier,
+                          builder: (context, isLightMode, _) {
+                            final isDark = !isLightMode;
+                            return FloatingActionButton.small(
+                              heroTag: 'toggle_marker_activation',
+                              onPressed:
+                                  () =>
+                                      isMarkerActivationEnabledNotifier.value =
+                                          !enabled,
+                              backgroundColor:
+                                  isDark
+                                      ? const Color(0xFF1F4226)
+                                      : const Color.fromARGB(
+                                        255,
+                                        205,
+                                        237,
+                                        211,
+                                      ),
+                              child: Icon(
+                                enabled ? Icons.touch_app : Icons.block,
+                                color:
+                                    isDark
+                                        ? Colors.white
+                                        : const Color(0xFF1F4226),
+                              ),
+                            );
+                          },
                         ),
                       );
                     },
                   ),
-                  FloatingActionButton.small(
-                    heroTag: 'zoom_in_btn',
-                    onPressed: () async => _zoomBy(1.0),
-                    backgroundColor: Color.fromARGB(255, 205, 237, 211),
-                    child: const Icon(Icons.add, color: Color(0xFF1F4226)),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: isLightModeNotifier,
+                    builder: (context, isLightMode, _) {
+                      final isDark = !isLightMode;
+                      return FloatingActionButton.small(
+                        heroTag: 'zoom_in_btn',
+                        onPressed: () async => _zoomBy(1.0),
+                        backgroundColor:
+                            isDark
+                                ? const Color(0xFF1F4226)
+                                : const Color.fromARGB(255, 205, 237, 211),
+                        child: Icon(
+                          Icons.add,
+                          color:
+                              isDark ? Colors.white : const Color(0xFF1F4226),
+                        ),
+                      );
+                    },
                   ),
                   const SizedBox(height: 8),
-                  FloatingActionButton.small(
-                    heroTag: 'zoom_out_btn',
-                    onPressed: () async => _zoomBy(-1.0),
-                    backgroundColor: Color.fromARGB(255, 205, 237, 211),
-                    child: const Icon(Icons.remove, color: Color(0xFF1F4226)),
+                  ValueListenableBuilder<bool>(
+                    valueListenable: isLightModeNotifier,
+                    builder: (context, isLightMode, _) {
+                      final isDark = !isLightMode;
+                      return FloatingActionButton.small(
+                        heroTag: 'zoom_out_btn',
+                        onPressed: () async => _zoomBy(-1.0),
+                        backgroundColor:
+                            isDark
+                                ? const Color(0xFF1F4226)
+                                : const Color.fromARGB(255, 205, 237, 211),
+                        child: Icon(
+                          Icons.remove,
+                          color:
+                              isDark ? Colors.white : const Color(0xFF1F4226),
+                        ),
+                      );
+                    },
                   ),
                 ],
               ),

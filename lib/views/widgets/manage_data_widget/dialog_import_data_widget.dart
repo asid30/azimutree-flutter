@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 
 class DialogImportDataWidget extends StatefulWidget {
   final ClusterNotifier? clusterNotifier;
@@ -152,81 +153,101 @@ class _DialogImportDataWidgetState extends State<DialogImportDataWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text("Impor Data dari Excel"),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: _kodeController,
-              decoration: InputDecoration(
-                labelText: "Kode Klaster (Wajib)",
-                border: const OutlineInputBorder(),
-                helperText: "Contoh: CL1 (otomatis huruf besar)",
-                errorText: _isDuplicate ? "Kode klaster sudah ada" : null,
-              ),
-              textCapitalization: TextCapitalization.characters,
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _namaController,
-              decoration: const InputDecoration(
-                labelText: "Nama Pengukur (Wajib)",
-                border: OutlineInputBorder(),
-              ),
-              textCapitalization: TextCapitalization.words,
-            ),
-            const SizedBox(height: 8),
-            GestureDetector(
-              onTap: _pickDate,
-              child: AbsorbPointer(
-                child: TextField(
-                  controller: _tanggalController,
-                  readOnly: true,
-                  decoration: const InputDecoration(
-                    labelText: "Tanggal Pengukuran",
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.calendar_today),
-                    hintText: "YYYY-MM-DD",
-                  ),
-                ),
-              ),
-            ),
-            const SizedBox(height: 12),
-            Row(
+    return ValueListenableBuilder<bool>(
+      valueListenable: isLightModeNotifier,
+      builder: (context, isLightMode, _) {
+        final isDark = !isLightMode;
+        return AlertDialog(
+          backgroundColor:
+              isDark ? const Color.fromARGB(255, 36, 67, 42) : null,
+          title: Text(
+            "Impor Data dari Excel",
+            style: TextStyle(color: isDark ? Colors.white : null),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
-                Expanded(
-                  child: Text(
-                    _pickedFilePath ?? "Belum memilih file",
-                    overflow: TextOverflow.ellipsis,
+                TextField(
+                  controller: _kodeController,
+                  decoration: InputDecoration(
+                    labelText: "Kode Klaster (Wajib)",
+                    border: const OutlineInputBorder(),
+                    helperText: "Contoh: CL1 (otomatis huruf besar)",
+                    errorText: _isDuplicate ? "Kode klaster sudah ada" : null,
+                  ),
+                  textCapitalization: TextCapitalization.characters,
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _namaController,
+                  decoration: const InputDecoration(
+                    labelText: "Nama Pengukur (Wajib)",
+                    border: OutlineInputBorder(),
+                  ),
+                  textCapitalization: TextCapitalization.words,
+                ),
+                const SizedBox(height: 8),
+                GestureDetector(
+                  onTap: _pickDate,
+                  child: AbsorbPointer(
+                    child: TextField(
+                      controller: _tanggalController,
+                      readOnly: true,
+                      decoration: const InputDecoration(
+                        labelText: "Tanggal Pengukuran",
+                        border: OutlineInputBorder(),
+                        suffixIcon: Icon(Icons.calendar_today),
+                        hintText: "YYYY-MM-DD",
+                      ),
+                    ),
                   ),
                 ),
-                const SizedBox(width: 8),
-                ElevatedButton(
-                  onPressed: _pickFile,
-                  child: const Text("Pilih File Excel"),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        _pickedFilePath ?? "Belum memilih file",
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      onPressed: _pickFile,
+                      child: Text(
+                        "Pilih File Excel",
+                        style: TextStyle(color: isDark ? Colors.white : null),
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Batal",
+                style: TextStyle(color: isDark ? Colors.white : null),
+              ),
+            ),
+            ValueListenableBuilder<bool>(
+              valueListenable: _isFormValid,
+              builder: (context, isValid, _) {
+                return TextButton(
+                  onPressed: isValid ? _save : null,
+                  child: Text(
+                    "Impor",
+                    style: TextStyle(color: isDark ? Colors.white : null),
+                  ),
+                );
+              },
+            ),
           ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text("Batal"),
-        ),
-        ValueListenableBuilder<bool>(
-          valueListenable: _isFormValid,
-          builder: (context, isValid, _) {
-            return TextButton(
-              onPressed: isValid ? _save : null,
-              child: const Text("Impor"),
-            );
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }

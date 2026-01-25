@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
+import 'package:azimutree/data/notifiers/notifiers.dart';
 
 class DialogEditPlotWidget extends StatefulWidget {
   final PlotModel plot;
@@ -124,103 +125,121 @@ class _DialogEditPlotWidgetState extends State<DialogEditPlotWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: const Text("Edit Plot"),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextFormField(
-              initialValue: _cluster.kodeCluster,
-              readOnly: true,
-              decoration: const InputDecoration(
-                labelText: "Klaster",
-                border: OutlineInputBorder(),
+    return ValueListenableBuilder<bool>(
+      valueListenable: isLightModeNotifier,
+      builder: (context, isLightMode, _) {
+        final isDark = !isLightMode;
+        return AlertDialog(
+          backgroundColor:
+              isDark ? const Color.fromARGB(255, 36, 67, 42) : null,
+          title: Text(
+            "Edit Plot",
+            style: TextStyle(color: isDark ? Colors.white : null),
+          ),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  initialValue: _cluster.kodeCluster,
+                  readOnly: true,
+                  decoration: const InputDecoration(
+                    labelText: "Klaster",
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                DropdownButtonFormField<int>(
+                  initialValue: _selectedPlotCode,
+                  decoration: InputDecoration(
+                    labelText: "Kode Plot",
+                    border: const OutlineInputBorder(),
+                    errorText:
+                        _isDuplicateCode ? "Kode plot sudah dipakai" : null,
+                  ),
+                  items: [
+                    DropdownMenuItem(
+                      value: widget.plot.kodePlot,
+                      child: Text("Plot ${widget.plot.kodePlot} (saat ini)"),
+                    ),
+                    ..._availableCodes
+                        .where((code) => code != widget.plot.kodePlot)
+                        .map(
+                          (code) => DropdownMenuItem(
+                            value: code,
+                            child: Text("Plot $code"),
+                          ),
+                        ),
+                  ],
+                  onChanged: (value) {
+                    if (value == null) return;
+                    setState(() {
+                      _selectedPlotCode = value;
+                    });
+                    _validateForm();
+                  },
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _latitudeController,
+                  decoration: const InputDecoration(
+                    labelText: "Latitude",
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _longitudeController,
+                  decoration: const InputDecoration(
+                    labelText: "Longitude",
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _altitudeController,
+                  decoration: const InputDecoration(
+                    labelText: "Altitude (opsional)",
+                    border: OutlineInputBorder(),
+                  ),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text(
+                "Batal",
+                style: TextStyle(color: isDark ? Colors.white : null),
               ),
             ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<int>(
-              initialValue: _selectedPlotCode,
-              decoration: InputDecoration(
-                labelText: "Kode Plot",
-                border: const OutlineInputBorder(),
-                errorText: _isDuplicateCode ? "Kode plot sudah dipakai" : null,
-              ),
-              items: [
-                DropdownMenuItem(
-                  value: widget.plot.kodePlot,
-                  child: Text("Plot ${widget.plot.kodePlot} (saat ini)"),
-                ),
-                ..._availableCodes
-                    .where((code) => code != widget.plot.kodePlot)
-                    .map(
-                      (code) => DropdownMenuItem(
-                        value: code,
-                        child: Text("Plot $code"),
-                      ),
-                    ),
-              ],
-              onChanged: (value) {
-                if (value == null) return;
-                setState(() {
-                  _selectedPlotCode = value;
-                });
-                _validateForm();
+            ValueListenableBuilder<bool>(
+              valueListenable: _isFormValid,
+              builder: (context, isValid, _) {
+                return TextButton(
+                  onPressed: isValid ? _save : null,
+                  child: Text(
+                    "Simpan",
+                    style: TextStyle(color: isDark ? Colors.white : null),
+                  ),
+                );
               },
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _latitudeController,
-              decoration: const InputDecoration(
-                labelText: "Latitude",
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _longitudeController,
-              decoration: const InputDecoration(
-                labelText: "Longitude",
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-                signed: true,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _altitudeController,
-              decoration: const InputDecoration(
-                labelText: "Altitude (opsional)",
-                border: OutlineInputBorder(),
-              ),
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-            ),
           ],
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          child: const Text("Batal"),
-        ),
-        ValueListenableBuilder<bool>(
-          valueListenable: _isFormValid,
-          builder: (context, isValid, _) {
-            return TextButton(
-              onPressed: isValid ? _save : null,
-              child: const Text("Simpan"),
-            );
-          },
-        ),
-      ],
+        );
+      },
     );
   }
 }
