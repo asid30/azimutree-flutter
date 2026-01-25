@@ -248,7 +248,8 @@ class _LocationMapPageState extends State<LocationMapPage> {
                           ),
                         ),
                         Positioned(
-                          top: 72,
+                          bottom:
+                              MediaQuery.of(context).size.height * 0.28 - 10,
                           right: 12,
                           child: Container(
                             key: _legendKey,
