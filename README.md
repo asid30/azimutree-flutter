@@ -93,7 +93,7 @@ Azimutree diharapkan dapat menjadi alat bantu yang efektif bagi peneliti kesehat
 
 ## Instalasi Untuk Pengembangan
 
-> **Catatan untuk Developer:** bagian ini khusus ditujukan untuk pengembang yang ingin menjalankan atau mengembangkan aplikasi secara lokal.
+> **Catatan:** bagian ini khusus ditujukan untuk pengembang yang ingin menjalankan atau mengembangkan aplikasi secara lokal.
 
 Clone repositori:
 
@@ -111,19 +111,15 @@ flutter pub get
 
 Akses token Mapbox diperlukan untuk fitur peta. Dapatkan token di https://www.mapbox.com/.
 
-Set token sebagai environment variable sebelum menjalankan aplikasi:
+Gunakan `env_template` yang sudah ada — salin dan ubah namanya menjadi `.env`, lalu isi nilai `MAP_BOX_ACCESS` di file `.env`:
 
 ```bash
-export MAPBOX_ACCESS_TOKEN="your_mapbox_access_token"
+cp env_template .env
+# lalu buka .env dan isi:
+# MAP_BOX_ACCESS=pk.your_mapbox_public_token_here
 ```
 
-Atau tambahkan ke `android/local.properties`:
-
-```
-MAPBOX_ACCESS_TOKEN=your_mapbox_access_token
-```
-
-Lihat dokumentasi Mapbox untuk langkah konfigurasi platform-spesifik jika diperlukan.
+Pastikan **tidak** meng-commit `.env` ke repo (file template tetap di-repo). Aplikasi membaca nilai ini melalui `flutter_dotenv` dan kode menggunakan variabel `MAP_BOX_ACCESS`.
 
 Jalankan aplikasi:
 
