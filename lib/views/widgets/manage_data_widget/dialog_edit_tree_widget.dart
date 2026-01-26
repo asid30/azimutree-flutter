@@ -216,12 +216,26 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
     TextInputType? type,
     TextCapitalization caps = TextCapitalization.none,
     String? errorText,
+    required Color dialogText,
+    Color? labelColor,
+    required bool isDark,
   }) => TextField(
     controller: controller,
+    style: TextStyle(color: dialogText),
     decoration: InputDecoration(
       labelText: label,
+      labelStyle: TextStyle(color: labelColor),
       border: const OutlineInputBorder(),
       errorText: errorText,
+      enabledBorder: OutlineInputBorder(
+        borderSide: BorderSide(color: isDark ? Colors.white54 : Colors.grey),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderSide: BorderSide(
+          color: isDark ? Colors.white : Theme.of(context).colorScheme.primary,
+          width: 2.0,
+        ),
+      ),
     ),
     keyboardType: type,
     textCapitalization: caps,
@@ -241,13 +255,13 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
       valueListenable: isLightModeNotifier,
       builder: (context, isLightMode, _) {
         final isDark = !isLightMode;
+        final dialogBgColor =
+            isDark ? const Color.fromARGB(255, 36, 67, 42) : null;
+        final dialogText = isDark ? Colors.white : Colors.black;
+        final labelColor = isDark ? Colors.white70 : null;
         return AlertDialog(
-          backgroundColor:
-              isDark ? const Color.fromARGB(255, 36, 67, 42) : null,
-          title: Text(
-            "Edit Pohon",
-            style: TextStyle(color: isDark ? Colors.white : null),
-          ),
+          backgroundColor: dialogBgColor,
+          title: Text("Edit Pohon", style: TextStyle(color: dialogText)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -255,18 +269,50 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
                 TextFormField(
                   initialValue: _clusterLabel,
                   readOnly: true,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Klaster",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
                 TextFormField(
                   initialValue: _plotLabel,
                   readOnly: true,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Plot",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 10),
@@ -275,18 +321,27 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
                   label: "Kode Pohon",
                   type: TextInputType.number,
                   errorText: _isDuplicate ? "Kode pohon sudah ada" : null,
+                  dialogText: dialogText,
+                  labelColor: labelColor,
+                  isDark: isDark,
                 ),
                 const SizedBox(height: 8),
                 _textField(
                   controller: _namaController,
                   label: "Nama Pohon",
                   caps: TextCapitalization.words,
+                  dialogText: dialogText,
+                  labelColor: labelColor,
+                  isDark: isDark,
                 ),
                 const SizedBox(height: 8),
                 _textField(
                   controller: _ilmiahController,
                   label: "Nama Ilmiah",
                   caps: TextCapitalization.words,
+                  dialogText: dialogText,
+                  labelColor: labelColor,
+                  isDark: isDark,
                 ),
                 const SizedBox(height: 8),
                 _dualFields(
@@ -297,6 +352,9 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
                       decimal: true,
                       signed: true,
                     ),
+                    dialogText: dialogText,
+                    labelColor: labelColor,
+                    isDark: isDark,
                   ),
                   _textField(
                     controller: _longitudeController,
@@ -305,6 +363,9 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
                       decimal: true,
                       signed: true,
                     ),
+                    dialogText: dialogText,
+                    labelColor: labelColor,
+                    isDark: isDark,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -312,12 +373,18 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
                   controller: _altitudeController,
                   label: "Altitude (opsional)",
                   type: const TextInputType.numberWithOptions(decimal: true),
+                  dialogText: dialogText,
+                  labelColor: labelColor,
+                  isDark: isDark,
                 ),
                 const SizedBox(height: 8),
                 _textField(
                   controller: _urlController,
                   label: "URL Foto",
                   type: TextInputType.url,
+                  dialogText: dialogText,
+                  labelColor: labelColor,
+                  isDark: isDark,
                 ),
               ],
             ),

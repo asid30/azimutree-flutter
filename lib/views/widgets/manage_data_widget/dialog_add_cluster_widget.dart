@@ -176,6 +176,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
         final dialogBgColor =
             isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
         final dialogText = isDark ? Colors.white : Colors.black;
+        final labelColor = isDark ? Colors.white70 : null;
         return AlertDialog(
           backgroundColor: dialogBgColor,
           title: Text(
@@ -189,16 +190,36 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                 // Kode Klaster
                 TextField(
                   controller: _kodeClusterController,
+                  style: TextStyle(color: dialogText),
                   decoration: InputDecoration(
                     labelText: "Kode Klaster (wajib)",
+                    labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
                     helperText: "Contoh: CL1 (otomatis huruf besar)",
+                    helperStyle: TextStyle(color: dialogText),
                     helperMaxLines: 2,
                     errorText:
                         _isDuplicateCode
                             ? 'Kode klaster sudah ada, gunakan kode lain.'
                             : null,
+                    errorStyle: TextStyle(
+                      color: isDark ? Colors.orange : Colors.redAccent,
+                    ),
                     errorMaxLines: 2,
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   textCapitalization: TextCapitalization.characters,
                 ),
@@ -207,9 +228,25 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                 // Nama Pengukur
                 TextField(
                   controller: _namaPengukurController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Nama Pengukur (wajib)",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   textCapitalization: TextCapitalization.words,
                 ),
@@ -222,11 +259,33 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                     child: TextField(
                       controller: _tanggalPengukuranController,
                       readOnly: true,
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: dialogText),
+                      decoration: InputDecoration(
                         labelText: "Tanggal Pengukuran (opsional)",
-                        border: OutlineInputBorder(),
-                        suffixIcon: Icon(Icons.calendar_today),
+                        labelStyle: TextStyle(color: labelColor),
+                        border: const OutlineInputBorder(),
+                        suffixIcon: Icon(
+                          Icons.calendar_today,
+                          color: dialogText,
+                        ),
                         hintText: "YYYY-MM-DD",
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white54 : null,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white54 : Colors.grey,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color:
+                                isDark
+                                    ? Colors.white
+                                    : Theme.of(context).colorScheme.primary,
+                            width: 2.0,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -251,10 +310,11 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all(dialogBgColor),
                     foregroundColor: WidgetStateProperty.resolveWith((states) {
-                      if (isDark)
+                      if (isDark) {
                         return states.contains(WidgetState.disabled)
                             ? Colors.grey
                             : Colors.white;
+                      }
                       return states.contains(WidgetState.disabled)
                           ? Colors.grey
                           : Colors.black;

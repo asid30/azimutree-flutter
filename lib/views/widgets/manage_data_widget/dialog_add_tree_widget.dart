@@ -341,6 +341,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
         final dialogBgColor =
             isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
         final dialogText = isDark ? Colors.white : Colors.black;
+        final labelColor = isDark ? Colors.white70 : null;
         return AlertDialog(
           backgroundColor: dialogBgColor,
           title: Text("Tambah Pohon Baru", style: TextStyle(color: dialogText)),
@@ -352,16 +353,36 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 // Dropdown Klaster
                 DropdownButtonFormField<int>(
                   initialValue: _selectedClusterId,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  dropdownColor: dialogBgColor,
+                  decoration: InputDecoration(
                     labelText: "Klaster",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   isExpanded: true,
                   items:
                       widget.clusters.map((cluster) {
                         return DropdownMenuItem<int>(
                           value: cluster.id,
-                          child: Text(cluster.kodeCluster),
+                          child: Text(
+                            cluster.kodeCluster,
+                            style: TextStyle(color: dialogText),
+                          ),
                         );
                       }).toList(),
                   onChanged: (value) {
@@ -379,16 +400,36 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 // Dropdown Plot
                 DropdownButtonFormField<int>(
                   initialValue: _selectedPlotId,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  dropdownColor: dialogBgColor,
+                  decoration: InputDecoration(
                     labelText: "Plot",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   isExpanded: true,
                   items:
                       plotsForSelectedCluster.map((plot) {
                         return DropdownMenuItem<int>(
                           value: plot.id,
-                          child: Text('Plot ${plot.kodePlot}'),
+                          child: Text(
+                            'Plot ${plot.kodePlot}',
+                            style: TextStyle(color: dialogText),
+                          ),
                         );
                       }).toList(),
                   onChanged:
@@ -402,11 +443,14 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                           : null,
                 ),
                 if (!hasPlotsForSelectedCluster)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 4.0),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
                     child: Text(
                       "Belum ada plot untuk klaster ini. Tambahkan plot terlebih dahulu.",
-                      style: TextStyle(fontSize: 12, color: Colors.redAccent),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.orange : Colors.redAccent,
+                      ),
                     ),
                   ),
                 const SizedBox(height: 8),
@@ -415,34 +459,58 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Align(
+                    Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
                         "Metode input posisi",
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
+                          color: dialogText,
                         ),
                       ),
                     ),
                     const SizedBox(height: 4),
                     SegmentedButton<TreePositionInputMode>(
-                      segments: const [
+                      style: ButtonStyle(
+                        backgroundColor: WidgetStateProperty.resolveWith((
+                          states,
+                        ) {
+                          if (isDark && states.contains(WidgetState.selected)) {
+                            return const Color.fromARGB(255, 44, 93, 26);
+                          }
+                          return null;
+                        }),
+                        foregroundColor: WidgetStateProperty.resolveWith((
+                          states,
+                        ) {
+                          return isDark ? Colors.white : null;
+                        }),
+                      ),
+                      segments: [
                         ButtonSegment<TreePositionInputMode>(
                           value: TreePositionInputMode.azimuthDistance,
                           label: Text(
                             "Azimut & Jarak",
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: 12, color: dialogText),
                           ),
-                          icon: Icon(Icons.explore_outlined, size: 16),
+                          icon: Icon(
+                            Icons.explore_outlined,
+                            size: 16,
+                            color: dialogText,
+                          ),
                         ),
                         ButtonSegment<TreePositionInputMode>(
                           value: TreePositionInputMode.coordinates,
                           label: Text(
                             "Koordinat",
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: 12, color: dialogText),
                           ),
-                          icon: Icon(Icons.location_on_outlined, size: 16),
+                          icon: Icon(
+                            Icons.location_on_outlined,
+                            size: 16,
+                            color: dialogText,
+                          ),
                         ),
                       ],
                       selected: {_positionMode},
@@ -469,9 +537,25 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                       Expanded(
                         child: TextField(
                           controller: _azimutController,
-                          decoration: const InputDecoration(
+                          style: TextStyle(color: dialogText),
+                          decoration: InputDecoration(
                             labelText: "Azimut (°)",
-                            border: OutlineInputBorder(),
+                            labelStyle: TextStyle(color: labelColor),
+                            border: const OutlineInputBorder(),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: isDark ? Colors.white54 : Colors.grey,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color:
+                                    isDark
+                                        ? Colors.white
+                                        : Theme.of(context).colorScheme.primary,
+                                width: 2.0,
+                              ),
+                            ),
                           ),
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
@@ -489,9 +573,25 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                       Expanded(
                         child: TextField(
                           controller: _jarakPusatController,
-                          decoration: const InputDecoration(
+                          style: TextStyle(color: dialogText),
+                          decoration: InputDecoration(
                             labelText: "Jarak dari pusat (m)",
-                            border: OutlineInputBorder(),
+                            labelStyle: TextStyle(color: labelColor),
+                            border: const OutlineInputBorder(),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: isDark ? Colors.white54 : Colors.grey,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color:
+                                    isDark
+                                        ? Colors.white
+                                        : Theme.of(context).colorScheme.primary,
+                                width: 2.0,
+                              ),
+                            ),
                           ),
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
@@ -513,9 +613,25 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                       Expanded(
                         child: TextField(
                           controller: _latitudeController,
-                          decoration: const InputDecoration(
+                          style: TextStyle(color: dialogText),
+                          decoration: InputDecoration(
                             labelText: "Latitude",
-                            border: OutlineInputBorder(),
+                            labelStyle: TextStyle(color: labelColor),
+                            border: const OutlineInputBorder(),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: isDark ? Colors.white54 : Colors.grey,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color:
+                                    isDark
+                                        ? Colors.white
+                                        : Theme.of(context).colorScheme.primary,
+                                width: 2.0,
+                              ),
+                            ),
                           ),
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
@@ -534,9 +650,25 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                       Expanded(
                         child: TextField(
                           controller: _longitudeController,
-                          decoration: const InputDecoration(
+                          style: TextStyle(color: dialogText),
+                          decoration: InputDecoration(
                             labelText: "Longitude",
-                            border: OutlineInputBorder(),
+                            labelStyle: TextStyle(color: labelColor),
+                            border: const OutlineInputBorder(),
+                            enabledBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color: isDark ? Colors.white54 : Colors.grey,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderSide: BorderSide(
+                                color:
+                                    isDark
+                                        ? Colors.white
+                                        : Theme.of(context).colorScheme.primary,
+                                width: 2.0,
+                              ),
+                            ),
                           ),
                           keyboardType: const TextInputType.numberWithOptions(
                             decimal: true,
@@ -559,9 +691,25 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 // Altitude
                 TextField(
                   controller: _altitudeController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Altitude (opsional)",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -577,14 +725,47 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 // Identitas pohon
                 TextField(
                   controller: _kodePohonController,
+                  style: TextStyle(color: dialogText),
                   decoration: InputDecoration(
                     labelText: "Kode Pohon",
+                    labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
                     errorText:
                         _isDuplicateCode
                             ? 'Kode pohon sudah ada, gunakan kode lain.'
                             : null,
+                    errorStyle: TextStyle(
+                      color: isDark ? Colors.orange : Colors.redAccent,
+                    ),
+                    errorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.orange : Colors.redAccent,
+                      ),
+                    ),
+                    focusedErrorBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.orange
+                                : Theme.of(context).colorScheme.error,
+                        width: 2.0,
+                      ),
+                    ),
                     errorMaxLines: 2,
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   keyboardType: TextInputType.number,
                   inputFormatters: [FilteringTextInputFormatter.digitsOnly],
@@ -594,9 +775,25 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
 
                 TextField(
                   controller: _namaPohonController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Nama Pohon",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   textCapitalization: TextCapitalization.words,
                   enabled: fieldsEnabled,
@@ -605,9 +802,25 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
 
                 TextField(
                   controller: _namaIlmiahController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Nama Ilmiah",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   textCapitalization: TextCapitalization.words,
                   enabled: fieldsEnabled,
@@ -617,9 +830,25 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 // Opsional
                 TextField(
                   controller: _keteranganController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Keterangan (opsional)",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   maxLines: 2,
                   textCapitalization: TextCapitalization.sentences,
@@ -629,9 +858,25 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
 
                 TextField(
                   controller: _urlFotoController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "URL Foto (opsional)",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   enabled: fieldsEnabled,
                 ),
@@ -654,10 +899,11 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                   style: ButtonStyle(
                     backgroundColor: WidgetStateProperty.all(dialogBgColor),
                     foregroundColor: WidgetStateProperty.resolveWith((states) {
-                      if (isDark)
+                      if (isDark) {
                         return states.contains(WidgetState.disabled)
                             ? Colors.grey
                             : Colors.white;
+                      }
                       return states.contains(WidgetState.disabled)
                           ? Colors.grey
                           : Colors.black;

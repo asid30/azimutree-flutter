@@ -53,7 +53,10 @@ class _PlotClusterManageDataWidgetState
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color.fromARGB(240, 180, 216, 187),
+              color:
+                  isDark
+                      ? const Color.fromARGB(255, 36, 67, 42)
+                      : const Color.fromARGB(240, 180, 216, 187),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -83,7 +86,10 @@ class _PlotClusterManageDataWidgetState
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color.fromARGB(240, 180, 216, 187),
+              color:
+                  isDark
+                      ? const Color.fromARGB(255, 36, 67, 42)
+                      : const Color.fromARGB(240, 180, 216, 187),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(

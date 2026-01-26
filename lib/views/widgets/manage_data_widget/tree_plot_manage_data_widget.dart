@@ -33,6 +33,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
       valueListenable: isLightModeNotifier,
       builder: (context, isLightMode, child) {
         final isDark = !isLightMode;
+        final dialogText = isDark ? Colors.white : Colors.black;
 
         final treesForPlot =
             treeData.where((tree) => tree.plotId == plotId).toList();
@@ -225,12 +226,22 @@ class TreePlotManageDataWidget extends StatelessWidget {
                                       onPressed:
                                           () =>
                                               _trackTreeLocation(context, tree),
-                                      icon: const Icon(Icons.my_location),
+                                      icon: Icon(
+                                        Icons.my_location,
+                                        color: dialogText,
+                                      ),
                                       label: Text(
                                         'Tracking Data',
-                                        style: TextStyle(
-                                          color: isDark ? Colors.white : null,
+                                        style: TextStyle(color: dialogText),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide(
+                                          color:
+                                              isDark
+                                                  ? Colors.white54
+                                                  : Colors.grey,
                                         ),
+                                        foregroundColor: dialogText,
                                       ),
                                     ),
                                   ),
