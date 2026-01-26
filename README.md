@@ -86,7 +86,7 @@ Dengan menggunakan Azimutree, peneliti dapat:
 Azimutree diharapkan dapat menjadi alat bantu yang efektif bagi peneliti kesehatan hutan dalam menjaga **konsistensi lokasi penelitian**, serta mendukung keberlanjutan pengamatan kondisi hutan dari waktu ke waktu.
 
 <p style="font-size: 12px; color: #666;">
-    Developed by Asid30 © 2026
+    MIT License © 2026 Asid
   </p>
 
 ---
