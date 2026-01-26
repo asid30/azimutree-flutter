@@ -87,12 +87,12 @@ class _SearchbarBottomsheetWidgetState
                     decoration: InputDecoration(
                       prefixIcon: Icon(
                         Icons.search,
-                        color: isDark ? Colors.white70 : Colors.grey,
+                        color: isDark ? Colors.white : Colors.grey,
                       ),
                       suffixIcon: IconButton(
                         icon: Icon(
                           Icons.close,
-                          color: isDark ? Colors.white70 : Colors.grey,
+                          color: isDark ? Colors.white : Colors.grey,
                         ),
                         onPressed: () {
                           _searchController.clear();

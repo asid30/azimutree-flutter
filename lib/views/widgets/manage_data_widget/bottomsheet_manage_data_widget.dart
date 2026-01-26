@@ -248,7 +248,7 @@ class _BottomsheetManageDataWidgetState
               decoration: BoxDecoration(
                 color:
                     isDark
-                        ? const Color.fromARGB(255, 34, 66, 40)
+                        ? const Color.fromARGB(255, 44, 85, 51)
                         : const Color.fromARGB(255, 205, 237, 211),
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(20),

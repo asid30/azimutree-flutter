@@ -189,6 +189,8 @@ class TreePlotManageDataWidget extends StatelessWidget {
                       ),
                       child: ExpansionTile(
                         tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                        iconColor: isDark ? Colors.white : null,
+                        collapsedIconColor: isDark ? Colors.white : null,
                         title: Text(
                           titleText,
                           style: TextStyle(color: isDark ? Colors.white : null),

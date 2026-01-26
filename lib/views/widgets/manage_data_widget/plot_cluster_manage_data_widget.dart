@@ -209,7 +209,12 @@ class _PlotClusterManageDataWidgetState
                             const SizedBox(height: 6),
                             Theme(
                               data: ThemeData().copyWith(
-                                dividerColor: Colors.transparent,
+                                dividerColor: const Color.fromARGB(
+                                  0,
+                                  255,
+                                  255,
+                                  255,
+                                ),
                               ),
                               child: AnimatedSize(
                                 duration: const Duration(milliseconds: 800),
@@ -279,6 +284,10 @@ class _PlotClusterManageDataWidgetState
                                       ),
                                     ],
                                   ),
+                                  // Ensure expansion icon is visible in dark mode
+                                  iconColor: isDark ? Colors.white : null,
+                                  collapsedIconColor:
+                                      isDark ? Colors.white : null,
                                   children: [
                                     const Divider(
                                       height: 1,
