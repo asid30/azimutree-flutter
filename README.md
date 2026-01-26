@@ -1,53 +1,80 @@
-<!DOCTYPE html>
-<html lang="id">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-</head>
-<body>
-  <h1>Azimutree - Forest Health Monitoring</h1>
+## Tentang Aplikasi
 
-  <p><strong>Azimutree</strong> adalah aplikasi Android yang dikembangkan untuk membantu proses pemantauan kesehatan hutan menggunakan metode <strong>Forest Health Monitoring (FHM)</strong>. Aplikasi ini dirancang untuk mendukung kegiatan penelitian lapangan dengan fitur pemetaan digital yang efisien dan akurat.</p>
+**Azimutree** adalah aplikasi Android yang dikembangkan untuk membantu proses **pemantauan kesehatan hutan** menggunakan metode **Forest Health Monitoring (FHM)**. Aplikasi ini dirancang untuk mendukung kegiatan **penelitian lapangan**, khususnya dalam memetakan dan memvisualisasikan lokasi **cluster plot** pada peta digital.
 
-  <h2>Fitur Utama</h2>
-  <ul>
-    <li><strong>Mapping Lokasi Pohon</strong><br>
-      Menampilkan posisi pohon dalam satu klaster menggunakan data azimut dan jarak dari titik pusat klaster.</li>
-    <li><strong>Manajemen Data Klaster</strong><br>
-      Menyimpan dan menampilkan informasi lengkap tentang plot, klaster, dan pohon-pohon yang berada dalam area monitoring.</li>
-  </ul>
+---
 
-  <h2>Teknologi yang Digunakan</h2>
-  <ul>
-    <li><strong>Flutter</strong> (Frontend App Development)</li>
-    <li><strong>SQL Lite</strong> (Local database untuk penyimpanan data offline)</li>
-    <li><strong>MapBox</strong> (Platform peta digital untuk menampilkan dan mengelola data lokasi berbasis koordinat secara interaktif)</li>
-  </ul>
+## Latar Belakang
 
- <h2>Tujuan Proyek</h2>
-  <p>Proyek ini bertujuan untuk membantu kegiatan survei lapangan kehutanan dengan menyediakan alat digital yang memudahkan pencatatan lokasi klaster, plot, dan pohon secara langsung di lapangan tanpa bergantung pada pencatatan manual.</p>
+Dalam penelitian kesehatan hutan, kondisi lingkungan dapat berubah dari waktu ke waktu akibat faktor internal maupun eksternal. Perubahan ini sering menyebabkan **lokasi cluster plot hasil penelitian terdahulu** mengalami perbedaan kondisi vegetasi dan lingkungan, sehingga menyulitkan peneliti saat melakukan pengamatan lanjutan.
 
-  <h2>Instalasi</h2>
-  <ol>
-    <li>Clone repositori:
-      <pre><code>git clone https://github.com/asid30/azimutree-flutter.git</code></pre>
-    </li>
-    <li>Install dependencies:
-      <pre><code>flutter pub get</code></pre>
-    </li>
-    <li>Jalankan aplikasi:
-      <pre><code>flutter run</code></pre>
-    </li>
-  </ol>
+Permasalahan semakin kompleks karena pengamatan kesehatan hutan dilakukan secara **berkala** dan tidak jarang melibatkan **peneliti yang berbeda**. Meskipun data penelitian sebelumnya biasanya menyertakan koordinat lokasi, data tersebut umumnya masih disimpan dalam bentuk **file Excel**, sehingga kurang praktis untuk digunakan langsung di lapangan.
 
-  <h2>Catatan</h2>
-  <ul>
-    <li>Aplikasi ini dikembangkan untuk perangkat mobile Android.</li>
-  </ul>
+---
 
-  <p style="font-size: 12px; color: #666;">
+## Konsep Cluster Plot
+
+Dalam metode Forest Health Monitoring, satu **cluster** terdiri dari beberapa **plot**, dengan ketentuan:
+
+- Satu cluster maksimal memiliki **4 plot**.
+- **Plot 1** berfungsi sebagai **sentroid (pusat cluster)**.
+- Plot lainnya mengelilingi plot pusat.
+- Setiap plot terdiri dari beberapa pohon terpilih yang merepresentasikan kondisi kesehatan hutan.
+
+Struktur ini penting untuk memastikan konsistensi dan akurasi data dalam setiap periode penelitian.
+
+---
+
+## Tujuan Aplikasi
+
+Azimutree dikembangkan untuk menjawab kebutuhan peneliti kesehatan hutan dalam:
+
+- Memvisualisasikan **titik koordinat cluster dan plot** pada peta digital.
+- Mempermudah peneliti menemukan kembali **lokasi penelitian sebelumnya** di lapangan.
+- Mengurangi kesalahan penentuan posisi plot akibat perubahan kondisi hutan.
+
+Aplikasi ini berfokus pada **pencatatan dan visualisasi lokasi**, bukan pada pencatatan detail nilai kesehatan pohon atau hutan.
+
+---
+
+## Fitur Utama
+
+Beberapa fitur utama yang tersedia dalam aplikasi Azimutree antara lain:
+
+- **Visualisasi peta digital** menggunakan Mapbox.
+- **Penentuan posisi cluster dan plot** berdasarkan koordinat geografis.
+- Informasi **sudut azimut**, **jarak dari pusat cluster**, dan **jarak dari posisi pengguna**.
+- **Impor data** dalam jumlah besar (dibatasi untuk satu cluster).
+- **Ekspor data ke format Excel** untuk memudahkan berbagi data antar peneliti.
+
+---
+
+## Teknologi yang Digunakan
+
+Azimutree dikembangkan menggunakan teknologi berikut:
+
+- **Flutter** sebagai framework pengembangan aplikasi.
+- **SQLite** untuk penyimpanan data lokal.
+- **Mapbox** untuk pemetaan dan visualisasi lokasi.
+
+---
+
+## Manfaat
+
+Dengan menggunakan Azimutree, peneliti dapat:
+
+- Lebih mudah melakukan pengamatan ulang di lokasi yang sama pada periode penelitian berikutnya.
+- Menghemat waktu pencarian lokasi cluster dan plot di lapangan.
+- Berbagi data lokasi penelitian secara lebih praktis dan terstruktur.
+
+---
+
+## Penutup
+
+Azimutree diharapkan dapat menjadi alat bantu yang efektif bagi peneliti kesehatan hutan dalam menjaga **konsistensi lokasi penelitian**, serta mendukung keberlanjutan pengamatan kondisi hutan dari waktu ke waktu.
+
+---
+
+<p style="font-size: 12px; color: #666;">
     Developed by Asid30 © 2026
   </p>
-
-</body>
-</html>
