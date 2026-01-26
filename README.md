@@ -116,17 +116,3 @@ flutter run
 ### Catatan
 
 > Aplikasi ini dikembangkan untuk perangkat mobile Android.
-
-## Screenshots
-
-Light mode
-
-- ![Light 1](assets/repo-git-images/1.jpg)
-- ![Light 2](assets/repo-git-images/2.jpg)
-- ![Light 3](assets/repo-git-images/3.jpg)
-
-Dark mode
-
-- ![Dark 4](assets/repo-git-images/4.jpg)
-- ![Dark 5](assets/repo-git-images/5.jpg)
-- ![Dark 6](assets/repo-git-images/6.jpg)
