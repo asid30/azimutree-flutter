@@ -146,13 +146,19 @@ class TreePlotManageDataWidget extends StatelessWidget {
                     children: [
                       SlidableAction(
                         onPressed: (_) => _editTree(context, tree),
-                        backgroundColor: Colors.blue.shade100,
-                        foregroundColor:
+                        backgroundColor:
                             isDark
-                                ? const Color.fromARGB(255, 219, 219, 219)
-                                : Colors.blue.shade900,
+                                ? const Color.fromARGB(255, 54, 92, 50)
+                                : Colors.blue.shade100,
+                        foregroundColor:
+                            isDark ? Colors.white : Colors.blue.shade900,
                         icon: Icons.edit,
                         label: "Edit",
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 12,
+                        ),
+                        flex: 1,
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ],
@@ -163,13 +169,19 @@ class TreePlotManageDataWidget extends StatelessWidget {
                     children: [
                       SlidableAction(
                         onPressed: (_) => _deleteTree(context, tree),
-                        backgroundColor: Colors.red.shade100,
-                        foregroundColor:
+                        backgroundColor:
                             isDark
-                                ? const Color.fromARGB(255, 215, 83, 83)
-                                : Colors.red.shade900,
+                                ? const Color.fromARGB(255, 98, 32, 32)
+                                : Colors.red.shade100,
+                        foregroundColor:
+                            isDark ? Colors.white : Colors.red.shade900,
                         icon: Icons.delete,
                         label: "Hapus",
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 12,
+                        ),
+                        flex: 1,
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ],
