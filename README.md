@@ -107,6 +107,24 @@ Install dependencies:
 flutter pub get
 ```
 
+## Catatan Developer (Mapbox)
+
+Akses token Mapbox diperlukan untuk fitur peta. Dapatkan token di https://www.mapbox.com/.
+
+Set token sebagai environment variable sebelum menjalankan aplikasi:
+
+```bash
+export MAPBOX_ACCESS_TOKEN="your_mapbox_access_token"
+```
+
+Atau tambahkan ke `android/local.properties`:
+
+```
+MAPBOX_ACCESS_TOKEN=your_mapbox_access_token
+```
+
+Lihat dokumentasi Mapbox untuk langkah konfigurasi platform-spesifik jika diperlukan.
+
 Jalankan aplikasi:
 
 ```bash
