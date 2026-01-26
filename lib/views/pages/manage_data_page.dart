@@ -267,12 +267,13 @@ class _ManageDataPageState extends State<ManageDataPage> {
           valueListenable: isLightModeNotifier,
           builder: (context, isLight, _) {
             final isDark = !isLight;
+            // In dark mode make FAB more visible: light green background
+            // and use previous dark background color for the icon
+            final darkIconColor = const Color.fromARGB(255, 19, 41, 23);
             return FloatingActionButton(
               backgroundColor:
-                  isDark
-                      ? const Color.fromARGB(255, 19, 41, 23)
-                      : const Color(0xFF1F4226),
-              foregroundColor: Colors.white,
+                  isDark ? const Color(0xFFC1FF72) : const Color(0xFF1F4226),
+              foregroundColor: isDark ? darkIconColor : Colors.white,
               onPressed: () {
                 // Toggle bottom sheet: expand if collapsed, collapse if expanded
                 try {

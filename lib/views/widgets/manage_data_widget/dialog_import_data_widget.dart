@@ -129,6 +129,19 @@ class _DialogImportDataWidgetState extends State<DialogImportDataWidget> {
       initialDate: now,
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
+      builder: (BuildContext context, Widget? child) {
+        final isDark = !isLightModeNotifier.value;
+        if (isDark) {
+          return Theme(
+            data: ThemeData.dark(),
+            child: child ?? const SizedBox.shrink(),
+          );
+        }
+        return Theme(
+          data: Theme.of(context),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
 
     if (picked != null) {
@@ -157,12 +170,15 @@ class _DialogImportDataWidgetState extends State<DialogImportDataWidget> {
       valueListenable: isLightModeNotifier,
       builder: (context, isLightMode, _) {
         final isDark = !isLightMode;
+        final dialogBgColor =
+            isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
+        final dialogText = isDark ? Colors.white : Colors.black;
+        final labelColor = isDark ? Colors.white70 : null;
         return AlertDialog(
-          backgroundColor:
-              isDark ? const Color.fromARGB(255, 36, 67, 42) : null,
+          backgroundColor: dialogBgColor,
           title: Text(
             "Impor Data dari Excel",
-            style: TextStyle(color: isDark ? Colors.white : null),
+            style: TextStyle(color: dialogText),
           ),
           content: SingleChildScrollView(
             child: Column(
@@ -170,20 +186,54 @@ class _DialogImportDataWidgetState extends State<DialogImportDataWidget> {
               children: [
                 TextField(
                   controller: _kodeController,
+                  style: TextStyle(color: dialogText),
                   decoration: InputDecoration(
                     labelText: "Kode Klaster (Wajib)",
+                    labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
                     helperText: "Contoh: CL1 (otomatis huruf besar)",
+                    helperStyle: TextStyle(color: labelColor),
                     errorText: _isDuplicate ? "Kode klaster sudah ada" : null,
+                    errorStyle: const TextStyle(color: Colors.redAccent),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   textCapitalization: TextCapitalization.characters,
                 ),
                 const SizedBox(height: 8),
                 TextField(
                   controller: _namaController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Nama Pengukur (Wajib)",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   textCapitalization: TextCapitalization.words,
                 ),
@@ -194,11 +244,33 @@ class _DialogImportDataWidgetState extends State<DialogImportDataWidget> {
                     child: TextField(
                       controller: _tanggalController,
                       readOnly: true,
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: dialogText),
+                      decoration: InputDecoration(
                         labelText: "Tanggal Pengukuran",
-                        border: OutlineInputBorder(),
-                        suffixIcon: Icon(Icons.calendar_today),
+                        labelStyle: TextStyle(color: labelColor),
+                        border: const OutlineInputBorder(),
+                        suffixIcon: Icon(
+                          Icons.calendar_today,
+                          color: dialogText,
+                        ),
                         hintText: "YYYY-MM-DD",
+                        hintStyle: TextStyle(
+                          color: isDark ? Colors.white54 : null,
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white54 : Colors.grey,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color:
+                                isDark
+                                    ? Colors.white
+                                    : Theme.of(context).colorScheme.primary,
+                            width: 2.0,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -210,14 +282,15 @@ class _DialogImportDataWidgetState extends State<DialogImportDataWidget> {
                       child: Text(
                         _pickedFilePath ?? "Belum memilih file",
                         overflow: TextOverflow.ellipsis,
+                        style: TextStyle(color: dialogText),
                       ),
                     ),
                     const SizedBox(width: 8),
-                    ElevatedButton(
+                    OutlinedButton(
                       onPressed: _pickFile,
                       child: Text(
                         "Pilih File Excel",
-                        style: TextStyle(color: isDark ? Colors.white : null),
+                        style: TextStyle(color: dialogText),
                       ),
                     ),
                   ],
@@ -228,20 +301,27 @@ class _DialogImportDataWidgetState extends State<DialogImportDataWidget> {
           actions: [
             TextButton(
               onPressed: () => Navigator.of(context).pop(),
-              child: Text(
-                "Batal",
-                style: TextStyle(color: isDark ? Colors.white : null),
-              ),
+              child: Text("Batal", style: TextStyle(color: dialogText)),
             ),
             ValueListenableBuilder<bool>(
               valueListenable: _isFormValid,
               builder: (context, isValid, _) {
                 return TextButton(
                   onPressed: isValid ? _save : null,
-                  child: Text(
-                    "Impor",
-                    style: TextStyle(color: isDark ? Colors.white : null),
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(dialogBgColor),
+                    foregroundColor: WidgetStateProperty.resolveWith((states) {
+                      if (isDark) {
+                        return states.contains(WidgetState.disabled)
+                            ? Colors.grey
+                            : Colors.white;
+                      }
+                      return states.contains(WidgetState.disabled)
+                          ? Colors.grey
+                          : Colors.black;
+                    }),
                   ),
+                  child: const Text("Impor"),
                 );
               },
             ),

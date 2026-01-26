@@ -12,12 +12,12 @@ import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_w
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_import_data_widget.dart';
+import 'package:azimutree/views/widgets/manage_data_widget/dialog_export_data_widget.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/services/excel_import_service.dart';
-import 'package:azimutree/services/excel_export_service.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class BottomsheetManageDataWidget extends StatefulWidget {
   final ClusterNotifier clusterNotifier;
@@ -138,6 +138,7 @@ class _BottomsheetManageDataWidgetState
     String title = 'Warning!',
     required String message,
     required Color backgroundColor,
+    Color? textColor,
   }) {
     return showDialog(
       barrierDismissible: false,
@@ -147,41 +148,63 @@ class _BottomsheetManageDataWidgetState
             title: title,
             warningMessage: message,
             backgroundColor: backgroundColor,
+            textColor: textColor,
           ),
     );
   }
 
   Future<void> _showWarningNeedCluster({required String target}) async {
     if (!mounted) return;
+    final isDark = !isLightModeNotifier.value;
+    final bg =
+        isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.orange.shade200;
+    final txt = isDark ? Colors.white : Colors.black;
     await showDialog(
       barrierDismissible: false,
       context: context,
       builder:
           (_) => AlertWarningWidget(
+            title: 'Gagal!',
             warningMessage:
                 'Harap tambahkan klaster terlebih dahulu sebelum menambahkan $target.',
-            backgroundColor: Colors.orange.shade200,
+            backgroundColor: bg,
+            textColor: txt,
           ),
     );
   }
 
   Future<void> _showWarningNeedPlot({required String target}) async {
     if (!mounted) return;
+    final isDark = !isLightModeNotifier.value;
+    final bg =
+        isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.orange.shade200;
+    final txt = isDark ? Colors.white : Colors.black;
     await showDialog(
       barrierDismissible: false,
       context: context,
       builder:
           (_) => AlertWarningWidget(
+            title: 'Gagal!',
             warningMessage:
                 'Harap tambahkan plot terlebih dahulu sebelum menambahkan $target.',
-            backgroundColor: Colors.orange.shade200,
+            backgroundColor: bg,
+            textColor: txt,
           ),
     );
   }
 
   Future<void> _confirmAndOpenTemplate() async {
-    const templateUrl =
-        'https://docs.google.com/spreadsheets/d/1EN-vjd3Tn1Q1wAyW599V07c_YIaMHK4fgSvLvuOS3pI/edit?usp=sharing';
+    final templateEnv = dotenv.env['TEMPLATE_URL'];
+    if (templateEnv == null || templateEnv.trim().isEmpty) {
+      await _showAlert(
+        title: 'Gagal',
+        message:
+            'Template belum dikonfigurasi. Silakan tambahkan TEMPLATE_URL di file .env.',
+        backgroundColor: Colors.red.shade200,
+      );
+      return;
+    }
+    final templateUrl = templateEnv.trim();
 
     final confirm = await showDialog<bool>(
       context: context,
@@ -201,20 +224,45 @@ class _BottomsheetManageDataWidgetState
     final uri = Uri.parse(templateUrl);
     try {
       if (!await canLaunchUrl(uri)) {
-        await _showAlert(
-          title: 'Gagal',
-          message: 'Tidak dapat membuka browser pada perangkat ini.',
-          backgroundColor: Colors.red.shade200,
+        if (!mounted) return;
+        final isDark = !isLightModeNotifier.value;
+        final bg =
+            isDark
+                ? const Color.fromARGB(255, 131, 30, 23)
+                : Colors.red.shade200;
+        final txt = isDark ? Colors.white : Colors.black;
+        await showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder:
+              (_) => AlertWarningWidget(
+                title: 'Gagal',
+                warningMessage:
+                    'Tidak dapat membuka browser pada perangkat ini.',
+                backgroundColor: bg,
+                textColor: txt,
+              ),
         );
         return;
       }
 
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
-      await _showAlert(
-        title: 'Gagal',
-        message: 'Terjadi kesalahan saat membuka tautan: $e',
-        backgroundColor: Colors.red.shade200,
+      if (!mounted) return;
+      final isDark = !isLightModeNotifier.value;
+      final bg =
+          isDark ? const Color.fromARGB(255, 131, 30, 23) : Colors.red.shade200;
+      final txt = isDark ? Colors.white : Colors.black;
+      await showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder:
+            (_) => AlertWarningWidget(
+              title: 'Gagal',
+              warningMessage: 'Terjadi kesalahan saat membuka tautan: $e',
+              backgroundColor: bg,
+              textColor: txt,
+            ),
       );
     }
   }
@@ -235,7 +283,7 @@ class _BottomsheetManageDataWidgetState
               decoration: BoxDecoration(
                 color:
                     isDark
-                        ? const Color.fromARGB(255, 34, 66, 40)
+                        ? const Color.fromARGB(255, 44, 85, 51)
                         : const Color.fromARGB(255, 205, 237, 211),
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(20),
@@ -329,284 +377,15 @@ class _BottomsheetManageDataWidgetState
                               isDark
                                   ? const Color.fromARGB(255, 18, 43, 25)
                                   : const Color.fromARGB(255, 32, 72, 43),
-                          onPressed: () {
-                            showDialog<void>(
-                              barrierDismissible: false,
-                              context: context,
-                              builder: (dialogContext) {
-                                final clusters = widget.clusterNotifier.value;
-                                String? selectedKode =
-                                    clusters.isNotEmpty
-                                        ? clusters.first.kodeCluster
-                                        : null;
-                                String? selectedDirectoryPath;
-
-                                return StatefulBuilder(
-                                  builder: (builderContext, setState) {
-                                    return ValueListenableBuilder<bool>(
-                                      valueListenable: isLightModeNotifier,
-                                      builder: (context, isLightMode, _) {
-                                        final isDark = !isLightMode;
-                                        return AlertDialog(
-                                          title: Text(
-                                            'Ekspor Data ke Excel',
-                                            style: TextStyle(
-                                              color:
-                                                  isDark ? Colors.white : null,
-                                            ),
-                                          ),
-                                          content: SizedBox(
-                                            width: double.maxFinite,
-                                            child: Column(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                if (clusters.isEmpty) ...[
-                                                  Text(
-                                                    'Belum ada klaster tersedia.',
-                                                    style: TextStyle(
-                                                      color:
-                                                          isDark
-                                                              ? Colors.white
-                                                              : null,
-                                                    ),
-                                                  ),
-                                                ] else ...[
-                                                  Align(
-                                                    alignment:
-                                                        Alignment.centerLeft,
-                                                    child: Text(
-                                                      'Pilih klaster:',
-                                                      style: TextStyle(
-                                                        color:
-                                                            isDark
-                                                                ? Colors.white
-                                                                : null,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 30),
-                                                  DropdownButton<String>(
-                                                    value: selectedKode,
-                                                    isExpanded: true,
-                                                    dropdownColor:
-                                                        isDark
-                                                            ? Colors.grey[850]
-                                                            : null,
-                                                    style: TextStyle(
-                                                      color:
-                                                          isDark
-                                                              ? Colors.white
-                                                              : null,
-                                                    ),
-                                                    items:
-                                                        clusters
-                                                            .map(
-                                                              (
-                                                                c,
-                                                              ) => DropdownMenuItem(
-                                                                value:
-                                                                    c.kodeCluster,
-                                                                child: Text(
-                                                                  c.kodeCluster +
-                                                                      (c.namaPengukur !=
-                                                                              null
-                                                                          ? ' - ${c.namaPengukur}'
-                                                                          : ''),
-                                                                  style: TextStyle(
-                                                                    color:
-                                                                        isDark
-                                                                            ? Colors.white
-                                                                            : null,
-                                                                  ),
-                                                                ),
-                                                              ),
-                                                            )
-                                                            .toList(),
-                                                    onChanged:
-                                                        (v) => setState(
-                                                          () =>
-                                                              selectedKode = v,
-                                                        ),
-                                                  ),
-                                                  const SizedBox(height: 12),
-                                                  Align(
-                                                    alignment:
-                                                        Alignment.centerLeft,
-                                                    child: Text(
-                                                      'Simpan ke folder:',
-                                                      style: TextStyle(
-                                                        color:
-                                                            isDark
-                                                                ? Colors.white
-                                                                : null,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  Align(
-                                                    alignment:
-                                                        Alignment.centerLeft,
-                                                    child: Text(
-                                                      selectedDirectoryPath ==
-                                                              null
-                                                          ? 'Default: Download'
-                                                          : selectedDirectoryPath!,
-                                                      style: TextStyle(
-                                                        fontSize: 12,
-                                                        color:
-                                                            isDark
-                                                                ? Colors.white
-                                                                : null,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                  const SizedBox(height: 8),
-                                                  OutlinedButton(
-                                                    onPressed: () async {
-                                                      final picked =
-                                                          await FilePicker
-                                                              .platform
-                                                              .getDirectoryPath();
-                                                      if (!builderContext
-                                                          .mounted) {
-                                                        return;
-                                                      }
-                                                      if (picked == null ||
-                                                          picked
-                                                              .trim()
-                                                              .isEmpty) {
-                                                        return;
-                                                      }
-                                                      setState(
-                                                        () =>
-                                                            selectedDirectoryPath =
-                                                                picked,
-                                                      );
-                                                    },
-                                                    child: Text(
-                                                      'Pilih Folder Simpan',
-                                                      style: TextStyle(
-                                                        color:
-                                                            isDark
-                                                                ? Colors.white
-                                                                : null,
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ],
-                                            ),
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              onPressed:
-                                                  () =>
-                                                      Navigator.of(
-                                                        dialogContext,
-                                                      ).pop(),
-                                              child: Text(
-                                                'Batal',
-                                                style: TextStyle(
-                                                  color:
-                                                      isDark
-                                                          ? Colors.white
-                                                          : null,
-                                                ),
-                                              ),
-                                            ),
-                                            ElevatedButton(
-                                              onPressed:
-                                                  clusters.isEmpty
-                                                      ? null
-                                                      : () async {
-                                                        final cluster = clusters
-                                                            .firstWhere(
-                                                              (c) =>
-                                                                  c.kodeCluster ==
-                                                                  selectedKode,
-                                                              orElse:
-                                                                  () =>
-                                                                      clusters
-                                                                          .first,
-                                                            );
-                                                        Navigator.of(
-                                                          dialogContext,
-                                                        ).pop();
-                                                        showDialog<void>(
-                                                          barrierDismissible:
-                                                              false,
-                                                          context: this.context,
-                                                          useRootNavigator:
-                                                              true,
-                                                          builder:
-                                                              (
-                                                                _,
-                                                              ) => const Center(
-                                                                child:
-                                                                    CircularProgressIndicator(),
-                                                              ),
-                                                        );
-                                                        try {
-                                                          final path =
-                                                              await ExcelExportService.exportClusterToExcel(
-                                                                cluster:
-                                                                    cluster,
-                                                                directoryPath:
-                                                                    selectedDirectoryPath,
-                                                                preferDownloads:
-                                                                    selectedDirectoryPath ==
-                                                                    null,
-                                                              );
-                                                          if (!mounted) return;
-                                                          Navigator.of(
-                                                            this.context,
-                                                            rootNavigator: true,
-                                                          ).pop();
-                                                          await _showAlert(
-                                                            title: 'Sukses',
-                                                            message:
-                                                                'Ekspor selesai. File disimpan di:\n$path',
-                                                            backgroundColor:
-                                                                Colors
-                                                                    .lightGreen
-                                                                    .shade200,
-                                                          );
-                                                        } catch (e) {
-                                                          if (!mounted) return;
-                                                          Navigator.of(
-                                                            this.context,
-                                                            rootNavigator: true,
-                                                          ).pop();
-                                                          await _showAlert(
-                                                            title: 'Gagal',
-                                                            message:
-                                                                'Ekspor gagal: ${e.toString()}',
-                                                            backgroundColor:
-                                                                Colors
-                                                                    .red
-                                                                    .shade200,
-                                                          );
-                                                        }
-                                                      },
-                                              child: Text(
-                                                'Ekspor',
-                                                style: TextStyle(
-                                                  color:
-                                                      isDark
-                                                          ? Colors.white
-                                                          : null,
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        );
-                                      },
-                                    );
-                                  },
-                                );
-                              },
-                            );
-                          },
+                          onPressed:
+                              () => showDialog(
+                                context: context,
+                                barrierDismissible: false,
+                                builder:
+                                    (_) => DialogExportDataWidget(
+                                      clusterNotifier: widget.clusterNotifier,
+                                    ),
+                              ),
                         ),
                         BtmButtonManageDataWidget(
                           label: "Impor Data",

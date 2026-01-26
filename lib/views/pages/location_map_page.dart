@@ -202,8 +202,8 @@ class _LocationMapPageState extends State<LocationMapPage> {
           children: [
             //* Background App
             BackgroundAppWidget(
-              lightBackgroundImage: "assets/images/light-bg-plain.png",
-              darkBackgroundImage: "assets/images/dark-bg-plain.png",
+              lightBackgroundImage: "assets/images/light-bg-notitle.png",
+              darkBackgroundImage: "assets/images/dark-bg-notitle.png",
             ),
             MapboxWidget(),
             // Top row: legend (optional) and marker info. Marker info

@@ -207,13 +207,13 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
       valueListenable: isLightModeNotifier,
       builder: (context, isLightMode, _) {
         final isDark = !isLightMode;
+        final dialogBgColor =
+            isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
+        final dialogText = isDark ? Colors.white : Colors.black;
+        final labelColor = isDark ? Colors.white70 : null;
         return AlertDialog(
-          backgroundColor:
-              isDark ? const Color.fromARGB(255, 36, 67, 42) : Colors.white,
-          title: Text(
-            "Tambah Plot Baru",
-            style: TextStyle(color: isDark ? Colors.white : null),
-          ),
+          backgroundColor: dialogBgColor,
+          title: Text("Tambah Plot Baru", style: TextStyle(color: dialogText)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -221,16 +221,36 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
                 // 🔽 DROPDOWN KODE KLASTER
                 DropdownButtonFormField<int>(
                   initialValue: _selectedClusterId,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  dropdownColor: dialogBgColor,
+                  decoration: InputDecoration(
                     labelText: "Klaster",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   isExpanded: true,
                   items:
                       widget.clusters.map((cluster) {
                         return DropdownMenuItem<int>(
                           value: cluster.id,
-                          child: Text(cluster.kodeCluster),
+                          child: Text(
+                            cluster.kodeCluster,
+                            style: TextStyle(color: dialogText),
+                          ),
                         );
                       }).toList(),
                   onChanged: (value) {
@@ -250,21 +270,44 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
 
                 DropdownButtonFormField<int>(
                   initialValue: _selectedPlotCode,
+                  style: TextStyle(color: dialogText),
+                  dropdownColor: dialogBgColor,
                   decoration: InputDecoration(
                     labelText: "Pilih Plot",
+                    labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
                     errorText:
                         _isDuplicateCode
                             ? 'Kode plot sudah dipakai, pilih kode lain.'
                             : null,
+                    errorStyle: TextStyle(
+                      color: isDark ? Colors.orange : Colors.redAccent,
+                    ),
                     errorMaxLines: 2,
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   items:
                       _availablePlotCodesForSelectedCluster
                           .map(
                             (code) => DropdownMenuItem<int>(
                               value: code,
-                              child: Text('Plot $code'),
+                              child: Text(
+                                'Plot $code',
+                                style: TextStyle(color: dialogText),
+                              ),
                             ),
                           )
                           .toList(),
@@ -276,20 +319,39 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
                   },
                 ),
                 if (_availablePlotCodesForSelectedCluster.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.only(top: 4.0),
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4.0),
                     child: Text(
                       'Semua kode plot pada klaster ini sudah dipakai.',
-                      style: TextStyle(fontSize: 12, color: Colors.redAccent),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: isDark ? Colors.orange : Colors.redAccent,
+                      ),
                     ),
                   ),
                 const SizedBox(height: 8),
 
                 TextField(
                   controller: _latitudeController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Latitude",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -304,9 +366,25 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
 
                 TextField(
                   controller: _longitudeController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Longitude",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -321,9 +399,25 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
 
                 TextField(
                   controller: _altitudeController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Altitude (opsional)",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -338,10 +432,7 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
           ),
           actions: [
             TextButton(
-              child: Text(
-                "Batal",
-                style: TextStyle(color: isDark ? Colors.white : null),
-              ),
+              child: Text("Batal", style: TextStyle(color: dialogText)),
               onPressed: () => Navigator.of(context).pop(false),
             ),
             ValueListenableBuilder<bool>(
@@ -349,10 +440,20 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
               builder: (context, isValid, _) {
                 return TextButton(
                   onPressed: isValid ? _savePlot : null,
-                  child: Text(
-                    "Simpan",
-                    style: TextStyle(color: isDark ? Colors.white : null),
+                  style: ButtonStyle(
+                    backgroundColor: WidgetStateProperty.all(dialogBgColor),
+                    foregroundColor: WidgetStateProperty.resolveWith((states) {
+                      if (isDark) {
+                        return states.contains(WidgetState.disabled)
+                            ? Colors.grey
+                            : Colors.white;
+                      }
+                      return states.contains(WidgetState.disabled)
+                          ? Colors.grey
+                          : Colors.black;
+                    }),
                   ),
+                  child: const Text("Simpan"),
                 );
               },
             ),

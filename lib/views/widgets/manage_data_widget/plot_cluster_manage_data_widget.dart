@@ -53,7 +53,10 @@ class _PlotClusterManageDataWidgetState
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color.fromARGB(240, 180, 216, 187),
+              color:
+                  isDark
+                      ? const Color.fromARGB(255, 36, 67, 42)
+                      : const Color.fromARGB(240, 180, 216, 187),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -83,7 +86,10 @@ class _PlotClusterManageDataWidgetState
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
             decoration: BoxDecoration(
-              color: const Color.fromARGB(240, 180, 216, 187),
+              color:
+                  isDark
+                      ? const Color.fromARGB(255, 36, 67, 42)
+                      : const Color.fromARGB(240, 180, 216, 187),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -203,7 +209,12 @@ class _PlotClusterManageDataWidgetState
                             const SizedBox(height: 6),
                             Theme(
                               data: ThemeData().copyWith(
-                                dividerColor: Colors.transparent,
+                                dividerColor: const Color.fromARGB(
+                                  0,
+                                  255,
+                                  255,
+                                  255,
+                                ),
                               ),
                               child: AnimatedSize(
                                 duration: const Duration(milliseconds: 800),
@@ -273,6 +284,10 @@ class _PlotClusterManageDataWidgetState
                                       ),
                                     ],
                                   ),
+                                  // Ensure expansion icon is visible in dark mode
+                                  iconColor: isDark ? Colors.white : null,
+                                  collapsedIconColor:
+                                      isDark ? Colors.white : null,
                                   children: [
                                     const Divider(
                                       height: 1,

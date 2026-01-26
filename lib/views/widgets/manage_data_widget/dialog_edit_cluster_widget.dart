@@ -110,6 +110,19 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
       initialDate: widget.cluster.tanggalPengukuran ?? now,
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
+      builder: (BuildContext context, Widget? child) {
+        final isDark = !isLightModeNotifier.value;
+        if (isDark) {
+          return Theme(
+            data: ThemeData.dark(),
+            child: child ?? const SizedBox.shrink(),
+          );
+        }
+        return Theme(
+          data: Theme.of(context),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
 
     if (picked != null) {
@@ -150,22 +163,39 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
       valueListenable: isLightModeNotifier,
       builder: (context, isLightMode, _) {
         final isDark = !isLightMode;
+        final dialogBgColor =
+            isDark ? const Color.fromARGB(255, 36, 67, 42) : null;
+        final dialogText = isDark ? Colors.white : Colors.black;
+        final labelColor = isDark ? Colors.white70 : null;
+
         return AlertDialog(
-          backgroundColor:
-              isDark ? const Color.fromARGB(255, 36, 67, 42) : null,
-          title: Text(
-            "Edit Klaster",
-            style: TextStyle(color: isDark ? Colors.white : null),
-          ),
+          backgroundColor: dialogBgColor,
+          title: Text("Edit Klaster", style: TextStyle(color: dialogText)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: _kodeController,
+                  style: TextStyle(color: dialogText),
                   decoration: InputDecoration(
                     labelText: "Kode Klaster",
+                    labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                     errorText: _isDuplicate ? "Kode klaster sudah ada" : null,
                   ),
                   textCapitalization: TextCapitalization.characters,
@@ -173,9 +203,25 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _namaController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Nama Pengukur",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   textCapitalization: TextCapitalization.words,
                 ),
@@ -186,10 +232,29 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
                     child: TextField(
                       controller: _tanggalController,
                       readOnly: true,
-                      decoration: const InputDecoration(
+                      style: TextStyle(color: dialogText),
+                      decoration: InputDecoration(
                         labelText: "Tanggal Pengukuran",
-                        border: OutlineInputBorder(),
-                        suffixIcon: Icon(Icons.calendar_today),
+                        labelStyle: TextStyle(color: labelColor),
+                        border: const OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color: isDark ? Colors.white54 : Colors.grey,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderSide: BorderSide(
+                            color:
+                                isDark
+                                    ? Colors.white
+                                    : Theme.of(context).colorScheme.primary,
+                            width: 2.0,
+                          ),
+                        ),
+                        suffixIcon: Icon(
+                          Icons.calendar_today,
+                          color: isDark ? Colors.white70 : null,
+                        ),
                         hintText: "YYYY-MM-DD",
                       ),
                     ),

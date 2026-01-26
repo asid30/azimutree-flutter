@@ -129,13 +129,13 @@ class _DialogEditPlotWidgetState extends State<DialogEditPlotWidget> {
       valueListenable: isLightModeNotifier,
       builder: (context, isLightMode, _) {
         final isDark = !isLightMode;
+        final dialogBgColor =
+            isDark ? const Color.fromARGB(255, 36, 67, 42) : null;
+        final dialogText = isDark ? Colors.white : Colors.black;
+        final labelColor = isDark ? Colors.white70 : null;
         return AlertDialog(
-          backgroundColor:
-              isDark ? const Color.fromARGB(255, 36, 67, 42) : null,
-          title: Text(
-            "Edit Plot",
-            style: TextStyle(color: isDark ? Colors.white : null),
-          ),
+          backgroundColor: dialogBgColor,
+          title: Text("Edit Plot", style: TextStyle(color: dialogText)),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -143,31 +143,70 @@ class _DialogEditPlotWidgetState extends State<DialogEditPlotWidget> {
                 TextFormField(
                   initialValue: _cluster.kodeCluster,
                   readOnly: true,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Klaster",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(height: 8),
                 DropdownButtonFormField<int>(
                   initialValue: _selectedPlotCode,
+                  style: TextStyle(color: dialogText),
+                  dropdownColor: dialogBgColor,
                   decoration: InputDecoration(
                     labelText: "Kode Plot",
+                    labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                     errorText:
                         _isDuplicateCode ? "Kode plot sudah dipakai" : null,
                   ),
                   items: [
                     DropdownMenuItem(
                       value: widget.plot.kodePlot,
-                      child: Text("Plot ${widget.plot.kodePlot} (saat ini)"),
+                      child: Text(
+                        "Plot ${widget.plot.kodePlot} (saat ini)",
+                        style: TextStyle(color: dialogText),
+                      ),
                     ),
                     ..._availableCodes
                         .where((code) => code != widget.plot.kodePlot)
                         .map(
                           (code) => DropdownMenuItem(
                             value: code,
-                            child: Text("Plot $code"),
+                            child: Text(
+                              "Plot $code",
+                              style: TextStyle(color: dialogText),
+                            ),
                           ),
                         ),
                   ],
@@ -182,9 +221,25 @@ class _DialogEditPlotWidgetState extends State<DialogEditPlotWidget> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _latitudeController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Latitude",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -194,9 +249,25 @@ class _DialogEditPlotWidgetState extends State<DialogEditPlotWidget> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _longitudeController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Longitude",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -206,9 +277,25 @@ class _DialogEditPlotWidgetState extends State<DialogEditPlotWidget> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _altitudeController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Altitude (opsional)",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,

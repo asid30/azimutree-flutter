@@ -33,6 +33,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
       valueListenable: isLightModeNotifier,
       builder: (context, isLightMode, child) {
         final isDark = !isLightMode;
+        final dialogText = isDark ? Colors.white : Colors.black;
 
         final treesForPlot =
             treeData.where((tree) => tree.plotId == plotId).toList();
@@ -145,13 +146,19 @@ class TreePlotManageDataWidget extends StatelessWidget {
                     children: [
                       SlidableAction(
                         onPressed: (_) => _editTree(context, tree),
-                        backgroundColor: Colors.blue.shade100,
-                        foregroundColor:
+                        backgroundColor:
                             isDark
-                                ? const Color.fromARGB(255, 219, 219, 219)
-                                : Colors.blue.shade900,
+                                ? const Color.fromARGB(255, 54, 92, 50)
+                                : Colors.blue.shade100,
+                        foregroundColor:
+                            isDark ? Colors.white : Colors.blue.shade900,
                         icon: Icons.edit,
                         label: "Edit",
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 12,
+                        ),
+                        flex: 1,
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ],
@@ -162,13 +169,19 @@ class TreePlotManageDataWidget extends StatelessWidget {
                     children: [
                       SlidableAction(
                         onPressed: (_) => _deleteTree(context, tree),
-                        backgroundColor: Colors.red.shade100,
-                        foregroundColor:
+                        backgroundColor:
                             isDark
-                                ? const Color.fromARGB(255, 215, 83, 83)
-                                : Colors.red.shade900,
+                                ? const Color.fromARGB(255, 98, 32, 32)
+                                : Colors.red.shade100,
+                        foregroundColor:
+                            isDark ? Colors.white : Colors.red.shade900,
                         icon: Icons.delete,
                         label: "Hapus",
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 14,
+                          horizontal: 12,
+                        ),
+                        flex: 1,
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ],
@@ -188,6 +201,8 @@ class TreePlotManageDataWidget extends StatelessWidget {
                       ),
                       child: ExpansionTile(
                         tilePadding: const EdgeInsets.symmetric(horizontal: 12),
+                        iconColor: isDark ? Colors.white : null,
+                        collapsedIconColor: isDark ? Colors.white : null,
                         title: Text(
                           titleText,
                           style: TextStyle(color: isDark ? Colors.white : null),
@@ -225,12 +240,22 @@ class TreePlotManageDataWidget extends StatelessWidget {
                                       onPressed:
                                           () =>
                                               _trackTreeLocation(context, tree),
-                                      icon: const Icon(Icons.my_location),
+                                      icon: Icon(
+                                        Icons.my_location,
+                                        color: dialogText,
+                                      ),
                                       label: Text(
                                         'Tracking Data',
-                                        style: TextStyle(
-                                          color: isDark ? Colors.white : null,
+                                        style: TextStyle(color: dialogText),
+                                      ),
+                                      style: OutlinedButton.styleFrom(
+                                        side: BorderSide(
+                                          color:
+                                              isDark
+                                                  ? Colors.white54
+                                                  : Colors.grey,
                                         ),
+                                        foregroundColor: dialogText,
                                       ),
                                     ),
                                   ),
