@@ -64,7 +64,7 @@ Future<List<Map<String, dynamic>>> searchLocationService(String query) async {
         if (targetPlot != null) {
           localResults.add({
             'type': 'cluster',
-            'name': 'Cluster ${c.kodeCluster}',
+            'name': 'Klaster ${c.kodeCluster}',
             'clusterId': c.id,
             'plotId': targetPlot.id,
             'longitude': targetPlot.longitude.toString(),
@@ -81,7 +81,7 @@ Future<List<Map<String, dynamic>>> searchLocationService(String query) async {
         (c) => c.id == p.idCluster,
         orElse: () => ClusterModel(id: null, kodeCluster: ''),
       );
-      final display = 'Plot ${p.kodePlot} (Cluster ${cl.kodeCluster})';
+      final display = 'Plot ${p.kodePlot} (Klaster ${cl.kodeCluster})';
       if (display.toLowerCase().contains(q) ||
           p.kodePlot.toString() == normalized) {
         localResults.add({

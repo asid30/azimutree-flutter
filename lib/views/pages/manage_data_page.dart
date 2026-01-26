@@ -56,7 +56,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
         Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
       },
       child: Scaffold(
-        appBar: AppbarWidget(title: "Kelola Data Cluster Plot"),
+        appBar: AppbarWidget(title: "Kelola Data Klaster Plot"),
         drawer: SidebarWidget(),
         body: Stack(
           alignment: Alignment.topCenter,

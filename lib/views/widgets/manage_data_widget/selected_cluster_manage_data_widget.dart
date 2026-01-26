@@ -141,7 +141,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "Data Cluster",
+                                "Data Klaster",
                                 style: TextStyle(
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,

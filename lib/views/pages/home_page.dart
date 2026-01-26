@@ -76,7 +76,7 @@ class _HomePageState extends State<HomePage> {
                     mainAxisSize: MainAxisSize.max,
                     children: [
                       MenuButtonWidget(
-                        label: "Kelola Data\nCluster Plot",
+                        label: "Kelola Data\nKlaster Plot",
                         icon: Icons.storage,
                         onPressed: () {
                           Navigator.popAndPushNamed(
@@ -87,7 +87,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                       const SizedBox(height: 10),
                       MenuButtonWidget(
-                        label: "Peta Lokasi\nCluster Plot",
+                        label: "Peta Lokasi\nKlaster Plot",
                         icon: Icons.map,
                         onPressed: () {
                           Navigator.popAndPushNamed(

@@ -982,7 +982,7 @@ class _BottomsheetLocationMapWidgetState
                                         child: Row(
                                           children: [
                                             Text(
-                                              'Cluster: ${_selectedCluster?.kodeCluster ?? '-'}',
+                                              'Klaster: ${_selectedCluster?.kodeCluster ?? '-'}',
                                             ),
                                             const SizedBox(width: 12),
                                             Text(
@@ -1266,7 +1266,7 @@ class _BottomsheetLocationMapWidgetState
                                             child: Row(
                                               children: [
                                                 Text(
-                                                  'Cluster: ${cluster.kodeCluster}',
+                                                  'Klaster: ${cluster.kodeCluster}',
                                                 ),
                                                 const SizedBox(width: 12),
                                                 const Text('Centroid'),
@@ -1405,7 +1405,7 @@ class _BottomsheetLocationMapWidgetState
                                     child: Row(
                                       children: [
                                         Text(
-                                          'Cluster: ${_selectedCluster?.kodeCluster ?? '-'}',
+                                          'Klaster: ${_selectedCluster?.kodeCluster ?? '-'}',
                                         ),
                                         const SizedBox(width: 12),
                                         Text(

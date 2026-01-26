@@ -60,7 +60,7 @@ class _LocationMapPageState extends State<LocationMapPage> {
       },
       child: Scaffold(
         appBar: AppbarWidget(
-          title: "Peta Lokasi Cluster Plot",
+          title: "Peta Lokasi Klaster Plot",
           extraActions: [
             Builder(
               builder: (ctx) {

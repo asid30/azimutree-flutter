@@ -142,7 +142,7 @@ class AboutPage extends StatelessWidget {
                                       const SizedBox(height: 12),
                                       _sectionTitle(context, 'Latar Belakang'),
                                       Text(
-                                        'Dalam penelitian kesehatan hutan, kondisi lingkungan dapat berubah dari waktu ke waktu akibat faktor internal maupun eksternal. Perubahan ini sering menyebabkan lokasi cluster plot hasil penelitian terdahulu mengalami perbedaan kondisi vegetasi dan lingkungan, sehingga menyulitkan peneliti saat melakukan pengamatan lanjutan. Permasalahan semakin kompleks karena pengamatan kesehatan hutan dilakukan secara berkala dan tidak jarang melibatkan peneliti yang berbeda. Meskipun data penelitian sebelumnya biasanya menyertakan koordinat lokasi, data tersebut umumnya masih disimpan dalam bentuk file Excel, sehingga kurang praktis untuk digunakan langsung di lapangan.',
+                                        'Dalam penelitian kesehatan hutan, kondisi lingkungan dapat berubah dari waktu ke waktu akibat faktor internal maupun eksternal. Perubahan ini sering menyebabkan lokasi klaster plot hasil penelitian terdahulu mengalami perbedaan kondisi vegetasi dan lingkungan, sehingga menyulitkan peneliti saat melakukan pengamatan lanjutan. Permasalahan semakin kompleks karena pengamatan kesehatan hutan dilakukan secara berkala dan tidak jarang melibatkan peneliti yang berbeda. Meskipun data penelitian sebelumnya biasanya menyertakan koordinat lokasi, data tersebut umumnya masih disimpan dalam bentuk file Excel, sehingga kurang praktis untuk digunakan langsung di lapangan.',
                                         textAlign: TextAlign.justify,
                                         style: TextStyle(
                                           color:
@@ -159,7 +159,7 @@ class AboutPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
 
-                          // Konsep Cluster Plot
+                          // Konsep Klaster Plot
                           ValueListenableBuilder<bool>(
                             valueListenable: isLightModeNotifier,
                             builder: (context, isLightMode, _) {
@@ -182,7 +182,7 @@ class AboutPage extends StatelessWidget {
                                     children: [
                                       _sectionTitle(
                                         context,
-                                        'Konsep Cluster Plot',
+                                        'Konsep Klaster Plot',
                                       ),
                                       const SizedBox(height: 8),
                                       Center(
@@ -257,10 +257,10 @@ class AboutPage extends StatelessWidget {
                                       ),
                                       const SizedBox(height: 10),
                                       _bullet(
-                                        'Satu cluster maksimal memiliki 4 plot.',
+                                        'Satu klaster maksimal memiliki 4 plot.',
                                       ),
                                       _bullet(
-                                        'Plot 1 berfungsi sebagai sentroid (pusat cluster).',
+                                        'Plot 1 berfungsi sebagai sentroid (pusat klaster).',
                                       ),
                                       _bullet(
                                         'Plot lainnya mengelilingi plot pusat.',
@@ -299,7 +299,7 @@ class AboutPage extends StatelessWidget {
                                     children: [
                                       _sectionTitle(context, 'Tujuan Aplikasi'),
                                       _bullet(
-                                        'Memvisualisasikan titik koordinat cluster dan plot pada peta digital.',
+                                        'Memvisualisasikan titik koordinat klaster dan plot pada peta digital.',
                                       ),
                                       _bullet(
                                         'Mempermudah peneliti menemukan kembali lokasi penelitian sebelumnya di lapangan.',
@@ -351,13 +351,13 @@ class AboutPage extends StatelessWidget {
                                         'Visualisasi peta digital menggunakan Mapbox.',
                                       ),
                                       _bullet(
-                                        'Penentuan posisi cluster dan plot berdasarkan koordinat geografis.',
+                                        'Penentuan posisi klaster dan plot berdasarkan koordinat geografis.',
                                       ),
                                       _bullet(
-                                        'Informasi sudut azimut, jarak dari pusat cluster, dan jarak dari posisi pengguna.',
+                                        'Informasi sudut azimut, jarak dari pusat klaster, dan jarak dari posisi pengguna.',
                                       ),
                                       _bullet(
-                                        'Impor data dalam jumlah besar (dibatasi untuk satu cluster).',
+                                        'Impor data dalam jumlah besar (dibatasi untuk satu klaster).',
                                       ),
                                       _bullet(
                                         'Ekspor data ke format Excel untuk memudahkan berbagi data antar peneliti.',
@@ -522,7 +522,7 @@ class AboutPage extends StatelessWidget {
                                         'Lebih mudah melakukan pengamatan ulang di lokasi yang sama pada periode penelitian berikutnya.',
                                       ),
                                       _bullet(
-                                        'Menghemat waktu pencarian lokasi cluster dan plot di lapangan.',
+                                        'Menghemat waktu pencarian lokasi klaster dan plot di lapangan.',
                                       ),
                                       _bullet(
                                         'Berbagi data lokasi penelitian secara lebih praktis dan terstruktur.',
