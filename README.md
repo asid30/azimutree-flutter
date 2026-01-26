@@ -35,17 +35,25 @@ Beberapa fitur utama yang tersedia dalam aplikasi Azimutree antara lain:
 
 ## Screenshots
 
-Light mode
+<p align="center">
+  <strong>Light mode</strong>
+</p>
 
-- ![Light 1](assets/repo-git-images/1.jpg)
-- ![Light 2](assets/repo-git-images/2.jpg)
-- ![Light 3](assets/repo-git-images/3.jpg)
+<p align="center">
+  <img src="assets/repo-git-images/1.jpg" alt="Light 1" width="240" style="margin:8px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.18);" />
+  <img src="assets/repo-git-images/2.jpg" alt="Light 2" width="240" style="margin:8px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.18);" />
+  <img src="assets/repo-git-images/3.jpg" alt="Light 3" width="240" style="margin:8px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.18);" />
+</p>
 
-Dark mode
+<p align="center">
+  <strong>Dark mode</strong>
+</p>
 
-- ![Dark 4](assets/repo-git-images/4.jpg)
-- ![Dark 5](assets/repo-git-images/5.jpg)
-- ![Dark 6](assets/repo-git-images/6.jpg)
+<p align="center">
+  <img src="assets/repo-git-images/4.jpg" alt="Dark 4" width="240" style="margin:8px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.36);" />
+  <img src="assets/repo-git-images/5.jpg" alt="Dark 5" width="240" style="margin:8px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.36);" />
+  <img src="assets/repo-git-images/6.jpg" alt="Dark 6" width="240" style="margin:8px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.36);" />
+</p>
 
 ## Tujuan Aplikasi
 
