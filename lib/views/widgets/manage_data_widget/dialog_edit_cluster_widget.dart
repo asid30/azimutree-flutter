@@ -110,6 +110,19 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
       initialDate: widget.cluster.tanggalPengukuran ?? now,
       firstDate: DateTime(2000),
       lastDate: DateTime(2101),
+      builder: (BuildContext context, Widget? child) {
+        final isDark = !isLightModeNotifier.value;
+        if (isDark) {
+          return Theme(
+            data: ThemeData.dark(),
+            child: child ?? const SizedBox.shrink(),
+          );
+        }
+        return Theme(
+          data: Theme.of(context),
+          child: child ?? const SizedBox.shrink(),
+        );
+      },
     );
 
     if (picked != null) {
