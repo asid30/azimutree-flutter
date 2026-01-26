@@ -107,7 +107,8 @@ Install dependencies:
 flutter pub get
 ```
 
-**Penting**
+**Penting:**
+
 Akses token Mapbox diperlukan untuk fitur peta. Dapatkan token di https://www.mapbox.com/.
 
 Gunakan `env_template` yang sudah ada — salin dan ubah namanya menjadi `.env`, lalu isi nilai `MAP_BOX_ACCESS` di file `.env`:
