@@ -26,10 +26,7 @@ class TutorialPage extends StatelessWidget {
             ),
             SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: ValueListenableBuilder<bool>(
                   valueListenable: isLightModeNotifier,
                   builder: (context, isLight, _) {
@@ -61,28 +58,33 @@ class TutorialPage extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            BackButton(
-                              color: isDark ? Colors.white : null,
-                              onPressed:
-                                  () => Navigator.popAndPushNamed(
-                                    context,
-                                    'home',
-                                  ),
+                            ValueListenableBuilder<bool>(
+                              valueListenable: isLightModeNotifier,
+                              builder: (context, isLight, child) {
+                                return BackButton(
+                                  color: isLight ? null : Colors.white,
+                                  onPressed: () {
+                                    Navigator.popAndPushNamed(context, "home");
+                                  },
+                                );
+                              },
                             ),
-                            const SizedBox(width: 8),
-                            Text(
-                              'Panduan Aplikasi',
-                              textAlign: TextAlign.left,
-                              style: TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w600,
-                                color: isDark ? Colors.white : Colors.black,
-                              ),
+                            ValueListenableBuilder<bool>(
+                              valueListenable: isLightModeNotifier,
+                              builder: (context, isLight, child) {
+                                return Text(
+                                  "Kembali",
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    color: isLight ? null : Colors.white,
+                                  ),
+                                );
+                              },
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
 
                         Card(
                           color:
@@ -514,7 +516,7 @@ class TutorialPage extends StatelessWidget {
                                   children: [
                                     normal(
                                       '• Ganti Tema Terang / Gelap.\n'
-                                      '• Mode Debug:\n'
+                                      '• Mode Debug pada fitur kelola data:\n'
                                       '  – Generate data acak.\n'
                                       '  – Hapus seluruh data (khusus pengujian).',
                                     ),
