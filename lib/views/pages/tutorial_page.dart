@@ -1,4 +1,3 @@
-//* tutorial page
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
@@ -13,331 +12,332 @@ class TutorialPage extends StatelessWidget {
     return PopScope(
       canPop: false,
       onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          return;
-        }
+        if (didPop) return;
         Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
       },
       child: Scaffold(
-        appBar: const AppbarWidget(title: "Panduan Aplikasi"),
+        appBar: const AppbarWidget(title: 'Panduan Aplikasi'),
         drawer: const SidebarWidget(),
         body: Stack(
           children: [
-            //* Background App
             BackgroundAppWidget(
-              lightBackgroundImage: "assets/images/light-bg-notitle.png",
-              darkBackgroundImage: "assets/images/dark-bg-notitle.png",
+              lightBackgroundImage: 'assets/images/light-bg-notitle.png',
+              darkBackgroundImage: 'assets/images/dark-bg-notitle.png',
             ),
-            //* Content
             SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.symmetric(
                   horizontal: 16,
-                  vertical: 0,
+                  vertical: 12,
                 ),
                 child: ValueListenableBuilder<bool>(
                   valueListenable: isLightModeNotifier,
-                  builder: (context, isLight, child) {
+                  builder: (context, isLight, _) {
                     final isDark = !isLight;
-                    return DefaultTextStyle(
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
+                    final bodyColor = isDark ? Colors.white70 : Colors.black87;
+
+                    Widget bold(String text) => Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        text,
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          color: bodyColor,
+                        ),
                       ),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              ValueListenableBuilder<bool>(
-                                valueListenable: isLightModeNotifier,
-                                builder: (context, isLight, child) {
-                                  return BackButton(
-                                    color: isLight ? null : Colors.white,
-                                    onPressed: () {
-                                      Navigator.popAndPushNamed(
-                                        context,
-                                        "home",
-                                      );
-                                    },
-                                  );
-                                },
+                    );
+
+                    Widget normal(String text) => Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        text,
+                        textAlign: TextAlign.left,
+                        style: TextStyle(color: bodyColor),
+                      ),
+                    );
+
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            BackButton(
+                              color: isDark ? Colors.white : null,
+                              onPressed:
+                                  () => Navigator.popAndPushNamed(
+                                    context,
+                                    'home',
+                                  ),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Panduan Aplikasi',
+                              textAlign: TextAlign.left,
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: isDark ? Colors.white : Colors.black,
                               ),
-                              ValueListenableBuilder<bool>(
-                                valueListenable: isLightModeNotifier,
-                                builder: (context, isLight, child) {
-                                  return Text(
-                                    "Kembali",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: isLight ? null : Colors.white,
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+
+                        Card(
+                          color:
+                              isDark
+                                  ? const Color.fromARGB(255, 36, 67, 42)
+                                  : const Color.fromARGB(240, 180, 216, 187),
+                          child: Theme(
+                            data: Theme.of(
+                              context,
+                            ).copyWith(dividerColor: Colors.transparent),
+                            child: Column(
+                              children: [
+                                /// =============================
+                                /// 1. DASHBOARD
+                                /// =============================
+                                ExpansionTile(
+                                  title: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '1. Tampilan Dashboard 🏠',
+                                      textAlign: TextAlign.left,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color:
+                                            isDark
+                                                ? Colors.white
+                                                : Colors.black,
+                                      ),
                                     ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isLightModeNotifier,
-                            builder: (context, isLightMode, _) {
-                              final isDark = !isLightMode;
-                              return Card(
-                                color:
-                                    isDark
-                                        ? const Color.fromARGB(255, 36, 67, 42)
-                                        : const Color.fromARGB(
-                                          240,
-                                          180,
-                                          216,
-                                          187,
-                                        ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Panduan Singkat Azimutree',
-                                        style: TextStyle(
-                                          fontSize: 22,
-                                          fontWeight: FontWeight.bold,
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Panduan ini memperkenalkan alur kerja dasar aplikasi: membuat klaster, menambahkan plot, lalu merekam pohon beserta lokasi dan foto. Ikuti langkah-langkah di bawah untuk memulai.',
-                                        textAlign: TextAlign.justify,
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                    ],
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isLightModeNotifier,
-                            builder: (context, isLightMode, _) {
-                              final isDark = !isLightMode;
-                              return Card(
-                                color:
-                                    isDark
-                                        ? const Color.fromARGB(255, 36, 67, 42)
-                                        : const Color.fromARGB(
-                                          240,
-                                          180,
-                                          216,
-                                          187,
-                                        ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Langkah Awal',
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleMedium?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        '• Buat Klaster baru: buka Kelola Data → Tambah Klaster.',
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                      Text(
-                                        '• Tambah Plot: setelah klaster dibuat, tambahkan plot pada klaster tersebut.',
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                      Text(
-                                        '• Rekam Pohon: pada plot, tambahkan data pohon termasuk azimut, jarak, dan (opsional) foto.',
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        'Setiap perubahan disimpan secara lokal.',
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                    ],
+                                  childrenPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
                                   ),
+                                  children: [
+                                    bold('Menu Tombol Besar'),
+                                    normal(
+                                      '• Kelola Data Cluster Plot – Mengelola data cluster, plot, dan pohon.\n'
+                                      '• Peta Lokasi Cluster Plot – Menampilkan visualisasi data di peta.\n'
+                                      '• Panduan Aplikasi – Membuka halaman panduan ini.',
+                                    ),
+
+                                    const SizedBox(height: 8),
+                                    bold('Menu Tombol Kecil'),
+                                    normal(
+                                      '• Settings – Pengaturan tema dan mode debug.\n'
+                                      '• About Aplikasi – Informasi aplikasi.\n'
+                                      '• Keluar – Menutup sesi aplikasi.',
+                                    ),
+
+                                    const SizedBox(height: 8),
+                                    normal(
+                                      'Sidebar dapat diakses dari pojok kiri atas. '
+                                      'Tombol ganti tema tersedia di pojok kanan atas. 🌗',
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isLightModeNotifier,
-                            builder: (context, isLightMode, _) {
-                              final isDark = !isLightMode;
-                              return Card(
-                                color:
-                                    isDark
-                                        ? const Color.fromARGB(255, 36, 67, 42)
-                                        : const Color.fromARGB(
-                                          240,
-                                          180,
-                                          216,
-                                          187,
-                                        ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Fitur Utama',
-                                        style: Theme.of(
-                                          context,
-                                        ).textTheme.titleMedium?.copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
+
+                                /// =============================
+                                /// 2. KELOLA DATA
+                                /// =============================
+                                ExpansionTile(
+                                  title: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '2. Kelola Data Cluster Plot 🌳',
+                                      textAlign: TextAlign.left,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color:
+                                            isDark
+                                                ? Colors.white
+                                                : Colors.black,
                                       ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        '• Visualisasi plot dan pohon di peta interaktif.',
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                      Text(
-                                        '• Edit dan hapus data plot/pohon melalui antarmuka manajemen data.',
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                      Text(
-                                        '• Pratinjau foto pohon dan tracking lokasi ke peta.',
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                    ],
+                                    ),
                                   ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isLightModeNotifier,
-                            builder: (context, isLightMode, _) {
-                              final isDark = !isLightMode;
-                              return Card(
-                                color:
-                                    isDark
-                                        ? const Color.fromARGB(255, 36, 67, 42)
-                                        : const Color.fromARGB(
-                                          240,
-                                          180,
-                                          216,
-                                          187,
-                                        ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Tips & Praktik Lapangan',
-                                        style: TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        '• Pastikan perangkat memiliki GPS aktif dan akurasi yang baik saat merekam lokasi.',
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                      Text(
-                                        '• Ambil beberapa foto dari sudut berbeda jika kondisi pencahayaan buruk.',
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                      Text(
-                                        '• Simpan data secara berkala saat bekerja di lapangan untuk menghindari kehilangan data.',
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                    ],
+                                  childrenPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
                                   ),
+                                  children: [
+                                    bold('Akses Menu'),
+                                    normal(
+                                      'Gunakan Floating Action Button (FAB) untuk:\n'
+                                      '• Input manual\n• Impor data Excel\n• Ekspor data\n• Unduh template',
+                                    ),
+
+                                    const SizedBox(height: 8),
+                                    bold('Input Manual Plot'),
+                                    normal(
+                                      '1. Pilih Cluster (dropdown).\n'
+                                      '2. Pilih Plot (maksimal 4 plot per cluster).\n'
+                                      '   • Jika semua plot dalam cluster sudah terisi, '
+                                      'opsi tidak dapat dipilih.\n'
+                                      '3. Masukkan Latitude.\n'
+                                      '4. Masukkan Longitude.\n'
+                                      '5. Masukkan Altitude (opsional).',
+                                    ),
+
+                                    const SizedBox(height: 8),
+                                    bold('Input Manual Pohon'),
+                                    normal(
+                                      '1. Pilih Cluster.\n'
+                                      '2. Pilih Plot.\n'
+                                      '3. Pilih metode input posisi:\n'
+                                      '   • Azimut & Jarak, ATAU\n'
+                                      '   • Koordinat Bebas (Latitude & Longitude).\n'
+                                      '   (Hanya bisa memilih salah satu).\n'
+                                      '4. Masukkan Altitude (opsional).\n'
+                                      '5. Masukkan Kode Pohon (gunakan angka).\n'
+                                      '6. Masukkan Nama Pohon.\n'
+                                      '7. Masukkan Nama Ilmiah.\n'
+                                      '8. Masukkan Keterangan (opsional).\n'
+                                      '9. Masukkan URL Foto.\n'
+                                      '   • Disarankan Google Drive.\n'
+                                      '   • Pastikan URL bersifat PUBLIC.\n'
+                                      '   • URL harus langsung menuju file gambar.',
+                                    ),
+
+                                    const SizedBox(height: 8),
+                                    bold('Edit & Hapus Data Pohon'),
+                                    normal(
+                                      '• Geser ke kiri → Edit data ✏️\n'
+                                      '• Geser ke kanan → Hapus data 🗑️\n'
+                                      '• Data yang dihapus akan hilang permanen dan '
+                                      'tidak dapat dikembalikan.',
+                                    ),
+                                  ],
                                 ),
-                              );
-                            },
+
+                                /// =============================
+                                /// 3. MAP
+                                /// =============================
+                                ExpansionTile(
+                                  title: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '3. Peta Lokasi Cluster Plot 🗺️',
+                                      textAlign: TextAlign.left,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color:
+                                            isDark
+                                                ? Colors.white
+                                                : Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  childrenPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  children: [
+                                    bold('Marker & Warna'),
+                                    normal(
+                                      '• Biru 🔵 : Marker Plot\n'
+                                      '• Ungu 🟣 : Sentroid otomatis (jika cluster tidak memiliki plot)\n'
+                                      '• Oranye 🟠 : Marker Pohon\n'
+                                      '• Hijau 🟢 : Pohon yang sudah diinspeksi\n'
+                                      '• Merah 🔴 : Hasil pencarian lokasi',
+                                    ),
+
+                                    const SizedBox(height: 8),
+                                    bold('Garis Relasi'),
+                                    normal(
+                                      '• Garis merah: hubungan pohon ke plot.\n'
+                                      '• Garis biru: hubungan antar plot atau plot ke sentroid.',
+                                    ),
+
+                                    const SizedBox(height: 8),
+                                    bold('Tipe Peta'),
+                                    normal(
+                                      '• Satelit 🛰️\n'
+                                      '• Medan 🌄',
+                                    ),
+
+                                    const SizedBox(height: 8),
+                                    bold('Workflow Inspeksi'),
+                                    normal(
+                                      'Jika lokasi pengguna aktif:\n'
+                                      '• Jarak dan arah dari posisi pengguna ke marker '
+                                      'yang dipilih akan ditampilkan.\n'
+                                      '• Informasi muncul pada marker info di pojok kiri atas.\n'
+                                      '• Sangat membantu peneliti menuju pohon atau plot '
+                                      'yang akan diamati. 🧭',
+                                    ),
+                                  ],
+                                ),
+
+                                /// =============================
+                                /// 4. SETTINGS
+                                /// =============================
+                                ExpansionTile(
+                                  title: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '4. Settings ⚙️',
+                                      textAlign: TextAlign.left,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color:
+                                            isDark
+                                                ? Colors.white
+                                                : Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  childrenPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  children: [
+                                    normal(
+                                      '• Ganti Tema Terang / Gelap.\n'
+                                      '• Mode Debug:\n'
+                                      '  – Generate data acak.\n'
+                                      '  – Hapus seluruh data (khusus pengujian).',
+                                    ),
+                                  ],
+                                ),
+
+                                /// =============================
+                                /// 5. PENUTUP
+                                /// =============================
+                                ExpansionTile(
+                                  title: Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: Text(
+                                      '5. Penutup 🌱',
+                                      textAlign: TextAlign.left,
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        color:
+                                            isDark
+                                                ? Colors.white
+                                                : Colors.black,
+                                      ),
+                                    ),
+                                  ),
+                                  childrenPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                  ),
+                                  children: [
+                                    normal(
+                                      'Azimutree dirancang sebagai alat bantu '
+                                      'visualisasi dan navigasi penelitian '
+                                      'kesehatan hutan berbasis cluster dan plot. '
+                                      'Gunakan aplikasi ini sebagai pendamping '
+                                      'kerja lapangan agar pengamatan menjadi '
+                                      'lebih terstruktur, akurat, dan efisien.',
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
-                          const SizedBox(height: 24),
-                        ],
-                      ),
+                        ),
+                        const SizedBox(height: 24),
+                      ],
                     );
                   },
                 ),
