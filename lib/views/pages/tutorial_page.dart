@@ -113,6 +113,9 @@ class TutorialPage extends StatelessWidget {
                                       ),
                                     ),
                                   ),
+                                  iconColor: isDark ? Colors.white : null,
+                                  collapsedIconColor:
+                                      isDark ? Colors.white : null,
                                   childrenPadding: const EdgeInsets.symmetric(
                                     horizontal: 16,
                                   ),
@@ -158,6 +161,9 @@ class TutorialPage extends StatelessWidget {
                                       ),
                                     ),
                                   ),
+                                  iconColor: isDark ? Colors.white : null,
+                                  collapsedIconColor:
+                                      isDark ? Colors.white : null,
                                   childrenPadding: const EdgeInsets.symmetric(
                                     horizontal: 16,
                                   ),
@@ -166,6 +172,15 @@ class TutorialPage extends StatelessWidget {
                                     normal(
                                       'Gunakan Floating Action Button (FAB) untuk:\n'
                                       '• Input manual\n• Impor data Excel\n• Ekspor data\n• Unduh template',
+                                    ),
+                                    const SizedBox(height: 8),
+
+                                    bold('Input Manual Klaster'),
+                                    normal(
+                                      '1. Masukkan Kode Klaster.\n'
+                                      '2. Masukkan Nama Pengukur.\n'
+                                      '3. Pilih Tanggal Pengukuran.\n'
+                                      '4. Tekan Simpan untuk menyimpan informasi klaster.',
                                     ),
 
                                     const SizedBox(height: 8),
@@ -186,7 +201,7 @@ class TutorialPage extends StatelessWidget {
                                       '1. Pilih Cluster.\n'
                                       '2. Pilih Plot.\n'
                                       '3. Pilih metode input posisi:\n'
-                                      '   • Azimut & Jarak, ATAU\n'
+                                      '   • Azimut & Jarak, atau\n'
                                       '   • Koordinat Bebas (Latitude & Longitude).\n'
                                       '   (Hanya bisa memilih salah satu).\n'
                                       '4. Masukkan Altitude (opsional).\n'
@@ -196,7 +211,7 @@ class TutorialPage extends StatelessWidget {
                                       '8. Masukkan Keterangan (opsional).\n'
                                       '9. Masukkan URL Foto.\n'
                                       '   • Disarankan Google Drive.\n'
-                                      '   • Pastikan URL bersifat PUBLIC.\n'
+                                      '   • Pastikan URL bersifat Public.\n'
                                       '   • URL harus langsung menuju file gambar.',
                                     ),
 
@@ -207,6 +222,36 @@ class TutorialPage extends StatelessWidget {
                                       '• Geser ke kanan → Hapus data 🗑️\n'
                                       '• Data yang dihapus akan hilang permanen dan '
                                       'tidak dapat dikembalikan.',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    bold('Impor Data Menggunakan Excel'),
+                                    normal(
+                                      'Azimutree menyediakan fitur impor data menggunakan file Excel untuk mempermudah input data dalam jumlah besar.\n'
+                                      'Langkah-langkah impor data:\n'
+                                      '1. Tekan Unduh Template untuk mendapatkan format Excel resmi.\n'
+                                      '2. Isi file Excel sesuai format template (format harus sama persis).\n'
+                                      '3. Tekan Impor Data.\n'
+                                      '4. Isi dialog impor:\n'
+                                      '   • Kode Cluster\n'
+                                      '   • Nama Pengukur\n'
+                                      '   • Tanggal Pengukuran\n'
+                                      '   • Pilih File Excel\n'
+                                      '   • Berikan izin akses penyimpanan jika diminta.\n'
+                                      '5. Tekan tombol Impor.',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    normal(
+                                      'Catatan:\n'
+                                      '• Pastikan data pada file Excel sudah benar sebelum mengimpor.\n'
+                                      '• Jika terdapat kesalahan format atau data duplikat, proses impor akan gagal dan menampilkan pesan error.\n'
+                                      '• Data yang berhasil diimpor akan langsung muncul di daftar Kelola Data dan di peta.',
+                                    ),
+                                    const SizedBox(height: 8),
+                                    bold('Ekspor Data'),
+                                    normal(
+                                      'Menu Ekspor Data digunakan untuk membagikan data antar pengguna Azimutree.\n'
+                                      'Data akan diekspor dalam bentuk file Excel.\n'
+                                      'File hasil ekspor dapat langsung diimpor oleh pengguna Azimutree lainnya.',
                                     ),
                                   ],
                                 ),
@@ -229,6 +274,9 @@ class TutorialPage extends StatelessWidget {
                                       ),
                                     ),
                                   ),
+                                  iconColor: isDark ? Colors.white : null,
+                                  collapsedIconColor:
+                                      isDark ? Colors.white : null,
                                   childrenPadding: const EdgeInsets.symmetric(
                                     horizontal: 16,
                                   ),
@@ -457,6 +505,9 @@ class TutorialPage extends StatelessWidget {
                                       ),
                                     ),
                                   ),
+                                  iconColor: isDark ? Colors.white : null,
+                                  collapsedIconColor:
+                                      isDark ? Colors.white : null,
                                   childrenPadding: const EdgeInsets.symmetric(
                                     horizontal: 16,
                                   ),
