@@ -297,39 +297,7 @@ class TutorialPage extends StatelessWidget {
                                       '  – Generate data acak.\n'
                                       '  – Hapus seluruh data (khusus pengujian).',
                                     ),
-                                  ],
-                                ),
-
-                                /// =============================
-                                /// 5. PENUTUP
-                                /// =============================
-                                ExpansionTile(
-                                  title: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      '5. Penutup 🌱',
-                                      textAlign: TextAlign.left,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color:
-                                            isDark
-                                                ? Colors.white
-                                                : Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  childrenPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  children: [
-                                    normal(
-                                      'Azimutree dirancang sebagai alat bantu '
-                                      'visualisasi dan navigasi penelitian '
-                                      'kesehatan hutan berbasis cluster dan plot. '
-                                      'Gunakan aplikasi ini sebagai pendamping '
-                                      'kerja lapangan agar pengamatan menjadi '
-                                      'lebih terstruktur, akurat, dan efisien.',
-                                    ),
+                                    SizedBox(height: 24),
                                   ],
                                 ),
                               ],
