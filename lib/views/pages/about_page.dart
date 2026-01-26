@@ -3,6 +3,7 @@ import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
@@ -564,6 +565,92 @@ class AboutPage extends StatelessWidget {
                                               isDark
                                                   ? Colors.white
                                                   : Colors.black,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 30),
+                                      Center(
+                                        child: Text(
+                                          'Developed by Asid30 © 2026',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.w600,
+                                            color:
+                                                isDark
+                                                    ? Colors.white70
+                                                    : Colors.black54,
+                                          ),
+                                        ),
+                                      ),
+                                      Center(
+                                        child: InkWell(
+                                          borderRadius: BorderRadius.circular(
+                                            4,
+                                          ),
+                                          onTap: () async {
+                                            const urlString =
+                                                'https://azimutree.my.id/';
+                                            final uri = Uri.parse(urlString);
+                                            final messenger =
+                                                ScaffoldMessenger.of(context);
+                                            try {
+                                              if (await canLaunchUrl(uri)) {
+                                                await launchUrl(
+                                                  uri,
+                                                  mode:
+                                                      LaunchMode
+                                                          .externalApplication,
+                                                );
+                                              } else {
+                                                final bg =
+                                                    isDark
+                                                        ? const Color.fromARGB(
+                                                          255,
+                                                          131,
+                                                          30,
+                                                          23,
+                                                        )
+                                                        : Colors.red.shade200;
+                                                messenger.showSnackBar(
+                                                  SnackBar(
+                                                    content: const Text(
+                                                      'Cannot open link',
+                                                    ),
+                                                    backgroundColor: bg,
+                                                  ),
+                                                );
+                                              }
+                                            } catch (e) {
+                                              final bg =
+                                                  isDark
+                                                      ? const Color.fromARGB(
+                                                        255,
+                                                        131,
+                                                        30,
+                                                        23,
+                                                      )
+                                                      : Colors.red.shade200;
+                                              messenger.showSnackBar(
+                                                SnackBar(
+                                                  content: Text(
+                                                    'Error opening link: $e',
+                                                  ),
+                                                  backgroundColor: bg,
+                                                ),
+                                              );
+                                            }
+                                          },
+                                          child: Text(
+                                            'https://azimutree.my.id/',
+                                            style: TextStyle(
+                                              decoration:
+                                                  TextDecoration.underline,
+                                              color:
+                                                  isDark
+                                                      ? Colors.white70
+                                                      : Colors.blue.shade700,
+                                            ),
+                                          ),
                                         ),
                                       ),
                                     ],
