@@ -62,3 +62,31 @@ Azimutree diharapkan dapat menjadi alat bantu yang efektif bagi peneliti kesehat
 <p style="font-size: 12px; color: #666;">
     Developed by Asid30 © 2026
   </p>
+
+---
+
+## Instalasi
+
+> **Catatan untuk Developer:** bagian ini khusus ditujukan untuk pengembang yang ingin menjalankan atau mengembangkan aplikasi secara lokal.
+
+Clone repositori:
+
+```bash
+git clone https://github.com/asid30/azimutree-flutter.git
+```
+
+Install dependencies:
+
+```bash
+flutter pub get
+```
+
+Jalankan aplikasi:
+
+```bash
+flutter run
+```
+
+### Catatan
+
+> Aplikasi ini dikembangkan untuk perangkat mobile Android.
