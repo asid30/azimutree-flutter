@@ -233,17 +233,19 @@ class TutorialPage extends StatelessWidget {
                                     horizontal: 16,
                                   ),
                                   children: [
-                                    bold('Marker & Warna'),
+                                    // 3.1 Marker dan Warna
+                                    bold('Marker dan Warna'),
                                     normal(
+                                      'Pada peta lokasi cluster plot, marker dan warna memiliki arti sebagai berikut:\n'
                                       '• Biru 🔵 : Marker Plot\n'
-                                      '• Ungu 🟣 : Sentroid otomatis (jika cluster tidak memiliki plot)\n'
+                                      '• Ungu 🟣 : Sentroid otomatis (jika cluster tidak memiliki Plot 1)\n'
                                       '• Oranye 🟠 : Marker Pohon\n'
                                       '• Hijau 🟢 : Pohon yang sudah diinspeksi\n'
-                                      '• Merah 🔴 : Hasil pencarian lokasi',
+                                      '• Merah 🔴 : Marker hasil pencarian lokasi\n',
                                     ),
 
-                                    const SizedBox(height: 8),
-                                    bold('Garis Relasi'),
+                                    // Garis pada peta (inline examples)
+                                    bold('Garis pada peta'),
                                     Align(
                                       alignment: Alignment.centerLeft,
                                       child: RichText(
@@ -254,14 +256,14 @@ class TutorialPage extends StatelessWidget {
                                           ),
                                           children: [
                                             const TextSpan(
-                                              text: '• Garis merah ',
+                                              text: '• Garis Merah ',
                                             ),
                                             WidgetSpan(
                                               alignment:
                                                   PlaceholderAlignment.middle,
                                               child: Container(
-                                                width: 16,
-                                                height: 8,
+                                                width: 24,
+                                                height: 6,
                                                 margin:
                                                     const EdgeInsets.symmetric(
                                                       horizontal: 6,
@@ -275,28 +277,23 @@ class TutorialPage extends StatelessWidget {
                                             ),
                                             const TextSpan(
                                               text:
-                                                  ': hubungan pohon ke plot.\n',
+                                                  ': Relasi antara pohon ke plot.\n',
                                             ),
                                             const TextSpan(
-                                              text: '• Garis biru ',
+                                              text: '• Garis Biru ',
                                             ),
                                             WidgetSpan(
                                               alignment:
                                                   PlaceholderAlignment.middle,
                                               child: Container(
-                                                width: 16,
-                                                height: 8,
+                                                width: 24,
+                                                height: 6,
                                                 margin:
                                                     const EdgeInsets.symmetric(
                                                       horizontal: 6,
                                                     ),
                                                 decoration: BoxDecoration(
-                                                  color: const Color.fromARGB(
-                                                    255,
-                                                    90,
-                                                    151,
-                                                    255,
-                                                  ),
+                                                  color: Colors.blueAccent,
                                                   borderRadius:
                                                       BorderRadius.circular(2),
                                                 ),
@@ -304,28 +301,140 @@ class TutorialPage extends StatelessWidget {
                                             ),
                                             const TextSpan(
                                               text:
-                                                  ': hubungan antar plot atau plot ke sentroid.',
+                                                  ': Relasi antara plot ke plot atau plot ke sentroid.\n\n',
+                                            ),
+                                            const TextSpan(
+                                              text:
+                                                  'Informasi warna marker dan garis dapat dilihat pada legenda di kanan bawah peta.',
                                             ),
                                           ],
                                         ),
                                       ),
                                     ),
-                                    const SizedBox(height: 8),
-                                    bold('Tipe Peta'),
+
+                                    const SizedBox(height: 12),
+
+                                    // 3.2 Bottom Sheet Peta
+                                    bold('Bottom Sheet Peta'),
                                     normal(
-                                      '• Satelit 🛰️\n'
-                                      '• Medan 🌄',
+                                      'Di bagian bawah peta tersedia bottom sheet dengan fungsi:\n'
+                                      '• Pencarian lokasi (nama kota, tempat, dll).\n'
+                                      '• Mengganti tipe peta: Satelit / Medan.\n'
+                                      '• Tombol menyalakan lokasi pengguna.\n'
+                                      '• Tombol mengarahkan peta ke utara.\n\n'
+                                      'Catatan: Nama tempat pada peta bersifat non-interaktif karena keterbatasan layanan peta.',
                                     ),
 
-                                    const SizedBox(height: 8),
-                                    bold('Workflow Inspeksi'),
+                                    const SizedBox(height: 12),
+
+                                    // 3.3 Interaksi Marker
+                                    bold('Interaksi Marker'),
                                     normal(
-                                      'Jika lokasi pengguna aktif:\n'
-                                      '• Jarak dan arah dari posisi pengguna ke marker '
-                                      'yang dipilih akan ditampilkan.\n'
-                                      '• Informasi muncul pada marker info di pojok kiri atas.\n'
-                                      '• Sangat membantu peneliti menuju pohon atau plot '
-                                      'yang akan diamati. 🧭',
+                                      'Data cluster dari menu Kelola Data akan otomatis muncul di peta.\n'
+                                      '• Marker dapat ditekan untuk melihat relasi antar plot dan pohon.\n'
+                                      '• Saat marker ditekan, informasi muncul di pojok kiri atas dan juga tersedia di bottom sheet.\n'
+                                      '• Pengguna dapat melakukan centering kamera ke marker.',
+                                    ),
+
+                                    const SizedBox(height: 12),
+
+                                    // 3.4 Map Tools
+                                    bold('Map Tools'),
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: RichText(
+                                        text: TextSpan(
+                                          style: TextStyle(
+                                            color: bodyColor,
+                                            fontSize: 14,
+                                          ),
+                                          children: [
+                                            const TextSpan(
+                                              text:
+                                                  'Di pojok kanan atas terdapat Map Tools, yang membuka sidebar kanan dengan beberapa fitur:\n\n',
+                                            ),
+                                            TextSpan(
+                                              text: '• Klik Marker',
+                                              style: TextStyle(
+                                                fontStyle: FontStyle.italic,
+                                                color: bodyColor,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text:
+                                                  ' – mengaktifkan/menonaktifkan interaksi sentuhan marker.\n\n',
+                                              style: TextStyle(
+                                                color: bodyColor,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: '• Tampilkan Legenda',
+                                              style: TextStyle(
+                                                fontStyle: FontStyle.italic,
+                                                color: bodyColor,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text:
+                                                  ' – menampilkan atau menyembunyikan legenda peta.\n\n',
+                                              style: TextStyle(
+                                                color: bodyColor,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: '• Tampilkan Info Marker',
+                                              style: TextStyle(
+                                                fontStyle: FontStyle.italic,
+                                                color: bodyColor,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text:
+                                                  ' – menampilkan atau menyembunyikan info marker di layar.\n\n',
+                                              style: TextStyle(
+                                                color: bodyColor,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: '• Workflow Inspeksi',
+                                              style: TextStyle(
+                                                fontStyle: FontStyle.italic,
+                                                color: bodyColor,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text:
+                                                  ' – menampilkan tombol Tandai (Mark) pada marker; pohon yang ditandai akan berubah warna menjadi hijau.\n\n',
+                                              style: TextStyle(
+                                                color: bodyColor,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text: '• Tampilkan Garis Relasi',
+                                              style: TextStyle(
+                                                fontStyle: FontStyle.italic,
+                                                color: bodyColor,
+                                              ),
+                                            ),
+                                            TextSpan(
+                                              text:
+                                                  ' – menampilkan atau menyembunyikan garis relasi antar marker.\n',
+                                              style: TextStyle(
+                                                color: bodyColor,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+
+                                    const SizedBox(height: 12),
+
+                                    // 3.5 Navigasi Lapangan
+                                    bold('Navigasi Lapangan'),
+                                    normal(
+                                      'Jika fitur Workflow Inspeksi dan Lokasi Pengguna aktif, informasi jarak dan arah dari posisi pengguna ke marker yang dipilih akan ditampilkan pada Marker Info di pojok kiri atas.\n'
+                                      'Fitur ini sangat membantu peneliti dalam bergerak menuju pohon atau plot yang akan diamati secara langsung di lapangan.',
                                     ),
                                   ],
                                 ),
