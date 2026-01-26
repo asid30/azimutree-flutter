@@ -244,11 +244,72 @@ class TutorialPage extends StatelessWidget {
 
                                     const SizedBox(height: 8),
                                     bold('Garis Relasi'),
-                                    normal(
-                                      '• Garis merah: hubungan pohon ke plot.\n'
-                                      '• Garis biru: hubungan antar plot atau plot ke sentroid.',
+                                    Align(
+                                      alignment: Alignment.centerLeft,
+                                      child: RichText(
+                                        text: TextSpan(
+                                          style: TextStyle(
+                                            color: bodyColor,
+                                            fontSize: 14,
+                                          ),
+                                          children: [
+                                            const TextSpan(
+                                              text: '• Garis merah ',
+                                            ),
+                                            WidgetSpan(
+                                              alignment:
+                                                  PlaceholderAlignment.middle,
+                                              child: Container(
+                                                width: 16,
+                                                height: 8,
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.redAccent,
+                                                  borderRadius:
+                                                      BorderRadius.circular(2),
+                                                ),
+                                              ),
+                                            ),
+                                            const TextSpan(
+                                              text:
+                                                  ': hubungan pohon ke plot.\n',
+                                            ),
+                                            const TextSpan(
+                                              text: '• Garis biru ',
+                                            ),
+                                            WidgetSpan(
+                                              alignment:
+                                                  PlaceholderAlignment.middle,
+                                              child: Container(
+                                                width: 16,
+                                                height: 8,
+                                                margin:
+                                                    const EdgeInsets.symmetric(
+                                                      horizontal: 6,
+                                                    ),
+                                                decoration: BoxDecoration(
+                                                  color: const Color.fromARGB(
+                                                    255,
+                                                    90,
+                                                    151,
+                                                    255,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(2),
+                                                ),
+                                              ),
+                                            ),
+                                            const TextSpan(
+                                              text:
+                                                  ': hubungan antar plot atau plot ke sentroid.',
+                                            ),
+                                          ],
+                                        ),
+                                      ),
                                     ),
-
                                     const SizedBox(height: 8),
                                     bold('Tipe Peta'),
                                     normal(
