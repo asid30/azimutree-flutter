@@ -221,9 +221,25 @@ class _DialogEditPlotWidgetState extends State<DialogEditPlotWidget> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _latitudeController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Latitude",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -233,9 +249,25 @@ class _DialogEditPlotWidgetState extends State<DialogEditPlotWidget> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _longitudeController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Longitude",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
@@ -245,9 +277,25 @@ class _DialogEditPlotWidgetState extends State<DialogEditPlotWidget> {
                 const SizedBox(height: 8),
                 TextField(
                   controller: _altitudeController,
-                  decoration: const InputDecoration(
+                  style: TextStyle(color: dialogText),
+                  decoration: InputDecoration(
                     labelText: "Altitude (opsional)",
-                    border: OutlineInputBorder(),
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2.0,
+                      ),
+                    ),
                   ),
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
