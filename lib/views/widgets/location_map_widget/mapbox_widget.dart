@@ -9,6 +9,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 
 // Marker style constants
@@ -51,8 +52,8 @@ class MapboxWidget extends StatefulWidget {
 
   const MapboxWidget({
     super.key,
-    this.standardStyleUri = "mapbox://styles/asid30/cmewvm2p901gv01pg9xje8up9",
-    this.sateliteStyleUri = "mapbox://styles/asid30/cmewsx3my002x01sedr0a4win",
+    this.standardStyleUri = '',
+    this.sateliteStyleUri = '',
   });
 
   @override
@@ -60,6 +61,8 @@ class MapboxWidget extends StatefulWidget {
 }
 
 class _MapboxWidgetState extends State<MapboxWidget> {
+  late final String _standardStyleUri;
+  late final String _sateliteStyleUri;
   MapboxMap? _mapboxMap;
   CircleAnnotationManager? _circleManager;
   CircleAnnotationManager? _searchResultManager;
@@ -92,14 +95,25 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   @override
   void initState() {
     super.initState();
+    // Load style URIs from env if provided, otherwise fall back to widget defaults.
+    final envStd = dotenv.env['MAPBOX_STYLE_STANDARD']?.trim();
+    final envSat = dotenv.env['MAPBOX_STYLE_SATELLITE']?.trim();
+    _standardStyleUri =
+        (envStd != null && envStd.isNotEmpty)
+            ? envStd
+            : widget.standardStyleUri;
+    _sateliteStyleUri =
+        (envSat != null && envSat.isNotEmpty)
+            ? envSat
+            : widget.sateliteStyleUri;
     _styleListener = () {
       if (!mounted) return;
       if (_mapboxMap != null) {
         final style =
             // Use satellite as the default for menu index 0
             selectedMenuBottomSheetNotifier.value == 0
-                ? widget.sateliteStyleUri
-                : widget.standardStyleUri;
+                ? _sateliteStyleUri
+                : _standardStyleUri;
         _applyStyleAndMarkers(style);
       }
     };
@@ -324,8 +338,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                 final style =
                     // Use satellite as the default for menu index 0
                     selectedMenuBottomSheetNotifier.value == 0
-                        ? widget.sateliteStyleUri
-                        : widget.standardStyleUri;
+                        ? _sateliteStyleUri
+                        : _standardStyleUri;
                 _applyStyleAndMarkers(style);
                 _enableUserLocationPuck();
                 // Hide the native Mapbox compass so it won't overlap marker
@@ -346,8 +360,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
               styleUri:
                   // Show satellite by default when bottom sheet menu index is 0
                   selectedMenuBottomSheet == 0
-                      ? widget.sateliteStyleUri
-                      : widget.standardStyleUri,
+                      ? _sateliteStyleUri
+                      : _standardStyleUri,
               cameraOptions: CameraOptions(
                 // Center the initial camera on Bandar Lampung (Lampung province)
                 center: Point(

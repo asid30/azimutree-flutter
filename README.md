@@ -65,7 +65,7 @@ Azimutree diharapkan dapat menjadi alat bantu yang efektif bagi peneliti kesehat
 
 ---
 
-## Instalasi
+## Instalasi Untuk Pengembangan
 
 > **Catatan untuk Developer:** bagian ini khusus ditujukan untuk pengembang yang ingin menjalankan atau mengembangkan aplikasi secara lokal.
 

@@ -1,0 +1,39 @@
+## Environment template for Azimutree
+
+## Copy this file to `.env` and fill the values below.
+
+## Keep this file out of version control for secrets.
+
+# Mapbox access token (public key). Required for Mapbox map rendering.
+
+# Example: pk.eyJ1IjoieW91cnVzZXIiLCJhIjoiY2t...
+
+MAP_BOX_ACCESS =
+
+# Mapbox style URI for the standard (street) map style.
+
+# Example: mapbox://styles/yourusername/your-style-id
+
+MAPBOX_STYLE_STANDARD =
+
+# Mapbox style URI for the satellite map style.
+
+# Example: mapbox://styles/yourusername/your-satellite-style-id
+
+MAPBOX_STYLE_SATELLITE =
+
+# URL to the Google Sheets template used for importing data.
+
+# If not set, the app will show a warning and refuse to open the template.
+
+# Example: https://docs.google.com/spreadsheets/d/your-sheet-id/edit
+
+TEMPLATE_URL =
+
+## Notes for developers:
+
+## - Update `.env` (not repo) with real values before running the app.
+
+## - The app reads these values via `flutter_dotenv` at runtime.
+
+## - Keep `MAP_BOX_ACCESS` public key safe; do not commit private tokens.

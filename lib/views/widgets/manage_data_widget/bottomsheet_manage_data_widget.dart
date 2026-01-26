@@ -17,6 +17,7 @@ import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/services/excel_import_service.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class BottomsheetManageDataWidget extends StatefulWidget {
   final ClusterNotifier clusterNotifier;
@@ -193,8 +194,17 @@ class _BottomsheetManageDataWidgetState
   }
 
   Future<void> _confirmAndOpenTemplate() async {
-    const templateUrl =
-        'https://docs.google.com/spreadsheets/d/1EN-vjd3Tn1Q1wAyW599V07c_YIaMHK4fgSvLvuOS3pI/edit?usp=sharing';
+    final templateEnv = dotenv.env['TEMPLATE_URL'];
+    if (templateEnv == null || templateEnv.trim().isEmpty) {
+      await _showAlert(
+        title: 'Gagal',
+        message:
+            'Template belum dikonfigurasi. Silakan tambahkan TEMPLATE_URL di file .env.',
+        backgroundColor: Colors.red.shade200,
+      );
+      return;
+    }
+    final templateUrl = templateEnv.trim();
 
     final confirm = await showDialog<bool>(
       context: context,
@@ -214,20 +224,45 @@ class _BottomsheetManageDataWidgetState
     final uri = Uri.parse(templateUrl);
     try {
       if (!await canLaunchUrl(uri)) {
-        await _showAlert(
-          title: 'Gagal',
-          message: 'Tidak dapat membuka browser pada perangkat ini.',
-          backgroundColor: Colors.red.shade200,
+        if (!mounted) return;
+        final isDark = !isLightModeNotifier.value;
+        final bg =
+            isDark
+                ? const Color.fromARGB(255, 131, 30, 23)
+                : Colors.red.shade200;
+        final txt = isDark ? Colors.white : Colors.black;
+        await showDialog(
+          barrierDismissible: false,
+          context: context,
+          builder:
+              (_) => AlertWarningWidget(
+                title: 'Gagal',
+                warningMessage:
+                    'Tidak dapat membuka browser pada perangkat ini.',
+                backgroundColor: bg,
+                textColor: txt,
+              ),
         );
         return;
       }
 
       await launchUrl(uri, mode: LaunchMode.externalApplication);
     } catch (e) {
-      await _showAlert(
-        title: 'Gagal',
-        message: 'Terjadi kesalahan saat membuka tautan: $e',
-        backgroundColor: Colors.red.shade200,
+      if (!mounted) return;
+      final isDark = !isLightModeNotifier.value;
+      final bg =
+          isDark ? const Color.fromARGB(255, 131, 30, 23) : Colors.red.shade200;
+      final txt = isDark ? Colors.white : Colors.black;
+      await showDialog(
+        barrierDismissible: false,
+        context: context,
+        builder:
+            (_) => AlertWarningWidget(
+              title: 'Gagal',
+              warningMessage: 'Terjadi kesalahan saat membuka tautan: $e',
+              backgroundColor: bg,
+              textColor: txt,
+            ),
       );
     }
   }
