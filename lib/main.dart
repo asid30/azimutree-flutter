@@ -3,6 +3,7 @@ import 'package:azimutree/views/pages/home_page.dart';
 import 'package:azimutree/views/pages/location_map_page.dart';
 import 'package:azimutree/views/pages/manage_data_page.dart';
 import 'package:azimutree/views/pages/settings_page.dart';
+import 'package:azimutree/views/pages/survey_location_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
 import 'package:azimutree/services/debug_mode_service.dart';
 import 'package:azimutree/services/theme_preference_service.dart';
@@ -94,6 +95,11 @@ class _MainAppState extends State<MainApp> {
           case 'location_map_page':
             return _buildFadeTransitionPageRoute(
               const LocationMapPage(),
+              settings,
+            );
+          case 'survey_location_page':
+            return _buildFadeTransitionPageRoute(
+              const SurveyLocationPage(),
               settings,
             );
           case 'tutorial_page':

@@ -90,6 +90,18 @@ class SidebarWidget extends StatelessWidget {
 
                     ListTile(
                       leading: Icon(
+                        Icons.explore,
+                        color: isDark ? Colors.white : null,
+                      ),
+                      title: Text(
+                        'Survey Lokasi',
+                        style: TextStyle(color: isDark ? Colors.white : null),
+                      ),
+                      onTap: () => _selectPage(context, 'survey_location_page'),
+                    ),
+
+                    ListTile(
+                      leading: Icon(
                         Icons.book,
                         color: isDark ? Colors.white : null,
                       ),

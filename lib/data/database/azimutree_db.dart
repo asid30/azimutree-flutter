@@ -3,6 +3,7 @@ import "package:path/path.dart";
 import "package:azimutree/data/database/cluster_dao.dart";
 import 'package:azimutree/data/database/plot_dao.dart';
 import "package:azimutree/data/database/tree_dao.dart";
+import 'package:azimutree/data/database/titik_ikat_dao.dart';
 
 class AzimutreeDB {
   static final AzimutreeDB instance = AzimutreeDB._init();
@@ -24,7 +25,7 @@ class AzimutreeDB {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 3,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -37,9 +38,18 @@ class AzimutreeDB {
     await ClusterDao.createTable(db);
     await PlotDao.createTable(db);
     await TreeDao.createTable(db);
+    await TitikIkatDao.createTable(db);
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    await migrate(db, oldVersion, newVersion);
+  }
+
+  static Future<void> migrate(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
     // Add migration path to introduce optional 'inspected' column on trees
     if (oldVersion < 2 && newVersion >= 2) {
       try {
@@ -49,6 +59,9 @@ class AzimutreeDB {
       } catch (_) {
         // ignore if column already exists or other issues; safe to continue
       }
+    }
+    if (oldVersion < 3 && newVersion >= 3) {
+      await TitikIkatDao.createTable(db);
     }
   }
 

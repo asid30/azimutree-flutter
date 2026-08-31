@@ -26,10 +26,12 @@ dependencies:
   flutter_slidable: ^3.1.0 # Adds swipe-to-reveal action panes (list item actions)
   shared_preferences: ^2.2.3 # Simple persistent key-value storage for small data
   geolocator: ^11.0.0 # Device location APIs: permissions, current position, streams
+  flutter_compass: ^0.8.1 # Device heading sensor for survey navigation
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  sqflite_common_ffi: ^2.4.2+1
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.14.4
 

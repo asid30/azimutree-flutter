@@ -5,6 +5,7 @@ import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
+import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_cluster_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
   final ClusterNotifier clusterNotifier;
   final PlotNotifier plotNotifier;
   final TreeNotifier treeNotifier;
+  final TitikIkatNotifier titikIkatNotifier;
 
   const SelectedClusterManageDataWidget({
     super.key,
@@ -25,6 +27,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     required this.clusterNotifier,
     required this.plotNotifier,
     required this.treeNotifier,
+    required this.titikIkatNotifier,
   });
 
   @override
@@ -331,7 +334,8 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
       builder:
           (_) => AlertConfirmationWidget(
             title: 'Hapus klaster?',
-            message: 'Semua plot dan pohon di klaster ini akan ikut terhapus.',
+            message:
+                'Semua Titik Ikat, plot, dan pohon di klaster ini akan ikut terhapus.',
             confirmText: 'Hapus',
             cancelText: 'Batal',
           ),
@@ -341,6 +345,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     await clusterNotifier.deleteCluster(cluster.id!);
     await plotNotifier.loadPlots();
     await treeNotifier.loadTrees();
+    await titikIkatNotifier.loadTitikIkat();
 
     final clusters = clusterNotifier.value;
     selectedDropdownClusterNotifier.value =
