@@ -223,6 +223,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                             TitikIkatManageDataWidget(
                                               cluster: selectedCluster,
                                               clusters: clusters,
+                                              plots: plotNotifier.value,
                                               titikIkatData: selectedTitikIkat,
                                               titikIkatNotifier:
                                                   titikIkatNotifier,

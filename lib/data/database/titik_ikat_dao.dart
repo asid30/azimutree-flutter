@@ -15,8 +15,8 @@ class TitikIkatDao {
         latitude REAL,
         longitude REAL,
         altitude REAL,
-        azimutKePlot1 REAL NOT NULL,
-        jarakKePlot1M REAL NOT NULL,
+        azimutKePlot1 REAL,
+        jarakKePlot1M REAL,
         keterangan TEXT,
         FOREIGN KEY (idCluster) REFERENCES clusters(id) ON DELETE CASCADE
       )
@@ -26,6 +26,14 @@ class TitikIkatDao {
   static Future<int> insertTitikIkat(TitikIkatModel titikIkat) async {
     titikIkat.validate();
     final db = await AzimutreeDB.instance.database;
+    final existing = Sqflite.firstIntValue(
+      await db.rawQuery('SELECT COUNT(*) FROM $tableName WHERE idCluster = ?', [
+        titikIkat.idCluster,
+      ]),
+    );
+    if ((existing ?? 0) > 0) {
+      throw StateError('Klaster ini sudah memiliki Titik Ikat');
+    }
     return db.insert(tableName, titikIkat.toMap());
   }
 
@@ -58,6 +66,15 @@ class TitikIkatDao {
     if (titikIkat.id == null) return 0;
     titikIkat.validate();
     final db = await AzimutreeDB.instance.database;
+    final existing = Sqflite.firstIntValue(
+      await db.rawQuery(
+        'SELECT COUNT(*) FROM $tableName WHERE idCluster = ? AND id != ?',
+        [titikIkat.idCluster, titikIkat.id],
+      ),
+    );
+    if ((existing ?? 0) > 0) {
+      throw StateError('Klaster ini sudah memiliki Titik Ikat');
+    }
     return db.update(
       tableName,
       titikIkat.toMap(),

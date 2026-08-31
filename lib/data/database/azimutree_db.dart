@@ -25,7 +25,7 @@ class AzimutreeDB {
 
     return await openDatabase(
       path,
-      version: 3,
+      version: 4,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -62,6 +62,37 @@ class AzimutreeDB {
     }
     if (oldVersion < 3 && newVersion >= 3) {
       await TitikIkatDao.createTable(db);
+    }
+    if (oldVersion < 4 && newVersion >= 4) {
+      await db.execute('''
+        CREATE TABLE titik_ikat_v4 (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          idCluster INTEGER NOT NULL,
+          nama TEXT NOT NULL,
+          jenis TEXT,
+          latitude REAL,
+          longitude REAL,
+          altitude REAL,
+          azimutKePlot1 REAL,
+          jarakKePlot1M REAL,
+          keterangan TEXT,
+          FOREIGN KEY (idCluster) REFERENCES clusters(id) ON DELETE CASCADE
+        )
+      ''');
+      await db.execute('''
+        INSERT INTO titik_ikat_v4 (
+          id, idCluster, nama, jenis, latitude, longitude, altitude,
+          azimutKePlot1, jarakKePlot1M, keterangan
+        )
+        SELECT
+          id, idCluster, nama, jenis, latitude, longitude, altitude,
+          azimutKePlot1, jarakKePlot1M, keterangan
+        FROM ${TitikIkatDao.tableName}
+      ''');
+      await db.execute('DROP TABLE ${TitikIkatDao.tableName}');
+      await db.execute(
+        'ALTER TABLE titik_ikat_v4 RENAME TO ${TitikIkatDao.tableName}',
+      );
     }
   }
 

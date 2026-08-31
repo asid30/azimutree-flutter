@@ -2,11 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
+import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
 
 class DialogAddClusterWidget extends StatefulWidget {
   final ClusterNotifier clusterNotifier;
 
-  const DialogAddClusterWidget({super.key, required this.clusterNotifier});
+  final TitikIkatNotifier titikIkatNotifier;
+
+  const DialogAddClusterWidget({
+    super.key,
+    required this.clusterNotifier,
+    required this.titikIkatNotifier,
+  });
 
   @override
   State<DialogAddClusterWidget> createState() => _DialogAddClusterWidgetState();
@@ -16,6 +24,12 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
   final TextEditingController _kodeClusterController = TextEditingController();
   final TextEditingController _namaPengukurController = TextEditingController();
   final TextEditingController _tanggalPengukuranController =
+      TextEditingController();
+  final TextEditingController _titikIkatLatitudeController =
+      TextEditingController();
+  final TextEditingController _titikIkatLongitudeController =
+      TextEditingController();
+  final TextEditingController _titikIkatAltitudeController =
       TextEditingController();
 
   // Notifier: apakah form valid?
@@ -35,6 +49,9 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
       _syncCapitalizedWords(_namaPengukurController);
       _validateForm();
     });
+    _titikIkatLatitudeController.addListener(_validateForm);
+    _titikIkatLongitudeController.addListener(_validateForm);
+    _titikIkatAltitudeController.addListener(_validateForm);
   }
 
   @override
@@ -42,6 +59,9 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
     _kodeClusterController.dispose();
     _namaPengukurController.dispose();
     _tanggalPengukuranController.dispose();
+    _titikIkatLatitudeController.dispose();
+    _titikIkatLongitudeController.dispose();
+    _titikIkatAltitudeController.dispose();
     _isFormValid.dispose();
     super.dispose();
   }
@@ -52,6 +72,14 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
             .replaceAll(RegExp(r'\s+'), '')
             .toUpperCase();
     final nama = _namaPengukurController.text.trim();
+    final latitude = double.tryParse(
+      _titikIkatLatitudeController.text.trim().replaceAll(',', '.'),
+    );
+    final longitude = double.tryParse(
+      _titikIkatLongitudeController.text.trim().replaceAll(',', '.'),
+    );
+    final altitudeText = _titikIkatAltitudeController.text.trim();
+    final altitude = double.tryParse(altitudeText.replaceAll(',', '.'));
 
     final isDuplicate = widget.clusterNotifier.value.any(
       (cluster) => cluster.kodeCluster.toUpperCase() == kode,
@@ -65,7 +93,23 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
       _isDuplicateCode = isDuplicate;
     }
 
-    final isValid = kode.isNotEmpty && nama.isNotEmpty && !isDuplicate;
+    final coordinatesValid =
+        latitude != null &&
+        latitude.isFinite &&
+        latitude >= -90 &&
+        latitude <= 90 &&
+        longitude != null &&
+        longitude.isFinite &&
+        longitude >= -180 &&
+        longitude <= 180;
+    final altitudeValid =
+        altitudeText.isEmpty || (altitude != null && altitude.isFinite);
+    final isValid =
+        kode.isNotEmpty &&
+        nama.isNotEmpty &&
+        coordinatesValid &&
+        altitudeValid &&
+        !isDuplicate;
 
     if (_isFormValid.value != isValid) {
       _isFormValid.value = isValid;
@@ -106,7 +150,25 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
       tanggalPengukuran: tanggalPengukuran,
     );
 
-    await widget.clusterNotifier.addCluster(newCluster);
+    final titikIkat = TitikIkatModel(
+      idCluster: 0,
+      nama: 'Titik Ikat $kodeCluster',
+      latitude: double.parse(
+        _titikIkatLatitudeController.text.trim().replaceAll(',', '.'),
+      ),
+      longitude: double.parse(
+        _titikIkatLongitudeController.text.trim().replaceAll(',', '.'),
+      ),
+      altitude:
+          _titikIkatAltitudeController.text.trim().isEmpty
+              ? null
+              : double.parse(
+                _titikIkatAltitudeController.text.trim().replaceAll(',', '.'),
+              ),
+    );
+
+    await widget.clusterNotifier.addClusterWithTitikIkat(newCluster, titikIkat);
+    await widget.titikIkatNotifier.loadTitikIkat();
 
     if (!mounted) return;
     Navigator.of(context).pop(true);
@@ -299,6 +361,87 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                             width: 2.0,
                           ),
                         ),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Koordinat Titik Ikat',
+                    style: TextStyle(
+                      color: dialogText,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Nama dibuat otomatis mengikuti kode klaster.',
+                    style: TextStyle(color: labelColor, fontSize: 12),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _titikIkatLatitudeController,
+                  style: TextStyle(color: dialogText),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Latitude Titik Ikat (wajib)',
+                    labelStyle: TextStyle(color: labelColor),
+                    helperText: 'Rentang -90 sampai 90',
+                    helperStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _titikIkatLongitudeController,
+                  style: TextStyle(color: dialogText),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Longitude Titik Ikat (wajib)',
+                    labelStyle: TextStyle(color: labelColor),
+                    helperText: 'Rentang -180 sampai 180',
+                    helperStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _titikIkatAltitudeController,
+                  style: TextStyle(color: dialogText),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: 'Altitude Titik Ikat (opsional)',
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
                       ),
                     ),
                   ),

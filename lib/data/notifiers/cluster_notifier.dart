@@ -1,6 +1,7 @@
 import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:flutter/material.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
 
 class ClusterNotifier extends ValueNotifier<List<ClusterModel>> {
   ClusterNotifier() : super([]);
@@ -13,6 +14,14 @@ class ClusterNotifier extends ValueNotifier<List<ClusterModel>> {
   Future<void> addCluster(ClusterModel cluster) async {
     await ClusterDao.insertCluster(cluster);
     await loadClusters(); // reload lagi setelah insert
+  }
+
+  Future<void> addClusterWithTitikIkat(
+    ClusterModel cluster,
+    TitikIkatModel titikIkat,
+  ) async {
+    await ClusterDao.insertClusterWithTitikIkat(cluster, titikIkat);
+    await loadClusters();
   }
 
   Future<void> updateCluster(ClusterModel cluster) async {

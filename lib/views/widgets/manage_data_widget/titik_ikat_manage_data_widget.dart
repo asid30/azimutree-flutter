@@ -1,8 +1,8 @@
 import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
-import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_titik_ikat_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
@@ -12,12 +12,14 @@ class TitikIkatManageDataWidget extends StatelessWidget {
     super.key,
     required this.cluster,
     required this.clusters,
+    required this.plots,
     required this.titikIkatData,
     required this.titikIkatNotifier,
   });
 
   final ClusterModel cluster;
   final List<ClusterModel> clusters;
+  final List<PlotModel> plots;
   final List<TitikIkatModel> titikIkatData;
   final TitikIkatNotifier titikIkatNotifier;
 
@@ -28,31 +30,11 @@ class TitikIkatManageDataWidget extends StatelessWidget {
       builder:
           (_) => DialogTitikIkatWidget(
             clusters: clusters,
+            plots: plots,
             titikIkatNotifier: titikIkatNotifier,
             titikIkat: titikIkat,
           ),
     );
-  }
-
-  Future<void> _delete(BuildContext context, TitikIkatModel titikIkat) async {
-    if (titikIkat.id == null) return;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder:
-          (_) => AlertConfirmationWidget(
-            title: 'Hapus Titik Ikat?',
-            message: 'Titik Ikat "${titikIkat.nama}" akan dihapus.',
-            confirmText: 'Hapus',
-            cancelText: 'Batal',
-          ),
-    );
-    if (confirmed != true) return;
-    await titikIkatNotifier.deleteTitikIkat(titikIkat.id!);
-    if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text('Titik Ikat dihapus')));
-    }
   }
 
   TableRow _row(String label, String value, Color color) {
@@ -133,23 +115,6 @@ class TitikIkatManageDataWidget extends StatelessWidget {
                           ),
                         ],
                       ),
-                      endActionPane: ActionPane(
-                        motion: const DrawerMotion(),
-                        extentRatio: 0.28,
-                        children: [
-                          SlidableAction(
-                            onPressed: (_) => _delete(context, titikIkat),
-                            backgroundColor:
-                                isDark
-                                    ? const Color.fromARGB(255, 98, 32, 32)
-                                    : Colors.red.shade100,
-                            foregroundColor:
-                                isDark ? Colors.white : Colors.red.shade900,
-                            icon: Icons.delete,
-                            label: 'Hapus',
-                          ),
-                        ],
-                      ),
                       child: Card(
                         margin: EdgeInsets.zero,
                         color: cardColor,
@@ -165,8 +130,11 @@ class TitikIkatManageDataWidget extends StatelessWidget {
                             ),
                           ),
                           subtitle: Text(
-                            '${titikIkat.azimutKePlot1.toStringAsFixed(1)}° • '
-                            '${titikIkat.jarakKePlot1M.toStringAsFixed(1)} m ke P1',
+                            titikIkat.azimutKePlot1 == null ||
+                                    titikIkat.jarakKePlot1M == null
+                                ? 'Arah dan jarak ke P1 belum dihitung'
+                                : '${titikIkat.azimutKePlot1!.toStringAsFixed(1)}° • '
+                                    '${titikIkat.jarakKePlot1M!.toStringAsFixed(1)} m ke P1',
                             style: TextStyle(color: foreground),
                           ),
                           childrenPadding: const EdgeInsets.fromLTRB(
@@ -189,12 +157,16 @@ class TitikIkatManageDataWidget extends StatelessWidget {
                                 ),
                                 _row(
                                   'Azimut ke P1',
-                                  '${titikIkat.azimutKePlot1.toStringAsFixed(1)}°',
+                                  titikIkat.azimutKePlot1 == null
+                                      ? '-'
+                                      : '${titikIkat.azimutKePlot1!.toStringAsFixed(1)}°',
                                   foreground,
                                 ),
                                 _row(
                                   'Jarak ke P1',
-                                  '${titikIkat.jarakKePlot1M.toStringAsFixed(2)} m',
+                                  titikIkat.jarakKePlot1M == null
+                                      ? '-'
+                                      : '${titikIkat.jarakKePlot1M!.toStringAsFixed(2)} m',
                                   foreground,
                                 ),
                                 _row(

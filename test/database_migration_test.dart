@@ -15,7 +15,7 @@ void main() {
   });
 
   test(
-    'migration v1 to v3 preserves existing data and adds Titik Ikat',
+    'migration v1 to v4 preserves data and allows pending direction',
     () async {
       final temporaryDirectory = await Directory.systemTemp.createTemp(
         'azimutree_migration_test_',
@@ -89,7 +89,7 @@ void main() {
       db = await factory.openDatabase(
         path,
         options: OpenDatabaseOptions(
-          version: 3,
+          version: 4,
           onConfigure: (database) async {
             await database.execute('PRAGMA foreign_keys = ON');
           },
@@ -110,6 +110,14 @@ void main() {
         'jarakKePlot1M': 41.2,
       });
       expect(await db.query(TitikIkatDao.tableName), hasLength(1));
+
+      await db.insert(TitikIkatDao.tableName, {
+        'idCluster': 1,
+        'nama': 'Titik Ikat Koordinat',
+        'latitude': -5.4,
+        'longitude': 105.2,
+      });
+      expect(await db.query(TitikIkatDao.tableName), hasLength(2));
 
       await db.delete('clusters', where: 'id = ?', whereArgs: [1]);
       expect(await db.query(TitikIkatDao.tableName), isEmpty);

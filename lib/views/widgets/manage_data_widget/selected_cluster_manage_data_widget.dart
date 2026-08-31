@@ -320,6 +320,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     );
 
     if (result != null && cluster.id == result.id) {
+      await titikIkatNotifier.loadTitikIkat();
       selectedDropdownClusterNotifier.value = result.kodeCluster;
     }
   }

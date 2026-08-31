@@ -1,6 +1,8 @@
 import 'package:sqflite/sqflite.dart';
 import 'package:azimutree/data/database/azimutree_db.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
+import 'package:azimutree/data/database/titik_ikat_dao.dart';
 
 class ClusterDao {
   static const String tableName = 'clusters';
@@ -19,6 +21,20 @@ class ClusterDao {
   static Future<int> insertCluster(ClusterModel cluster) async {
     final db = await AzimutreeDB.instance.database;
     return await db.insert(tableName, cluster.toMap());
+  }
+
+  static Future<int> insertClusterWithTitikIkat(
+    ClusterModel cluster,
+    TitikIkatModel titikIkat,
+  ) async {
+    final db = await AzimutreeDB.instance.database;
+    return db.transaction((txn) async {
+      final clusterId = await txn.insert(tableName, cluster.toMap());
+      titikIkat.idCluster = clusterId;
+      titikIkat.validate();
+      await txn.insert(TitikIkatDao.tableName, titikIkat.toMap());
+      return clusterId;
+    });
   }
 
   static Future<List<ClusterModel>> getAllClusters() async {
@@ -41,12 +57,21 @@ class ClusterDao {
 
   static Future<int> updateCluster(ClusterModel cluster) async {
     final db = await AzimutreeDB.instance.database;
-    return await db.update(
-      tableName,
-      cluster.toMap(),
-      where: 'id = ?',
-      whereArgs: [cluster.id],
-    );
+    return db.transaction((txn) async {
+      final updated = await txn.update(
+        tableName,
+        cluster.toMap(),
+        where: 'id = ?',
+        whereArgs: [cluster.id],
+      );
+      await txn.update(
+        TitikIkatDao.tableName,
+        {'nama': 'Titik Ikat ${cluster.kodeCluster}'},
+        where: 'idCluster = ?',
+        whereArgs: [cluster.id],
+      );
+      return updated;
+    });
   }
 
   static Future<int> deleteCluster(int id) async {

@@ -12,7 +12,6 @@ import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widget.dart';
-import 'package:azimutree/views/widgets/manage_data_widget/dialog_titik_ikat_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_import_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_export_data_widget.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
@@ -548,6 +547,9 @@ class _BottomsheetManageDataWidgetState
                                                   DialogAddClusterWidget(
                                                     clusterNotifier:
                                                         widget.clusterNotifier,
+                                                    titikIkatNotifier:
+                                                        widget
+                                                            .titikIkatNotifier,
                                                   ),
                                         );
                                       },
@@ -589,48 +591,6 @@ class _BottomsheetManageDataWidgetState
                                                 plotNotifier:
                                                     widget.plotNotifier,
                                                 clusters: clusterState,
-                                              ),
-                                        );
-                                      },
-                                    ),
-                                    //* T I T I K  I K A T
-                                    BtmButtonManageDataWidget(
-                                      label: "Titik Ikat",
-                                      minSize: const Size(100, 40),
-                                      maxSize: const Size(150, 70),
-                                      isEnabled: hasCluster,
-                                      backgroundColor:
-                                          isDark
-                                              ? const Color.fromARGB(
-                                                255,
-                                                18,
-                                                43,
-                                                25,
-                                              )
-                                              : const Color.fromARGB(
-                                                255,
-                                                32,
-                                                72,
-                                                43,
-                                              ),
-                                      onPressed: () {
-                                        if (!hasCluster ||
-                                            selectedCluster == null) {
-                                          _showWarningNeedCluster(
-                                            target: "Titik Ikat",
-                                          );
-                                          return;
-                                        }
-                                        showDialog(
-                                          barrierDismissible: false,
-                                          context: context,
-                                          builder:
-                                              (_) => DialogTitikIkatWidget(
-                                                clusters: clusterState,
-                                                titikIkatNotifier:
-                                                    widget.titikIkatNotifier,
-                                                initialClusterId:
-                                                    selectedCluster.id,
                                               ),
                                         );
                                       },
