@@ -139,7 +139,7 @@ class MarkerInfoWidget extends StatelessWidget {
                               ),
                             if (cluster != null)
                               Text(
-                                'Cluster ${cluster.kodeCluster}',
+                                'Klaster ${cluster.kodeCluster}',
                                 style: const TextStyle(
                                   fontSize: 12,
                                   color: Colors.black54,
@@ -317,7 +317,7 @@ class MarkerInfoWidget extends StatelessWidget {
                       ),
                       if (cluster != null)
                         Text(
-                          'Cluster ${cluster.kodeCluster}',
+                          'Klaster ${cluster.kodeCluster}',
                           style: const TextStyle(
                             fontSize: 12,
                             color: Colors.black54,
@@ -424,7 +424,7 @@ class MarkerInfoWidget extends StatelessWidget {
                         style: TextStyle(fontWeight: FontWeight.w600),
                       ),
                       Text(
-                        'Cluster ${cluster.kodeCluster}',
+                        'Klaster ${cluster.kodeCluster}',
                         style: const TextStyle(
                           fontSize: 12,
                           color: Colors.black54,

@@ -124,8 +124,8 @@ class TutorialPage extends StatelessWidget {
                                   children: [
                                     bold('Menu Tombol Besar'),
                                     normal(
-                                      '• Kelola Data Cluster Plot – Mengelola data cluster, plot, dan pohon.\n'
-                                      '• Peta Lokasi Cluster Plot – Menampilkan visualisasi data di peta.\n'
+                                      '• Kelola Data Klaster Plot – Mengelola data Klaster, plot, dan pohon.\n'
+                                      '• Peta Lokasi Klaster Plot – Menampilkan visualisasi data di peta.\n'
                                       '• Panduan Aplikasi – Membuka halaman panduan ini.',
                                     ),
 
@@ -152,7 +152,7 @@ class TutorialPage extends StatelessWidget {
                                   title: Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text(
-                                      '2. Kelola Data Cluster Plot 🌳',
+                                      '2. Kelola Data Klaster Plot 🌳',
                                       textAlign: TextAlign.left,
                                       style: TextStyle(
                                         fontWeight: FontWeight.w600,
@@ -188,9 +188,9 @@ class TutorialPage extends StatelessWidget {
                                     const SizedBox(height: 8),
                                     bold('Input Manual Plot'),
                                     normal(
-                                      '1. Pilih Cluster (dropdown).\n'
-                                      '2. Pilih Plot (maksimal 4 plot per cluster).\n'
-                                      '   • Jika semua plot dalam cluster sudah terisi, '
+                                      '1. Pilih Klaster (dropdown).\n'
+                                      '2. Pilih Plot (maksimal 4 plot per klaster).\n'
+                                      '   • Jika semua plot dalam klaster sudah terisi, '
                                       'opsi tidak dapat dipilih.\n'
                                       '3. Masukkan Latitude.\n'
                                       '4. Masukkan Longitude.\n'
@@ -200,7 +200,7 @@ class TutorialPage extends StatelessWidget {
                                     const SizedBox(height: 8),
                                     bold('Input Manual Pohon'),
                                     normal(
-                                      '1. Pilih Cluster.\n'
+                                      '1. Pilih Klaster.\n'
                                       '2. Pilih Plot.\n'
                                       '3. Pilih metode input posisi:\n'
                                       '   • Azimut & Jarak, atau\n'
@@ -234,7 +234,7 @@ class TutorialPage extends StatelessWidget {
                                       '2. Isi file Excel sesuai format template (format harus sama persis).\n'
                                       '3. Tekan Impor Data.\n'
                                       '4. Isi dialog impor:\n'
-                                      '   • Kode Cluster\n'
+                                      '   • Kode Klaster\n'
                                       '   • Nama Pengukur\n'
                                       '   • Tanggal Pengukuran\n'
                                       '   • Pilih File Excel\n'
@@ -265,7 +265,7 @@ class TutorialPage extends StatelessWidget {
                                   title: Align(
                                     alignment: Alignment.centerLeft,
                                     child: Text(
-                                      '3. Peta Lokasi Cluster Plot 🗺️',
+                                      '3. Peta Lokasi Klaster Plot 🗺️',
                                       textAlign: TextAlign.left,
                                       style: TextStyle(
                                         fontWeight: FontWeight.w600,
@@ -286,9 +286,9 @@ class TutorialPage extends StatelessWidget {
                                     // 3.1 Marker dan Warna
                                     bold('Marker dan Warna'),
                                     normal(
-                                      'Pada peta lokasi cluster plot, marker dan warna memiliki arti sebagai berikut:\n'
+                                      'Pada peta lokasi klaster plot, marker dan warna memiliki arti sebagai berikut:\n'
                                       '• Biru 🔵 : Marker Plot\n'
-                                      '• Ungu 🟣 : Sentroid otomatis (jika cluster tidak memiliki Plot 1)\n'
+                                      '• Ungu 🟣 : Sentroid otomatis (jika klaster tidak memiliki Plot 1)\n'
                                       '• Oranye 🟠 : Marker Pohon\n'
                                       '• Hijau 🟢 : Pohon yang sudah diinspeksi\n'
                                       '• Merah 🔴 : Marker hasil pencarian lokasi\n',
@@ -380,7 +380,7 @@ class TutorialPage extends StatelessWidget {
                                     // 3.3 Interaksi Marker
                                     bold('Interaksi Marker'),
                                     normal(
-                                      'Data cluster dari menu Kelola Data akan otomatis muncul di peta.\n'
+                                      'Data klaster dari menu Kelola Data akan otomatis muncul di peta.\n'
                                       '• Marker dapat ditekan untuk melihat relasi antar plot dan pohon.\n'
                                       '• Saat marker ditekan, informasi muncul di pojok kiri atas dan juga tersedia di bottom sheet.\n'
                                       '• Pengguna dapat melakukan centering kamera ke marker.',

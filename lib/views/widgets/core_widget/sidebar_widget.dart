@@ -70,7 +70,7 @@ class SidebarWidget extends StatelessWidget {
                         color: isDark ? Colors.white : null,
                       ),
                       title: Text(
-                        'Kelola Data Cluster Plot',
+                        'Kelola Data Klaster Plot',
                         style: TextStyle(color: isDark ? Colors.white : null),
                       ),
                       onTap: () => _selectPage(context, 'manage_data_page'),
@@ -82,7 +82,7 @@ class SidebarWidget extends StatelessWidget {
                         color: isDark ? Colors.white : null,
                       ),
                       title: Text(
-                        'Peta Lokasi Cluster Plot',
+                        'Peta Lokasi Klaster Plot',
                         style: TextStyle(color: isDark ? Colors.white : null),
                       ),
                       onTap: () => _selectPage(context, 'location_map_page'),
