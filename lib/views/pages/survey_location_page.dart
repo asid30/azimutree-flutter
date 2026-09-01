@@ -250,18 +250,30 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
         DropdownButtonFormField<int>(
           initialValue: _selectedClusterId,
           dropdownColor: cardColor,
-          decoration: const InputDecoration(
-            border: OutlineInputBorder(),
-            prefixIcon: Icon(Icons.hub_outlined),
+          style: TextStyle(
+            color: foreground,
+            fontSize: 16,
+            fontWeight: FontWeight.w500,
           ),
-          hint: const Text('Pilih klaster survei'),
+          iconEnabledColor: foreground,
+          decoration: InputDecoration(
+            border: const OutlineInputBorder(),
+            prefixIcon: Icon(Icons.hub_outlined, color: foreground),
+          ),
+          hint: Text(
+            'Pilih klaster survei',
+            style: TextStyle(color: foreground),
+          ),
           items:
               _clusters
                   .where((item) => item.id != null)
                   .map(
                     (item) => DropdownMenuItem(
                       value: item.id,
-                      child: Text(item.kodeCluster),
+                      child: Text(
+                        item.kodeCluster,
+                        style: TextStyle(color: foreground),
+                      ),
                     ),
                   )
                   .toList(),
@@ -329,6 +341,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       ),
       const SizedBox(height: 8),
       FilledButton.icon(
+        style: _primaryButtonStyle,
         onPressed: _session.start,
         icon: const Icon(Icons.explore),
         label: const Text('MULAI SURVEY'),
@@ -386,6 +399,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       ),
       const SizedBox(height: 8),
       FilledButton(
+        style: _primaryButtonStyle,
         onPressed: () async {
           if (await _confirm(
             'Konfirmasi Titik Ikat',
@@ -458,6 +472,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
           ),
           const SizedBox(height: 20),
           FilledButton(
+            style: _primaryButtonStyle,
             onPressed: () async {
               if (await _confirm(
                 'Konfirmasi Plot 1',
@@ -531,4 +546,11 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
 
   TextStyle _title(Color color) =>
       TextStyle(color: color, fontSize: 22, fontWeight: FontWeight.bold);
+
+  ButtonStyle get _primaryButtonStyle => FilledButton.styleFrom(
+    backgroundColor: const Color(0xFF1F4226),
+    foregroundColor: Colors.white,
+    disabledBackgroundColor: const Color(0xFF1F4226).withValues(alpha: 0.45),
+    disabledForegroundColor: Colors.white70,
+  );
 }
