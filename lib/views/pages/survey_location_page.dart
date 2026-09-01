@@ -15,11 +15,13 @@ import 'package:azimutree/services/azimuth_latlong_service.dart';
 import 'package:azimutree/services/compass_navigation_service.dart';
 import 'package:azimutree/services/compass_service.dart';
 import 'package:azimutree/services/survey_session_storage.dart';
+import 'package:azimutree/services/survey_ui_constants.dart';
 import 'package:azimutree/services/tree_direction_filter_service.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
+import 'package:azimutree/views/widgets/survey_widget/tree_radar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
@@ -461,6 +463,12 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
         _position == null ? '-' : '±${_meters(_position!.accuracy)}',
         foreground,
       ),
+      if (_position != null &&
+          _position!.accuracy > SurveyUiConstants.poorGpsAccuracyThresholdM)
+        const Text(
+          'GPS kurang akurat. Gunakan Titik Ikat dan kompas sebagai referensi lapangan.',
+          style: TextStyle(color: Colors.orange),
+        ),
       if (_locationMessage != null) ...[
         Text(_locationMessage!, style: const TextStyle(color: Colors.orange)),
         const SizedBox(height: 8),
@@ -562,6 +570,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
             textAlign: TextAlign.center,
             style: TextStyle(color: foreground.withValues(alpha: 0.75)),
           ),
+          _compassCalibrationInfo(foreground),
           const SizedBox(height: 20),
           FilledButton(
             style: _primaryButtonStyle,
@@ -757,6 +766,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
             textAlign: TextAlign.center,
             style: TextStyle(color: foreground.withValues(alpha: 0.75)),
           ),
+          _compassCalibrationInfo(foreground),
           const SizedBox(height: 20),
           FilledButton(
             style: _primaryButtonStyle,
@@ -833,6 +843,13 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
               heading == null ? '-' : '${heading.toStringAsFixed(1)}°',
               foreground,
             ),
+            const SizedBox(height: 12),
+            TreeRadarWidget(
+              trees: plotTrees,
+              heading: heading,
+              isDark: foreground.computeLuminance() > 0.5,
+            ),
+            const SizedBox(height: 12),
             Text(
               'Pohon di arah ±${compassAlignmentTolerance.toStringAsFixed(0)}°',
               style: TextStyle(color: foreground),
@@ -844,10 +861,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
                 style: TextStyle(color: foreground),
               )
             else if (heading == null)
-              Text(
-                'Sensor kompas belum terbaca.',
-                style: TextStyle(color: foreground),
-              )
+              _compassUnavailableInfo(foreground)
             else if (visibleTrees.isEmpty)
               Text(
                 'Tidak ada pohon pada arah ini. Putar perangkat perlahan.',
@@ -857,6 +871,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
               ...visibleTrees.map(
                 (tree) => _treeDirectionTile(tree, heading, foreground),
               ),
+            _compassCalibrationInfo(foreground),
           ],
         );
       },
@@ -893,6 +908,32 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       ),
     );
   }
+
+  Widget _compassUnavailableInfo(Color foreground) => Padding(
+    padding: const EdgeInsets.symmetric(vertical: 8),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Icon(Icons.sensors_off, color: Colors.orange),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            'Sensor kompas tidak tersedia atau belum dapat dibaca.',
+            style: TextStyle(color: foreground),
+          ),
+        ),
+      ],
+    ),
+  );
+
+  Widget _compassCalibrationInfo(Color foreground) => Padding(
+    padding: const EdgeInsets.only(top: 12),
+    child: Text(
+      'Jika arah tidak stabil, jauhkan smartphone dari magnet atau benda logam lalu lakukan kalibrasi kompas.',
+      textAlign: TextAlign.center,
+      style: TextStyle(color: foreground.withValues(alpha: 0.72), fontSize: 12),
+    ),
+  );
 
   Widget _card(Color color, List<Widget> children) => Card(
     color: color,
