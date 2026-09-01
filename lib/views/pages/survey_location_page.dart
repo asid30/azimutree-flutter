@@ -12,6 +12,7 @@ import 'package:azimutree/data/notifiers/survey_navigation_notifier.dart';
 import 'package:azimutree/services/azimuth_latlong_service.dart';
 import 'package:azimutree/services/compass_navigation_service.dart';
 import 'package:azimutree/services/compass_service.dart';
+import 'package:azimutree/services/survey_session_storage.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
@@ -33,6 +34,7 @@ class SurveyLocationPage extends StatefulWidget {
 
 class _SurveyLocationPageState extends State<SurveyLocationPage> {
   final _session = SurveyNavigationNotifier();
+  final _sessionStorage = SurveySessionStorage();
   List<ClusterModel> _clusters = [];
   List<TitikIkatModel> _anchors = [];
   List<PlotModel> _plots = [];
@@ -42,6 +44,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
   String? _locationMessage;
   bool _checkingLocation = false;
   bool _loading = true;
+  bool _sessionListenerAttached = false;
 
   @override
   void initState() {
@@ -56,13 +59,65 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       TitikIkatDao.getAllTitikIkat(),
       PlotDao.getAllPlots(),
     ]);
+    _clusters = data[0] as List<ClusterModel>;
+    _anchors = data[1] as List<TitikIkatModel>;
+    _plots = data[2] as List<PlotModel>;
+    await _restoreSession();
+    if (!_sessionListenerAttached) {
+      _session.addListener(_persistSession);
+      _sessionListenerAttached = true;
+    }
     if (!mounted) return;
-    setState(() {
-      _clusters = data[0] as List<ClusterModel>;
-      _anchors = data[1] as List<TitikIkatModel>;
-      _plots = data[2] as List<PlotModel>;
-      _loading = false;
-    });
+    setState(() => _loading = false);
+  }
+
+  Future<void> _restoreSession() async {
+    final snapshot = await _sessionStorage.load();
+    if (snapshot == null) return;
+    final cluster = _findCluster(snapshot.clusterId);
+    final anchor = _anchorFor(snapshot.clusterId);
+    final targetPlot = _findPlot(snapshot.targetPlotId);
+    final currentPlot = _findPlot(snapshot.currentPlotId);
+    final valid =
+        cluster != null &&
+        anchor != null &&
+        targetPlot != null &&
+        (snapshot.currentPlotId == null || currentPlot != null);
+    if (!valid) {
+      await _sessionStorage.clear();
+      return;
+    }
+    _selectedClusterId = cluster.id;
+    _session.restore(
+      cluster: cluster,
+      anchorPoint: anchor,
+      targetPlot: targetPlot,
+      currentPlot: currentPlot,
+      currentReference: snapshot.currentReference,
+      currentTarget: snapshot.currentTarget,
+      targetAzimuth: snapshot.targetAzimuth,
+      targetDistanceM: snapshot.targetDistanceM,
+      hasStarted: snapshot.hasStarted,
+    );
+  }
+
+  void _persistSession() {
+    unawaited(_sessionStorage.save(_session.value));
+  }
+
+  ClusterModel? _findCluster(int id) {
+    for (final item in _clusters) {
+      if (item.id == id) return item;
+    }
+    return null;
+  }
+
+  PlotModel? _findPlot(int? id) {
+    if (id == null) return null;
+    for (final item in _plots) {
+      if (item.id == id) return item;
+    }
+    return null;
   }
 
   Future<void> _startLocationUpdates() async {
@@ -189,9 +244,24 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
     Navigator.pushNamed(context, 'location_map_page');
   }
 
+  Future<void> _endSurvey() async {
+    if (!await _confirm(
+      'Akhiri Sesi Survey',
+      'Progress sesi survey akan dihapus. Data klaster, plot, dan Titik Ikat tetap aman.',
+    )) {
+      return;
+    }
+    await _sessionStorage.clear();
+    _session.reset();
+    if (mounted) setState(() => _selectedClusterId = null);
+  }
+
   @override
   void dispose() {
     _positionSubscription?.cancel();
+    if (_sessionListenerAttached) {
+      _session.removeListener(_persistSession);
+    }
     _session.dispose();
     super.dispose();
   }
@@ -304,10 +374,31 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
           _overview(session, cardColor, foreground)
         else if (session.currentReference == SurveyReferenceType.none)
           _findAnchor(session, cardColor, foreground)
-        else if (session.currentReference == SurveyReferenceType.anchorPoint)
+        else if (session.currentReference == SurveyReferenceType.anchorPoint &&
+            session.currentTarget == SurveyTargetType.plot)
           _compass(session, cardColor, foreground)
+        else if (session.currentReference == SurveyReferenceType.anchorPoint)
+          _anchorReached(session, cardColor, foreground)
+        else if (session.currentTarget == SurveyTargetType.plot)
+          _plotCompass(session, cardColor, foreground)
+        else if (session.currentPlot?.kodePlot == 1)
+          _plotTargetSelection(session, cardColor, foreground)
         else
-          _completed(cardColor, foreground),
+          _plotReached(session, cardColor, foreground),
+        if (session.hasStarted) ...[
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(
+              foregroundColor: isDark ? Colors.white : const Color(0xFF1F4226),
+              side: BorderSide(
+                color: isDark ? Colors.white70 : const Color(0xFF1F4226),
+              ),
+            ),
+            onPressed: _endSurvey,
+            icon: const Icon(Icons.stop_circle_outlined),
+            label: const Text('AKHIRI SESI SURVEY'),
+          ),
+        ],
       ],
     );
   }
@@ -483,26 +574,233 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
             },
             child: const Text('SAYA SUDAH DI PLOT 1'),
           ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(foregroundColor: foreground),
+            onPressed: _session.cancelNavigation,
+            icon: const Icon(Icons.arrow_back),
+            label: const Text('BATAL, KEMBALI KE TITIK IKAT'),
+          ),
         ]);
       },
     );
   }
 
-  Widget _completed(Color color, Color foreground) => _card(color, [
-    const Icon(Icons.check_circle, color: Colors.green, size: 72),
-    const SizedBox(height: 12),
-    Text(
-      'Plot 1 terkonfirmasi',
-      textAlign: TextAlign.center,
-      style: _title(foreground),
-    ),
-    const SizedBox(height: 8),
-    Text(
-      'Referensi saat ini: Plot 1',
-      textAlign: TextAlign.center,
-      style: TextStyle(color: foreground),
-    ),
-  ]);
+  Widget _anchorReached(
+    SurveyNavigationState session,
+    Color color,
+    Color foreground,
+  ) {
+    final anchor = session.anchorPoint!;
+    final plot1 = session.targetPlot!;
+    return _card(color, [
+      const Icon(Icons.location_on, color: Colors.green, size: 64),
+      const SizedBox(height: 8),
+      Text(
+        'Referensi saat ini: Titik Ikat',
+        textAlign: TextAlign.center,
+        style: _title(foreground),
+      ),
+      const SizedBox(height: 16),
+      FilledButton.icon(
+        style: _primaryButtonStyle,
+        onPressed: () {
+          final direction = AzimuthLatLongService.toAzimuthDistance(
+            centerLatDeg: anchor.latitude!,
+            centerLonDeg: anchor.longitude!,
+            targetLatDeg: plot1.latitude,
+            targetLonDeg: plot1.longitude,
+          );
+          _session.resumePlot1Navigation(
+            azimuth: direction.azimuthDeg,
+            distanceM: direction.distanceM,
+          );
+        },
+        icon: const Icon(Icons.navigation),
+        label: const Text('LANJUT KE PLOT 1'),
+      ),
+    ]);
+  }
+
+  Widget _plotTargetSelection(
+    SurveyNavigationState session,
+    Color color,
+    Color foreground,
+  ) {
+    final availableTargets =
+        _plots
+            .where(
+              (plot) =>
+                  plot.idCluster == session.cluster!.id &&
+                  plot.kodePlot >= 2 &&
+                  plot.kodePlot <= 4,
+            )
+            .toList()
+          ..sort((a, b) => a.kodePlot.compareTo(b.kodePlot));
+    return _card(color, [
+      const Icon(Icons.check_circle, color: Colors.green, size: 64),
+      const SizedBox(height: 8),
+      Text(
+        'Plot 1 terkonfirmasi',
+        textAlign: TextAlign.center,
+        style: _title(foreground),
+      ),
+      const SizedBox(height: 20),
+      Text('Pilih Tujuan', style: _title(foreground)),
+      const SizedBox(height: 12),
+      if (availableTargets.isEmpty)
+        Text(
+          'Plot 2, Plot 3, dan Plot 4 belum tersedia pada klaster ini.',
+          style: TextStyle(color: foreground),
+        )
+      else
+        ...availableTargets.map((plot) {
+          final direction = AzimuthLatLongService.toAzimuthDistance(
+            centerLatDeg: session.currentPlot!.latitude,
+            centerLonDeg: session.currentPlot!.longitude,
+            targetLatDeg: plot.latitude,
+            targetLonDeg: plot.longitude,
+          );
+          return Padding(
+            padding: const EdgeInsets.only(bottom: 10),
+            child: FilledButton(
+              style: _primaryButtonStyle,
+              onPressed:
+                  () => _session.selectPlotTarget(
+                    plot: plot,
+                    azimuth: direction.azimuthDeg,
+                    distanceM: direction.distanceM,
+                  ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'P${plot.kodePlot}',
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '${direction.azimuthDeg.toStringAsFixed(1)}°  •  '
+                      '${_meters(direction.distanceM)}',
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        }),
+    ]);
+  }
+
+  Widget _plotCompass(
+    SurveyNavigationState session,
+    Color color,
+    Color foreground,
+  ) {
+    final plotCode = session.targetPlot!.kodePlot;
+    return StreamBuilder<double?>(
+      stream: widget.compassService.headingStream,
+      builder: (_, snapshot) {
+        final heading = snapshot.data;
+        final target = session.targetAzimuth!;
+        final difference =
+            heading == null ? null : signedAngleDifference(target, heading);
+        final instruction =
+            difference == null
+                ? 'Sensor kompas belum terbaca'
+                : difference.abs() <= compassAlignmentTolerance
+                ? 'Arah sudah sesuai'
+                : difference > 0
+                ? 'Putar kanan ${difference.abs().toStringAsFixed(0)}°'
+                : 'Putar kiri ${difference.abs().toStringAsFixed(0)}°';
+        return _card(color, [
+          Text('Menuju Plot $plotCode', style: _title(foreground)),
+          const SizedBox(height: 20),
+          Transform.rotate(
+            angle:
+                heading == null
+                    ? 0
+                    : signedAngleDifference(target, heading) * math.pi / 180,
+            child: Icon(Icons.navigation, size: 82, color: foreground),
+          ),
+          const SizedBox(height: 16),
+          _metric('Target', '${target.toStringAsFixed(1)}°', foreground),
+          _metric(
+            'Heading Anda',
+            heading == null ? '-' : '${heading.toStringAsFixed(1)}°',
+            foreground,
+          ),
+          Text(
+            instruction,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              color: foreground,
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          _metric(
+            'Jarak referensi',
+            _meters(session.targetDistanceM!),
+            foreground,
+          ),
+          Text(
+            'Ukur jarak dari pusat Plot 1 di lapangan. GPS tidak digunakan untuk konfirmasi posisi.',
+            textAlign: TextAlign.center,
+            style: TextStyle(color: foreground.withValues(alpha: 0.75)),
+          ),
+          const SizedBox(height: 20),
+          FilledButton(
+            style: _primaryButtonStyle,
+            onPressed: () async {
+              if (await _confirm(
+                'Konfirmasi Plot $plotCode',
+                'Pastikan Anda sudah berada di pusat Plot $plotCode secara fisik.',
+              )) {
+                _session.confirmTargetPlot();
+              }
+            },
+            child: Text('SAYA SUDAH DI PLOT $plotCode'),
+          ),
+          const SizedBox(height: 8),
+          OutlinedButton.icon(
+            style: OutlinedButton.styleFrom(foregroundColor: foreground),
+            onPressed: _session.cancelNavigation,
+            icon: const Icon(Icons.arrow_back),
+            label: const Text('BATAL, KEMBALI KE PLOT 1'),
+          ),
+        ]);
+      },
+    );
+  }
+
+  Widget _plotReached(
+    SurveyNavigationState session,
+    Color color,
+    Color foreground,
+  ) {
+    final plotCode = session.currentPlot!.kodePlot;
+    return _card(color, [
+      const Icon(Icons.check_circle, color: Colors.green, size: 72),
+      const SizedBox(height: 12),
+      Text(
+        'Plot $plotCode terkonfirmasi',
+        textAlign: TextAlign.center,
+        style: _title(foreground),
+      ),
+      const SizedBox(height: 8),
+      Text(
+        'Referensi saat ini: Plot $plotCode',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: foreground),
+      ),
+    ]);
+  }
 
   Widget _card(Color color, List<Widget> children) => Card(
     color: color,
