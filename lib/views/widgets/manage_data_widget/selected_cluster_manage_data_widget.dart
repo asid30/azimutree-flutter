@@ -195,7 +195,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                                   _row(
                                     context,
                                     isDark,
-                                    "Latitude",
+                                    "Lintang",
                                     clusterLat != null
                                         ? clusterLat.toStringAsFixed(6)
                                         : '-',
@@ -203,7 +203,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                                   _row(
                                     context,
                                     isDark,
-                                    "Longitude",
+                                    "Bujur",
                                     clusterLon != null
                                         ? clusterLon.toStringAsFixed(6)
                                         : '-',

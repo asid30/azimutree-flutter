@@ -192,8 +192,8 @@ class TutorialPage extends StatelessWidget {
                                       '2. Pilih Plot (maksimal 4 plot per klaster).\n'
                                       '   • Jika semua plot dalam klaster sudah terisi, '
                                       'opsi tidak dapat dipilih.\n'
-                                      '3. Masukkan Latitude.\n'
-                                      '4. Masukkan Longitude.\n'
+                                      '3. Masukkan Lintang.\n'
+                                      '4. Masukkan Bujur.\n'
                                       '5. Masukkan Altitude (opsional).',
                                     ),
 
@@ -204,7 +204,7 @@ class TutorialPage extends StatelessWidget {
                                       '2. Pilih Plot.\n'
                                       '3. Pilih metode input posisi:\n'
                                       '   • Azimut & Jarak, atau\n'
-                                      '   • Koordinat Bebas (Latitude & Longitude).\n'
+                                      '   • Koordinat Bebas (Lintang & Bujur).\n'
                                       '   (Hanya bisa memilih salah satu).\n'
                                       '4. Masukkan Altitude (opsional).\n'
                                       '5. Masukkan Kode Pohon (gunakan angka).\n'

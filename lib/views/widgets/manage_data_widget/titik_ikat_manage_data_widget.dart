@@ -170,12 +170,12 @@ class TitikIkatManageDataWidget extends StatelessWidget {
                                   foreground,
                                 ),
                                 _row(
-                                  'Latitude',
+                                  'Lintang',
                                   titikIkat.latitude?.toStringAsFixed(6) ?? '-',
                                   foreground,
                                 ),
                                 _row(
-                                  'Longitude',
+                                  'Bujur',
                                   titikIkat.longitude?.toStringAsFixed(6) ??
                                       '-',
                                   foreground,

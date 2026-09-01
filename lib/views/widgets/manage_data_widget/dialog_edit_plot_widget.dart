@@ -223,7 +223,7 @@ class _DialogEditPlotWidgetState extends State<DialogEditPlotWidget> {
                   controller: _latitudeController,
                   style: TextStyle(color: dialogText),
                   decoration: InputDecoration(
-                    labelText: "Latitude",
+                    labelText: "Lintang",
                     labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
                     enabledBorder: OutlineInputBorder(
@@ -251,7 +251,7 @@ class _DialogEditPlotWidgetState extends State<DialogEditPlotWidget> {
                   controller: _longitudeController,
                   style: TextStyle(color: dialogText),
                   decoration: InputDecoration(
-                    labelText: "Longitude",
+                    labelText: "Bujur",
                     labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
                     enabledBorder: OutlineInputBorder(

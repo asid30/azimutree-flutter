@@ -28,8 +28,8 @@ void main() {
     );
 
     expect(find.text('Koordinat Titik Ikat'), findsOneWidget);
-    expect(find.text('Latitude Titik Ikat (wajib)'), findsOneWidget);
-    expect(find.text('Longitude Titik Ikat (wajib)'), findsOneWidget);
+    expect(find.text('Lintang Titik Ikat (wajib)'), findsOneWidget);
+    expect(find.text('Bujur Titik Ikat (wajib)'), findsOneWidget);
     expect(find.textContaining('Nama dibuat otomatis'), findsOneWidget);
   });
 
@@ -61,14 +61,14 @@ void main() {
     );
 
     expect(find.text('Azimut menuju Plot 1 (wajib)'), findsOneWidget);
-    expect(find.text('Latitude Titik Ikat (wajib)'), findsNothing);
+    expect(find.text('Lintang Titik Ikat (wajib)'), findsNothing);
 
     await tester.tap(find.text('Koordinat'));
     await tester.pump();
 
     expect(find.text('Azimut menuju Plot 1 (wajib)'), findsNothing);
     expect(find.text('Jarak menuju Plot 1, meter (wajib)'), findsNothing);
-    expect(find.text('Latitude Titik Ikat (wajib)'), findsOneWidget);
-    expect(find.text('Longitude Titik Ikat (wajib)'), findsOneWidget);
+    expect(find.text('Lintang Titik Ikat (wajib)'), findsOneWidget);
+    expect(find.text('Bujur Titik Ikat (wajib)'), findsOneWidget);
   });
 }

@@ -394,7 +394,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                     signed: true,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Latitude Titik Ikat (wajib)',
+                    labelText: 'Lintang Titik Ikat (wajib)',
                     labelStyle: TextStyle(color: labelColor),
                     helperText: 'Rentang -90 sampai 90',
                     helperStyle: TextStyle(color: labelColor),
@@ -415,7 +415,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                     signed: true,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Longitude Titik Ikat (wajib)',
+                    labelText: 'Bujur Titik Ikat (wajib)',
                     labelStyle: TextStyle(color: labelColor),
                     helperText: 'Rentang -180 sampai 180',
                     helperStyle: TextStyle(color: labelColor),

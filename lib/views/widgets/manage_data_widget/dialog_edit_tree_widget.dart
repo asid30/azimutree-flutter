@@ -347,7 +347,7 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
                 _dualFields(
                   _textField(
                     controller: _latitudeController,
-                    label: "Latitude",
+                    label: "Lintang",
                     type: const TextInputType.numberWithOptions(
                       decimal: true,
                       signed: true,
@@ -358,7 +358,7 @@ class _DialogEditTreeWidgetState extends State<DialogEditTreeWidget> {
                   ),
                   _textField(
                     controller: _longitudeController,
-                    label: "Longitude",
+                    label: "Bujur",
                     type: const TextInputType.numberWithOptions(
                       decimal: true,
                       signed: true,

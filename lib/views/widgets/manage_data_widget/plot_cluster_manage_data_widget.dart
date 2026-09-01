@@ -251,13 +251,13 @@ class _PlotClusterManageDataWidgetState
                                       _row(
                                         context,
                                         isDark,
-                                        "Latitude",
+                                        "Lintang",
                                         plot.latitude.toStringAsFixed(6),
                                       ),
                                       _row(
                                         context,
                                         isDark,
-                                        "Longitude",
+                                        "Bujur",
                                         plot.longitude.toStringAsFixed(6),
                                       ),
                                       _row(

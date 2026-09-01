@@ -53,20 +53,16 @@ class TitikIkatModel {
     }
     if ((latitude == null) != (longitude == null)) {
       throw ArgumentError(
-        'Latitude dan longitude harus diisi bersama-sama atau dikosongkan',
+        'Lintang dan bujur harus diisi bersama-sama atau dikosongkan',
       );
     }
     if (latitude != null &&
         (!latitude!.isFinite || latitude! < -90 || latitude! > 90)) {
-      throw ArgumentError.value(latitude, 'latitude', 'Latitude tidak valid');
+      throw ArgumentError.value(latitude, 'latitude', 'Lintang tidak valid');
     }
     if (longitude != null &&
         (!longitude!.isFinite || longitude! < -180 || longitude! > 180)) {
-      throw ArgumentError.value(
-        longitude,
-        'longitude',
-        'Longitude tidak valid',
-      );
+      throw ArgumentError.value(longitude, 'longitude', 'Bujur tidak valid');
     }
     if (altitude != null && !altitude!.isFinite) {
       throw ArgumentError.value(altitude, 'altitude', 'Altitude tidak valid');

@@ -140,17 +140,17 @@ class _DialogTitikIkatWidgetState extends State<DialogTitikIkatWidget> {
         coordinateError =
             'Mode koordinat memerlukan Plot 1 pada klaster terpilih.';
       } else if (latitudeText.isEmpty || longitudeText.isEmpty) {
-        coordinateError = 'Latitude dan longitude wajib diisi.';
+        coordinateError = 'Lintang dan bujur wajib diisi.';
       } else if (latitude == null ||
           !latitude.isFinite ||
           latitude < -90 ||
           latitude > 90) {
-        coordinateError = 'Latitude harus berada antara -90 dan 90.';
+        coordinateError = 'Lintang harus berada antara -90 dan 90.';
       } else if (longitude == null ||
           !longitude.isFinite ||
           longitude < -180 ||
           longitude > 180) {
-        coordinateError = 'Longitude harus berada antara -180 dan 180.';
+        coordinateError = 'Bujur harus berada antara -180 dan 180.';
       } else {
         positionValid = true;
       }
@@ -434,7 +434,7 @@ class _DialogTitikIkatWidgetState extends State<DialogTitikIkatWidget> {
                     _field(
                       context,
                       controller: _latitudeController,
-                      label: 'Latitude Titik Ikat (wajib)',
+                      label: 'Lintang Titik Ikat (wajib)',
                       errorText: _coordinateError,
                       numeric: true,
                     ),
@@ -442,7 +442,7 @@ class _DialogTitikIkatWidgetState extends State<DialogTitikIkatWidget> {
                     _field(
                       context,
                       controller: _longitudeController,
-                      label: 'Longitude Titik Ikat (wajib)',
+                      label: 'Bujur Titik Ikat (wajib)',
                       numeric: true,
                     ),
                     const SizedBox(height: 6),

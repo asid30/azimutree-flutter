@@ -1497,12 +1497,12 @@ class _BottomsheetLocationMapWidgetState
                                             '-',
                                       ),
                                       _row(
-                                        'Latitude',
+                                        'Lintang',
                                         tree.latitude?.toStringAsFixed(6) ??
                                             '-',
                                       ),
                                       _row(
-                                        'Longitude',
+                                        'Bujur',
                                         tree.longitude?.toStringAsFixed(6) ??
                                             '-',
                                       ),

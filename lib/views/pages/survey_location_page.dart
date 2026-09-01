@@ -429,13 +429,16 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       ),
       const SizedBox(height: 20),
       OutlinedButton.icon(
+        style: _secondaryButtonStyle(foreground),
         onPressed: () => _openAnchorOnMap(anchor),
         icon: const Icon(Icons.map_outlined),
         label: const Text('LIHAT TITIK IKAT DI PETA'),
       ),
       const SizedBox(height: 8),
       FilledButton.icon(
-        style: _primaryButtonStyle,
+        style: _themedPrimaryButtonStyle(
+          isDark: foreground.computeLuminance() > 0.5,
+        ),
         onPressed: _session.start,
         icon: const Icon(Icons.explore),
         label: const Text('MULAI SURVEY'),
@@ -473,6 +476,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
         Text(_locationMessage!, style: const TextStyle(color: Colors.orange)),
         const SizedBox(height: 8),
         OutlinedButton.icon(
+          style: _secondaryButtonStyle(foreground),
           onPressed: _checkingLocation ? null : _retryLocationAccess,
           icon:
               _checkingLocation
@@ -493,13 +497,16 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       ),
       const SizedBox(height: 20),
       OutlinedButton.icon(
+        style: _secondaryButtonStyle(foreground),
         onPressed: () => _openAnchorOnMap(anchor),
         icon: const Icon(Icons.map_outlined),
         label: const Text('LIHAT DI PETA'),
       ),
       const SizedBox(height: 8),
       FilledButton(
-        style: _primaryButtonStyle,
+        style: _themedPrimaryButtonStyle(
+          isDark: foreground.computeLuminance() > 0.5,
+        ),
         onPressed: () async {
           if (await _confirm(
             'Konfirmasi Titik Ikat',
@@ -573,7 +580,9 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
           _compassCalibrationInfo(foreground),
           const SizedBox(height: 20),
           FilledButton(
-            style: _primaryButtonStyle,
+            style: _themedPrimaryButtonStyle(
+              isDark: foreground.computeLuminance() > 0.5,
+            ),
             onPressed: () async {
               if (await _confirm(
                 'Konfirmasi Plot 1',
@@ -586,7 +595,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
           ),
           const SizedBox(height: 8),
           OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(foregroundColor: foreground),
+            style: _secondaryButtonStyle(foreground),
             onPressed: _session.cancelNavigation,
             icon: const Icon(Icons.arrow_back),
             label: const Text('BATAL, KEMBALI KE TITIK IKAT'),
@@ -613,7 +622,9 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       ),
       const SizedBox(height: 16),
       FilledButton.icon(
-        style: _primaryButtonStyle,
+        style: _themedPrimaryButtonStyle(
+          isDark: foreground.computeLuminance() > 0.5,
+        ),
         onPressed: () {
           final direction = AzimuthLatLongService.toAzimuthDistance(
             centerLatDeg: anchor.latitude!,
@@ -674,7 +685,9 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
           return Padding(
             padding: const EdgeInsets.only(bottom: 10),
             child: FilledButton(
-              style: _primaryButtonStyle,
+              style: _plotTargetButtonStyle(
+                isDark: foreground.computeLuminance() > 0.5,
+              ),
               onPressed:
                   () => _session.selectPlotTarget(
                     plot: plot,
@@ -782,7 +795,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
           ),
           const SizedBox(height: 8),
           OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(foregroundColor: foreground),
+            style: _secondaryButtonStyle(foreground),
             onPressed: _session.cancelNavigation,
             icon: const Icon(Icons.arrow_back),
             label: const Text('BATAL, KEMBALI KE PLOT 1'),
@@ -883,7 +896,10 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
     final commonName = tree.namaPohon?.trim();
     final scientificName = tree.namaIlmiah?.trim();
     return Card(
-      color: const Color(0xFF1F4226),
+      color:
+          foreground.computeLuminance() > 0.5
+              ? const Color(0xFF14351D)
+              : const Color(0xFF1F4226),
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: const Icon(Icons.park, color: Colors.white),
@@ -984,4 +1000,33 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
     disabledBackgroundColor: const Color(0xFF1F4226).withValues(alpha: 0.45),
     disabledForegroundColor: Colors.white70,
   );
+
+  ButtonStyle _plotTargetButtonStyle({required bool isDark}) {
+    final backgroundColor =
+        isDark ? const Color(0xFF14351D) : const Color(0xFF1F4226);
+    return FilledButton.styleFrom(
+      backgroundColor: backgroundColor,
+      foregroundColor: Colors.white,
+      disabledBackgroundColor: backgroundColor.withValues(alpha: 0.45),
+      disabledForegroundColor: Colors.white70,
+    );
+  }
+
+  ButtonStyle _themedPrimaryButtonStyle({required bool isDark}) {
+    final backgroundColor =
+        isDark ? const Color(0xFF14351D) : const Color(0xFF1F4226);
+    return FilledButton.styleFrom(
+      backgroundColor: backgroundColor,
+      foregroundColor: Colors.white,
+      disabledBackgroundColor: backgroundColor.withValues(alpha: 0.45),
+      disabledForegroundColor: Colors.white70,
+    );
+  }
+
+  ButtonStyle _secondaryButtonStyle(Color foreground) =>
+      OutlinedButton.styleFrom(
+        foregroundColor: foreground,
+        disabledForegroundColor: foreground.withValues(alpha: 0.45),
+        side: BorderSide(color: foreground.withValues(alpha: 0.75)),
+      );
 }

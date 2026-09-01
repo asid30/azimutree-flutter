@@ -119,13 +119,13 @@ class TreePlotManageDataWidget extends StatelessWidget {
                         : "-",
                   ),
                   _row(
-                    "Latitude",
+                    "Lintang",
                     tree.latitude != null
                         ? tree.latitude!.toStringAsFixed(6)
                         : "-",
                   ),
                   _row(
-                    "Longitude",
+                    "Bujur",
                     tree.longitude != null
                         ? tree.longitude!.toStringAsFixed(6)
                         : "-",
