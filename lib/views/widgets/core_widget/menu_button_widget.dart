@@ -21,15 +21,16 @@ class MenuButtonWidget extends StatelessWidget {
         backgroundColor: Color(0xFF1F4226),
         minimumSize: Size(150, 75),
         maximumSize: Size(200, 125),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.max,
         mainAxisAlignment: MainAxisAlignment.end,
         children: [
-          Text(label, textAlign: TextAlign.center),
-          SizedBox(width: 10),
-          Icon(icon, size: 30),
+          Expanded(child: Text(label, textAlign: TextAlign.center)),
+          const SizedBox(width: 6),
+          Icon(icon, size: 28),
         ],
       ),
     );
