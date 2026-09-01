@@ -7,11 +7,13 @@ import 'package:azimutree/data/database/tree_dao.dart';
 import 'package:azimutree/data/database/titik_ikat_dao.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
+import 'package:azimutree/services/azimuth_latlong_service.dart';
 
 /// Utility untuk kebutuhan pengembangan: seed data random dan menghapus semua
 /// data. Simpan semua logic di satu tempat supaya UI tetap ringkas.
@@ -30,7 +32,7 @@ class DebugDataService {
     required this.titikIkatNotifier,
   });
 
-  /// Generate beberapa klaster, plot, dan pohon secara acak.
+  /// Generate beberapa klaster, Titik Ikat, plot, dan pohon secara acak.
   Future<void> seedRandomData({
     int clusterCount = 3,
     int minPlotPerCluster = 4,
@@ -41,16 +43,12 @@ class DebugDataService {
     final now = DateTime.now();
 
     for (int i = 0; i < clusterCount; i++) {
+      final clusterCode = _generateClusterCode(i);
       final cluster = ClusterModel(
-        kodeCluster: _generateClusterCode(i),
+        kodeCluster: clusterCode,
         namaPengukur: "Tester ${i + 1}",
         tanggalPengukuran: now.subtract(Duration(days: _rng.nextInt(60))),
       );
-
-      final clusterId = await ClusterDao.insertCluster(cluster);
-      final plotCount =
-          minPlotPerCluster +
-          _rng.nextInt((maxPlotPerCluster - minPlotPerCluster) + 1);
 
       // Tentukan pusat klaster (plot 1) agar plot lain tidak terlalu jauh
       const latMin = -5.6;
@@ -59,6 +57,32 @@ class DebugDataService {
       const lonMax = 105.4;
       final centerLat = _randomCoordinate(latMin, latMax);
       final centerLon = _randomCoordinate(lonMin, lonMax);
+      final centerAltitude = 100 + _rng.nextInt(250).toDouble();
+
+      // Tempatkan Titik Ikat 25–100 meter dari P1. Arah dan jarak menuju P1
+      // tetap dihitung dari koordinat saat sesi survey dimulai.
+      final anchorDistanceM = 25 + _rng.nextDouble() * 75;
+      final anchorBearingFromPlot1 = _rng.nextDouble() * 360;
+      final anchorCoordinate = AzimuthLatLongService.fromAzimuthDistance(
+        centerLatDeg: centerLat,
+        centerLonDeg: centerLon,
+        azimuthDeg: anchorBearingFromPlot1,
+        distanceM: anchorDistanceM,
+      );
+      final clusterId = await ClusterDao.insertClusterWithTitikIkat(
+        cluster,
+        TitikIkatModel(
+          idCluster: 0,
+          nama: 'Titik Ikat $clusterCode',
+          latitude: anchorCoordinate.latitude,
+          longitude: anchorCoordinate.longitude,
+          altitude: centerAltitude,
+          keterangan: 'Auto generated',
+        ),
+      );
+      final plotCount =
+          minPlotPerCluster +
+          _rng.nextInt((maxPlotPerCluster - minPlotPerCluster) + 1);
 
       for (int j = 0; j < plotCount; j++) {
         final plot = PlotModel(
@@ -68,7 +92,7 @@ class DebugDataService {
               j == 0 ? centerLat : centerLat + (_rng.nextDouble() - 0.5) * 0.01,
           longitude:
               j == 0 ? centerLon : centerLon + (_rng.nextDouble() - 0.5) * 0.01,
-          altitude: 100 + _rng.nextInt(250).toDouble(),
+          altitude: centerAltitude,
         );
 
         final plotId = await PlotDao.insertPlot(plot);
