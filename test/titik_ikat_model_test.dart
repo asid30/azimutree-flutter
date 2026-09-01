@@ -73,4 +73,22 @@ void main() {
     expect(result.azimuthDeg, closeTo(0, 0.001));
     expect(result.distanceM, greaterThan(0));
   });
+
+  test('generated coordinate preserves its source azimuth and distance', () {
+    final coordinate = AzimuthLatLongService.fromAzimuthDistance(
+      centerLatDeg: -5.4,
+      centerLonDeg: 105.2,
+      azimuthDeg: 237.5,
+      distanceM: 14.8,
+    );
+    final restored = AzimuthLatLongService.toAzimuthDistance(
+      centerLatDeg: -5.4,
+      centerLonDeg: 105.2,
+      targetLatDeg: coordinate.latitude,
+      targetLonDeg: coordinate.longitude,
+    );
+
+    expect(restored.azimuthDeg, closeTo(237.5, 0.001));
+    expect(restored.distanceM, closeTo(14.8, 0.001));
+  });
 }

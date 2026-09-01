@@ -101,15 +101,24 @@ class DebugDataService {
             _rng.nextInt((maxTreePerPlot - minTreePerPlot) + 1);
 
         for (int k = 0; k < treeCount; k++) {
+          final treeAzimuth = _rng.nextDouble() * 360;
+          final treeDistanceM =
+              ((1 + _rng.nextDouble() * 19) * 10).roundToDouble() / 10;
+          final treeCoordinate = AzimuthLatLongService.fromAzimuthDistance(
+            centerLatDeg: plot.latitude,
+            centerLonDeg: plot.longitude,
+            azimuthDeg: treeAzimuth,
+            distanceM: treeDistanceM,
+          );
           final tree = TreeModel(
             plotId: plotId,
             kodePohon: k + 1,
             namaPohon: "Pohon ${k + 1}",
             namaIlmiah: "Species ${_rng.nextInt(90) + 10}",
-            azimut: _rng.nextDouble() * 360,
-            jarakPusatM: (_rng.nextDouble() * 20).roundToDouble(),
-            latitude: plot.latitude + _rng.nextDouble() * 0.001,
-            longitude: plot.longitude + _rng.nextDouble() * 0.001,
+            azimut: treeAzimuth,
+            jarakPusatM: treeDistanceM,
+            latitude: treeCoordinate.latitude,
+            longitude: treeCoordinate.longitude,
             altitude: plot.altitude,
             keterangan: "Auto generated",
             urlFoto: _maybePhotoUrl(

@@ -4,15 +4,18 @@ import 'dart:math' as math;
 import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:azimutree/data/database/plot_dao.dart';
 import 'package:azimutree/data/database/titik_ikat_dao.dart';
+import 'package:azimutree/data/database/tree_dao.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
+import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/survey_navigation_notifier.dart';
 import 'package:azimutree/services/azimuth_latlong_service.dart';
 import 'package:azimutree/services/compass_navigation_service.dart';
 import 'package:azimutree/services/compass_service.dart';
 import 'package:azimutree/services/survey_session_storage.dart';
+import 'package:azimutree/services/tree_direction_filter_service.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
@@ -38,6 +41,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
   List<ClusterModel> _clusters = [];
   List<TitikIkatModel> _anchors = [];
   List<PlotModel> _plots = [];
+  List<TreeModel> _trees = [];
   int? _selectedClusterId;
   geo.Position? _position;
   StreamSubscription<geo.Position>? _positionSubscription;
@@ -58,10 +62,12 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       ClusterDao.getAllClusters(),
       TitikIkatDao.getAllTitikIkat(),
       PlotDao.getAllPlots(),
+      TreeDao.getAllTrees(),
     ]);
     _clusters = data[0] as List<ClusterModel>;
     _anchors = data[1] as List<TitikIkatModel>;
     _plots = data[2] as List<PlotModel>;
+    _trees = data[3] as List<TreeModel>;
     await _restoreSession();
     if (!_sessionListenerAttached) {
       _session.addListener(_persistSession);
@@ -387,13 +393,8 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
           _plotReached(session, cardColor, foreground),
         if (session.hasStarted) ...[
           const SizedBox(height: 12),
-          OutlinedButton.icon(
-            style: OutlinedButton.styleFrom(
-              foregroundColor: isDark ? Colors.white : const Color(0xFF1F4226),
-              side: BorderSide(
-                color: isDark ? Colors.white70 : const Color(0xFF1F4226),
-              ),
-            ),
+          FilledButton.icon(
+            style: _primaryButtonStyle,
             onPressed: _endSurvey,
             icon: const Icon(Icons.stop_circle_outlined),
             label: const Text('AKHIRI SESI SURVEY'),
@@ -693,6 +694,8 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
             ),
           );
         }),
+      const Divider(height: 32),
+      _treeCompassPanel(session.currentPlot!, foreground),
     ]);
   }
 
@@ -799,7 +802,96 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
         textAlign: TextAlign.center,
         style: TextStyle(color: foreground),
       ),
+      const Divider(height: 32),
+      _treeCompassPanel(session.currentPlot!, foreground),
     ]);
+  }
+
+  Widget _treeCompassPanel(PlotModel activePlot, Color foreground) {
+    final plotTrees =
+        _trees.where((tree) => tree.plotId == activePlot.id).toList();
+    return StreamBuilder<double?>(
+      stream: widget.compassService.headingStream,
+      builder: (_, snapshot) {
+        final heading = snapshot.data;
+        final visibleTrees =
+            heading == null || activePlot.id == null
+                ? <TreeModel>[]
+                : TreeDirectionFilterService.filter(
+                  trees: plotTrees,
+                  plotId: activePlot.id!,
+                  heading: heading,
+                );
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Text('KOMPAS POHON', style: _title(foreground)),
+            const SizedBox(height: 8),
+            _metric('Plot aktif', 'P${activePlot.kodePlot}', foreground),
+            _metric(
+              'Heading',
+              heading == null ? '-' : '${heading.toStringAsFixed(1)}°',
+              foreground,
+            ),
+            Text(
+              'Pohon di arah ±${compassAlignmentTolerance.toStringAsFixed(0)}°',
+              style: TextStyle(color: foreground),
+            ),
+            const SizedBox(height: 12),
+            if (plotTrees.isEmpty)
+              Text(
+                'Belum ada data pohon pada plot ini.',
+                style: TextStyle(color: foreground),
+              )
+            else if (heading == null)
+              Text(
+                'Sensor kompas belum terbaca.',
+                style: TextStyle(color: foreground),
+              )
+            else if (visibleTrees.isEmpty)
+              Text(
+                'Tidak ada pohon pada arah ini. Putar perangkat perlahan.',
+                style: TextStyle(color: foreground),
+              )
+            else
+              ...visibleTrees.map(
+                (tree) => _treeDirectionTile(tree, heading, foreground),
+              ),
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _treeDirectionTile(TreeModel tree, double heading, Color foreground) {
+    final difference = signedAngleDifference(tree.azimut!, heading).abs();
+    final commonName = tree.namaPohon?.trim();
+    final scientificName = tree.namaIlmiah?.trim();
+    return Card(
+      color: const Color(0xFF1F4226),
+      margin: const EdgeInsets.only(bottom: 8),
+      child: ListTile(
+        leading: const Icon(Icons.park, color: Colors.white),
+        title: Text(
+          'Pohon ${tree.kodePohon.toString().padLeft(3, '0')}',
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        subtitle: Text(
+          '${tree.azimut!.toStringAsFixed(1)}° • '
+          '${tree.jarakPusatM == null ? '- m' : _meters(tree.jarakPusatM!)}'
+          '${commonName == null || commonName.isEmpty ? '' : '\n$commonName'}'
+          '${scientificName == null || scientificName.isEmpty ? '' : ' • $scientificName'}',
+          style: const TextStyle(color: Colors.white70),
+        ),
+        trailing: Text(
+          'Δ${difference.toStringAsFixed(1)}°',
+          style: const TextStyle(color: Colors.white),
+        ),
+      ),
+    );
   }
 
   Widget _card(Color color, List<Widget> children) => Card(
