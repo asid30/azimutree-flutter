@@ -8,6 +8,8 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math' as math;
+import 'dart:typed_data';
+import 'dart:ui' as ui;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
@@ -65,7 +67,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   late final String _sateliteStyleUri;
   MapboxMap? _mapboxMap;
   CircleAnnotationManager? _circleManager;
+  PointAnnotationManager? _treePointManager;
   CircleAnnotationManager? _searchResultManager;
+  final Map<String, Uint8List> _treeIconCache = {};
   // Cache of generated centroid markers for hit-testing and metadata.
   final List<Map<String, dynamic>> _centroidCache = [];
   // Use dynamic so we can support line annotation manager when available
@@ -209,22 +213,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       Future.microtask(() async {
         try {
           if (_mapboxMap == null) return;
-          // If we have a circle manager and cached trees, update only tree
-          // annotations for a faster, more reliable visual update.
-          if (_circleManager != null && _treesCache.isNotEmpty) {
-            try {
-              await _circleManager!.deleteAll();
-            } catch (_) {}
-            await _addClusterMarkers(
-              await ClusterDao.getAllClusters(),
-              await PlotDao.getAllPlots(),
-            );
-            await _addPlotMarkers(_plotsCache);
-            await _addTreeMarkers(_treesCache);
-          } else {
-            // Fallback: reload everything.
-            await _loadMarkers();
-          }
+          await _loadMarkers();
         } catch (_) {}
       });
     };
@@ -786,6 +775,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     if (_mapboxMap == null) return;
     _circleManager ??=
         await _mapboxMap!.annotations.createCircleAnnotationManager();
+    _treePointManager ??=
+        await _mapboxMap!.annotations.createPointAnnotationManager();
   }
 
   Future<void> _ensureSearchManager() async {
@@ -1218,6 +1209,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     if (_circleManager == null) return;
 
     await _circleManager!.deleteAll();
+    await _treePointManager?.deleteAll();
 
     final clusters = await ClusterDao.getAllClusters();
     final plots = await PlotDao.getAllPlots();
@@ -1345,6 +1337,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   }
 
   Future<void> _addTreeMarkers(List<TreeModel> trees) async {
+    if (_treePointManager == null) return;
     final futures = <Future>[];
     final selTree = selectedTreeNotifier.value;
     int? selPlotId = selTree?.plotId;
@@ -1428,23 +1421,95 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         if (inspected) circleColor = kTreeInspectedColor;
       }
 
+      final icon = await _treeIcon(circleColor, selected: selected);
       futures.add(
-        _circleManager!.create(
-          _buildCircleOptions(
-            Position(tree.longitude!, tree.latitude!),
-            circleColor: circleColor,
-            circleRadius: kTreeRadius,
-            circleStrokeColor:
-                selected ? kTreeSelectedStrokeColor : kTreeStrokeColor,
-            circleStrokeWidth:
-                selected ? kTreeSelectedStrokeWidth : kTreeStrokeWidth,
-            circleOpacity: kTreeOpacity,
+        _treePointManager!.create(
+          PointAnnotationOptions(
+            geometry: Point(
+              coordinates: Position(tree.longitude!, tree.latitude!),
+            ),
+            image: icon,
+            iconAnchor: IconAnchor.BOTTOM,
+            iconSize: selected ? 0.96 : 0.82,
+            iconOpacity: kTreeOpacity,
           ),
         ),
       );
     }
 
     if (futures.isNotEmpty) await Future.wait(futures);
+  }
+
+  Future<Uint8List> _treeIcon(int colorValue, {required bool selected}) async {
+    final cacheKey = '$colorValue-$selected';
+    final cached = _treeIconCache[cacheKey];
+    if (cached != null) return cached;
+
+    const size = 48.0;
+    final recorder = ui.PictureRecorder();
+    final canvas = Canvas(recorder);
+    final canopyColor = Color(colorValue);
+    final outline =
+        Paint()
+          ..color = selected ? Colors.white : const Color(0xFF3E2723)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = selected ? 4 : 2
+          ..strokeJoin = StrokeJoin.round;
+    final canopy =
+        Paint()
+          ..color = canopyColor
+          ..style = PaintingStyle.fill;
+    final trunk =
+        Paint()
+          ..color = const Color(0xFF5D4037)
+          ..style = PaintingStyle.fill;
+
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(20, 27, 8, 18),
+        const Radius.circular(2),
+      ),
+      outline,
+    );
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        const Rect.fromLTWH(22, 28, 4, 17),
+        const Radius.circular(1.5),
+      ),
+      trunk,
+    );
+    final canopyTiers = <Path>[
+      Path()
+        ..moveTo(24, 17)
+        ..lineTo(6, 40)
+        ..lineTo(42, 40)
+        ..close(),
+      Path()
+        ..moveTo(24, 9)
+        ..lineTo(10, 30)
+        ..lineTo(38, 30)
+        ..close(),
+      Path()
+        ..moveTo(24, 2)
+        ..lineTo(14, 21)
+        ..lineTo(34, 21)
+        ..close(),
+    ];
+    for (final tier in canopyTiers) {
+      canvas.drawPath(tier, canopy);
+      canvas.drawPath(tier, outline);
+    }
+
+    final image = await recorder.endRecording().toImage(
+      size.toInt(),
+      size.toInt(),
+    );
+    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
+    image.dispose();
+    if (bytes == null) throw StateError('Gagal membuat ikon pohon');
+    final result = bytes.buffer.asUint8List();
+    _treeIconCache[cacheKey] = result;
+    return result;
   }
 
   CircleAnnotationOptions _buildCircleOptions(
