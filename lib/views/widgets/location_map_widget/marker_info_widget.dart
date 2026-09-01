@@ -112,14 +112,23 @@ class MarkerInfoWidget extends StatelessWidget {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              tree.namaPohon ?? 'Pohon #${tree.kodePohon}',
+                              'Kode Pohon: ${tree.kodePohon}',
                               style: const TextStyle(
                                 fontWeight: FontWeight.w600,
                               ),
                               maxLines: 2,
                               overflow: TextOverflow.ellipsis,
                             ),
-                            if (tree.namaIlmiah != null)
+                            if (tree.namaPohon != null &&
+                                tree.namaPohon!.trim().isNotEmpty)
+                              Text(
+                                tree.namaPohon!,
+                                style: const TextStyle(fontSize: 12),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            if (tree.namaIlmiah != null &&
+                                tree.namaIlmiah!.trim().isNotEmpty)
                               Text(
                                 tree.namaIlmiah!,
                                 style: const TextStyle(

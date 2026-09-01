@@ -1306,7 +1306,7 @@ class _BottomsheetLocationMapWidgetState
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        tree.namaPohon ?? 'Pohon',
+                                        'Kode Pohon: ${tree.kodePohon}',
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -1486,7 +1486,11 @@ class _BottomsheetLocationMapWidgetState
                                     defaultVerticalAlignment:
                                         TableCellVerticalAlignment.top,
                                     children: [
-                                      _row('Ilmiah', tree.namaIlmiah ?? '-'),
+                                      _row('Nama Pohon', tree.namaPohon ?? '-'),
+                                      _row(
+                                        'Nama Ilmiah',
+                                        tree.namaIlmiah ?? '-',
+                                      ),
                                       _row(
                                         'Azimut',
                                         tree.azimut?.toStringAsFixed(1) ?? '-',
