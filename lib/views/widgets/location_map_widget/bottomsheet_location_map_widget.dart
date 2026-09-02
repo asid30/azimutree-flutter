@@ -279,6 +279,9 @@ class _BottomsheetLocationMapWidgetState
 
   Future<void> _selectAndCenterTree(TreeModel t) async {
     if (t.latitude == null || t.longitude == null) return;
+    selectedPlotNotifier.value = null;
+    selectedPlotClusterNotifier.value = null;
+    selectedCentroidNotifier.value = null;
     selectedTreeNotifier.value = t;
     selectedLocationNotifier.value = null;
     await Future.delayed(const Duration(milliseconds: 60));
@@ -323,6 +326,10 @@ class _BottomsheetLocationMapWidgetState
   }
 
   Future<void> _selectAndCenterPlot(PlotModel p) async {
+    selectedTreeNotifier.value = null;
+    selectedTreePlotNotifier.value = null;
+    selectedTreeClusterNotifier.value = null;
+    selectedCentroidNotifier.value = null;
     selectedPlotNotifier.value = p;
     // center flow: clear then set selectedLocation so map centers
     selectedLocationNotifier.value = null;

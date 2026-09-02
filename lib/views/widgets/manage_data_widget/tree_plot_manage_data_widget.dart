@@ -336,6 +336,14 @@ class TreePlotManageDataWidget extends StatelessWidget {
     if (tree.latitude == null || tree.longitude == null) return;
 
     selectedPageNotifier.value = 'location_map_page';
+    // Marker selections are exclusive. Clear any plot/centroid left from a
+    // previous map visit before selecting the tracked tree.
+    selectedPlotNotifier.value = null;
+    selectedPlotClusterNotifier.value = null;
+    selectedCentroidNotifier.value = null;
+    selectedTreePlotNotifier.value = null;
+    selectedTreeClusterNotifier.value = null;
+    selectedMarkerScreenOffsetNotifier.value = null;
     // Navigating to the map to track a tree is not a search result selection.
     selectedLocationFromSearchNotifier.value = false;
     // Disable following the user's live location so the map centers on the tree.
