@@ -591,6 +591,10 @@ class _BottomsheetManageDataWidgetState
                                                 plotNotifier:
                                                     widget.plotNotifier,
                                                 clusters: clusterState,
+                                                titikIkat:
+                                                    widget
+                                                        .titikIkatNotifier
+                                                        .value,
                                               ),
                                         );
                                       },
