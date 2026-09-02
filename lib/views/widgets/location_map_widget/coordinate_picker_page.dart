@@ -6,6 +6,7 @@ import 'package:azimutree/data/database/tree_dao.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/views/widgets/location_map_widget/map_marker_style.dart';
+import 'package:azimutree/views/widgets/location_map_widget/map_legend_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as geo;
@@ -375,6 +376,15 @@ class _CoordinatePickerPageState extends State<CoordinatePickerPage> {
                   shadows: [Shadow(color: Colors.white, blurRadius: 4)],
                 ),
               ),
+            ),
+          ),
+          const Positioned(
+            left: 12,
+            bottom: 190,
+            child: MapLegendWidget(
+              showConnections: false,
+              showSearchResult: false,
+              showCloseButton: false,
             ),
           ),
           Positioned(
