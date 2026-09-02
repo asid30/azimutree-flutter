@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:azimutree/views/widgets/location_map_widget/mapbox_widget.dart';
+import 'package:azimutree/views/widgets/location_map_widget/map_marker_style.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -67,6 +67,25 @@ class MapLegendWidget extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            width: 14,
+                            child: Icon(
+                              Icons.location_pin,
+                              size: 18,
+                              color: Color(kTitikIkatColor),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Titik Ikat',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
                       _legendItem(
                         fill: Color(kPlotColor),
                         stroke: Color(kPlotStrokeColor),

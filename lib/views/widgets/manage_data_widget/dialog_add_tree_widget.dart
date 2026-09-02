@@ -6,6 +6,7 @@ import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/services/azimuth_latlong_service.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:azimutree/views/widgets/location_map_widget/coordinate_picker_page.dart';
 
 class _CommaToDotNoSpaceFormatter extends TextInputFormatter {
   _CommaToDotNoSpaceFormatter();
@@ -297,6 +298,29 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
 
     if (!mounted) return;
     Navigator.of(context).pop(true);
+  }
+
+  Future<void> _pickCoordinate() async {
+    PlotModel? activePlot;
+    for (final plot in _filteredPlots) {
+      if (plot.id == _selectedPlotId) {
+        activePlot = plot;
+        break;
+      }
+    }
+    final selected = await pickCoordinateFromMap(
+      context,
+      initialLatitude:
+          double.tryParse(_latitudeController.text.trim()) ??
+          activePlot?.latitude,
+      initialLongitude:
+          double.tryParse(_longitudeController.text.trim()) ??
+          activePlot?.longitude,
+    );
+    if (selected == null || !mounted) return;
+    _latitudeController.text = selected.latitude.toStringAsFixed(7);
+    _longitudeController.text = selected.longitude.toStringAsFixed(7);
+    _validateForm();
   }
 
   void _syncCapitalizedWords(TextEditingController controller) {
@@ -684,6 +708,18 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                         ),
                       ),
                     ],
+                  ),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: fieldsEnabled ? _pickCoordinate : null,
+                      icon: const Icon(Icons.map_outlined),
+                      label: const Text('Pilih dari Peta'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: dialogText,
+                      ),
+                    ),
                   ),
                 ],
                 const SizedBox(height: 8),

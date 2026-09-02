@@ -4,6 +4,7 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
+import 'package:azimutree/views/widgets/location_map_widget/coordinate_picker_page.dart';
 
 class DialogAddClusterWidget extends StatefulWidget {
   final ClusterNotifier clusterNotifier;
@@ -201,6 +202,22 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
       _tanggalPengukuranController.text =
           "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
     }
+  }
+
+  Future<void> _pickTitikIkatCoordinate() async {
+    final selected = await pickCoordinateFromMap(
+      context,
+      initialLatitude: double.tryParse(
+        _titikIkatLatitudeController.text.trim().replaceAll(',', '.'),
+      ),
+      initialLongitude: double.tryParse(
+        _titikIkatLongitudeController.text.trim().replaceAll(',', '.'),
+      ),
+    );
+    if (selected == null || !mounted) return;
+    _titikIkatLatitudeController.text = selected.latitude.toStringAsFixed(7);
+    _titikIkatLongitudeController.text = selected.longitude.toStringAsFixed(7);
+    _validateForm();
   }
 
   void _syncUppercase(TextEditingController controller) {
@@ -424,6 +441,18 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                       borderSide: BorderSide(
                         color: isDark ? Colors.white54 : Colors.grey,
                       ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _pickTitikIkatCoordinate,
+                    icon: const Icon(Icons.map_outlined),
+                    label: const Text('Pilih dari Peta'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: dialogText,
                     ),
                   ),
                 ),

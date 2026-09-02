@@ -4,6 +4,7 @@ import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/services/azimuth_latlong_service.dart';
+import 'package:azimutree/views/widgets/location_map_widget/coordinate_picker_page.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -266,6 +267,45 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
     if (mounted) Navigator.of(context).pop(true);
   }
 
+  Future<void> _pickCoordinate() async {
+    final clusterPlots = _plotsForSelectedCluster;
+    PlotModel? plotOne;
+    for (final plot in clusterPlots) {
+      if (plot.kodePlot == 1) {
+        plotOne = plot;
+        break;
+      }
+    }
+    double? contextLatitude = plotOne?.latitude;
+    double? contextLongitude = plotOne?.longitude;
+    if (plotOne == null && clusterPlots.length > 1) {
+      contextLatitude =
+          clusterPlots.fold<double>(0, (sum, plot) => sum + plot.latitude) /
+          clusterPlots.length;
+      contextLongitude =
+          clusterPlots.fold<double>(0, (sum, plot) => sum + plot.longitude) /
+          clusterPlots.length;
+    }
+    final anchor = _referenceOptions.where(
+      (reference) => reference.key.startsWith('anchor:'),
+    );
+    if (contextLatitude == null && anchor.isNotEmpty) {
+      contextLatitude = anchor.first.latitude;
+      contextLongitude = anchor.first.longitude;
+    }
+    final selected = await pickCoordinateFromMap(
+      context,
+      initialLatitude:
+          double.tryParse(_latitudeController.text.trim()) ?? contextLatitude,
+      initialLongitude:
+          double.tryParse(_longitudeController.text.trim()) ?? contextLongitude,
+    );
+    if (selected == null || !mounted) return;
+    _latitudeController.text = selected.latitude.toStringAsFixed(7);
+    _longitudeController.text = selected.longitude.toStringAsFixed(7);
+    _validateForm();
+  }
+
   InputDecoration _decoration(String label, bool isDark, {String? errorText}) =>
       InputDecoration(
         labelText: label,
@@ -484,23 +524,39 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
                     ],
                   )
                 else
-                  Row(
+                  Column(
                     children: [
-                      Expanded(
-                        child: _numberField(
-                          _latitudeController,
-                          'Lintang',
-                          isDark,
-                          signed: true,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _numberField(
+                              _latitudeController,
+                              'Lintang',
+                              isDark,
+                              signed: true,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: _numberField(
+                              _longitudeController,
+                              'Bujur',
+                              isDark,
+                              signed: true,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: _numberField(
-                          _longitudeController,
-                          'Bujur',
-                          isDark,
-                          signed: true,
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _pickCoordinate,
+                          icon: const Icon(Icons.map_outlined),
+                          label: const Text('Pilih dari Peta'),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: foreground,
+                          ),
                         ),
                       ),
                     ],

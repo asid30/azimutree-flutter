@@ -1,60 +1,19 @@
 import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:azimutree/data/database/plot_dao.dart';
 import 'package:azimutree/data/database/tree_dao.dart';
+import 'package:azimutree/data/database/titik_ikat_dao.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:azimutree/views/widgets/location_map_widget/map_marker_style.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math' as math;
-import 'dart:typed_data';
-import 'dart:ui' as ui;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
-
-// Marker style constants
-const int kClusterColor = 0xFF2E7D32;
-const int kClusterStrokeColor = 0xFF1B5E20;
-const double kClusterRadius = 11.0;
-const double kClusterStrokeWidth = 1.5;
-const double kClusterOpacity = 0.85;
-
-const int kPlotColor = 0xFF1565C0;
-const int kPlotStrokeColor = 0xFF0D47A1;
-const double kPlotRadius = 9.0;
-const double kPlotStrokeWidth = 1.2;
-const double kPlotOpacity = 0.9;
-const int kPlotSelectedStrokeColor = 0xFFFFFFFF;
-const double kPlotSelectedStrokeWidth = 1.6;
-
-// A subtle plot coverage area, calculated from its farthest tree.
-const int kPlotAreaColor = 0xFF81D4FA;
-const int kPlotAreaOutlineColor = 0xFF4FC3F7;
-const double kPlotAreaOpacity = 0.18;
-const double kPlotAreaMarginMeters = 5.0;
-const double kEmptyPlotAreaRadiusMeters = 10.0;
-const int kPlotAreaSegments = 64;
-
-const int kTreeColor = 0xFFF57C00;
-const int kTreeStrokeColor = 0xFFE65100;
-const int kTreeSelectedStrokeColor = 0xFFFFFFFF;
-const double kTreeRadius = 6.0;
-const double kTreeSelectedStrokeWidth = 1.6;
-const double kTreeStrokeWidth = 1.0;
-const double kTreeOpacity = 0.95;
-
-const int kConnectionColor = 0xFFB71C1C;
-const double kConnectionRadius = 2.0;
-const int kConnectionSegments = 120;
-// Light green for inspected trees (visually distinct from normal tree color)
-const int kTreeInspectedColor = 0xFF8BC34A;
-// Light blue for plot-to-plot cluster connection lines
-const int kPlotConnectionColor = 0xFF81D4FA;
-
-// Centroid generated marker color
-const int kCentroidColor = 0xFF6A1B9A;
 
 class MapboxWidget extends StatefulWidget {
   final String standardStyleUri;
@@ -78,7 +37,6 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   PolygonAnnotationManager? _plotAreaManager;
   PointAnnotationManager? _treePointManager;
   CircleAnnotationManager? _searchResultManager;
-  final Map<String, Uint8List> _treeIconCache = {};
   // Cache of generated centroid markers for hit-testing and metadata.
   final List<Map<String, dynamic>> _centroidCache = [];
   // Use dynamic so we can support line annotation manager when available
@@ -1227,6 +1185,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     final clusters = await ClusterDao.getAllClusters();
     final plots = await PlotDao.getAllPlots();
     final trees = await TreeDao.getAllTrees();
+    final titikIkat = await TitikIkatDao.getAllTitikIkat();
 
     // Populate cache for quick access during tap hit-testing.
     _treesCache.clear();
@@ -1237,6 +1196,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     await _addPlotAreas(plots, trees);
     await _addClusterMarkers(clusters, plots);
     await _addPlotMarkers(plots);
+    await _addTitikIkatMarkers(titikIkat);
     await _addTreeMarkers(trees);
     // If there's an active selected location that originated from a search,
     // show its pin. Other flows that set `selectedLocationNotifier` (e.g.
@@ -1259,6 +1219,27 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       // No selection: ensure no stale connection remains.
       await _removeConnectionMarkers();
     }
+  }
+
+  Future<void> _addTitikIkatMarkers(List<TitikIkatModel> titikIkat) async {
+    if (_treePointManager == null) return;
+    final icon = await TitikIkatMarkerIconFactory.create();
+    final markers = <PointAnnotationOptions>[];
+    for (final item in titikIkat) {
+      final latitude = item.latitude;
+      final longitude = item.longitude;
+      if (latitude == null || longitude == null) continue;
+      markers.add(
+        PointAnnotationOptions(
+          geometry: Point(coordinates: Position(longitude, latitude)),
+          image: icon,
+          iconAnchor: IconAnchor.BOTTOM,
+          iconSize: kTitikIkatIconSize,
+          iconOpacity: 1,
+        ),
+      );
+    }
+    if (markers.isNotEmpty) await _treePointManager!.createMulti(markers);
   }
 
   Future<void> _addPlotAreas(
@@ -1535,7 +1516,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         if (inspected) circleColor = kTreeInspectedColor;
       }
 
-      final icon = await _treeIcon(circleColor, selected: selected);
+      final icon = await TreeMarkerIconFactory.create(
+        circleColor,
+        selected: selected,
+      );
       futures.add(
         _treePointManager!.create(
           PointAnnotationOptions(
@@ -1544,7 +1528,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             ),
             image: icon,
             iconAnchor: IconAnchor.BOTTOM,
-            iconSize: selected ? 1.08 : 0.92,
+            iconSize: selected ? kTreeSelectedIconSize : kTreeIconSize,
             iconOpacity: kTreeOpacity,
           ),
         ),
@@ -1552,78 +1536,6 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     }
 
     if (futures.isNotEmpty) await Future.wait(futures);
-  }
-
-  Future<Uint8List> _treeIcon(int colorValue, {required bool selected}) async {
-    final cacheKey = '$colorValue-$selected';
-    final cached = _treeIconCache[cacheKey];
-    if (cached != null) return cached;
-
-    const size = 48.0;
-    final recorder = ui.PictureRecorder();
-    final canvas = Canvas(recorder);
-    final canopyColor = Color(colorValue);
-    final outline =
-        Paint()
-          ..color = selected ? Colors.white : const Color(0xFF3E2723)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = selected ? 4 : 2
-          ..strokeJoin = StrokeJoin.round;
-    final canopy =
-        Paint()
-          ..color = canopyColor
-          ..style = PaintingStyle.fill;
-    final trunk =
-        Paint()
-          ..color = const Color(0xFF5D4037)
-          ..style = PaintingStyle.fill;
-
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(20, 27, 8, 18),
-        const Radius.circular(2),
-      ),
-      outline,
-    );
-    canvas.drawRRect(
-      RRect.fromRectAndRadius(
-        const Rect.fromLTWH(22, 28, 4, 17),
-        const Radius.circular(1.5),
-      ),
-      trunk,
-    );
-    final canopyTiers = <Path>[
-      Path()
-        ..moveTo(24, 17)
-        ..lineTo(6, 40)
-        ..lineTo(42, 40)
-        ..close(),
-      Path()
-        ..moveTo(24, 9)
-        ..lineTo(10, 30)
-        ..lineTo(38, 30)
-        ..close(),
-      Path()
-        ..moveTo(24, 2)
-        ..lineTo(14, 21)
-        ..lineTo(34, 21)
-        ..close(),
-    ];
-    for (final tier in canopyTiers) {
-      canvas.drawPath(tier, canopy);
-      canvas.drawPath(tier, outline);
-    }
-
-    final image = await recorder.endRecording().toImage(
-      size.toInt(),
-      size.toInt(),
-    );
-    final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-    image.dispose();
-    if (bytes == null) throw StateError('Gagal membuat ikon pohon');
-    final result = bytes.buffer.asUint8List();
-    _treeIconCache[cacheKey] = result;
-    return result;
   }
 
   CircleAnnotationOptions _buildCircleOptions(
