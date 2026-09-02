@@ -1430,7 +1430,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             ),
             image: icon,
             iconAnchor: IconAnchor.BOTTOM,
-            iconSize: selected ? 0.96 : 0.82,
+            iconSize: selected ? 1.08 : 0.92,
             iconOpacity: kTreeOpacity,
           ),
         ),
