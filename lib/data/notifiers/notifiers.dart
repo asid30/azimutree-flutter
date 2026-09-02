@@ -3,6 +3,7 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
 
 /// Application-wide ValueNotifiers
 ///
@@ -60,6 +61,12 @@ ValueNotifier<TreeModel?> selectedTreeNotifier = ValueNotifier(null);
 
 /// The currently-selected `PlotModel` (set when a plot marker is tapped).
 ValueNotifier<PlotModel?> selectedPlotNotifier = ValueNotifier(null);
+
+/// Currently-selected Titik Ikat marker and its owning cluster.
+ValueNotifier<TitikIkatModel?> selectedTitikIkatNotifier = ValueNotifier(null);
+ValueNotifier<ClusterModel?> selectedTitikIkatClusterNotifier = ValueNotifier(
+  null,
+);
 
 /// When `true`, the next update to `selectedLocationNotifier` will preserve
 /// the current map zoom level instead of resetting to a default zoom. Used

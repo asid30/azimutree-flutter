@@ -122,10 +122,11 @@ class TreeMarkerIconFactory {
 class TitikIkatMarkerIconFactory {
   TitikIkatMarkerIconFactory._();
 
-  static Uint8List? _cached;
+  static final Map<bool, Uint8List> _cache = {};
 
-  static Future<Uint8List> create() async {
-    if (_cached != null) return _cached!;
+  static Future<Uint8List> create({bool selected = false}) async {
+    final cached = _cache[selected];
+    if (cached != null) return cached;
     final recorder = ui.PictureRecorder();
     final canvas = Canvas(recorder);
     final fill =
@@ -134,7 +135,7 @@ class TitikIkatMarkerIconFactory {
           ..style = PaintingStyle.fill;
     final outline =
         Paint()
-          ..color = Colors.white
+          ..color = selected ? Colors.white : Colors.black
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2.5;
     final pin =
@@ -147,7 +148,11 @@ class TitikIkatMarkerIconFactory {
           ..close();
     canvas.drawPath(pin, fill);
     canvas.drawPath(pin, outline);
-    canvas.drawCircle(Offset(24, 17), 6, Paint()..color = Colors.white);
+    canvas.drawCircle(
+      const Offset(24, 17),
+      6,
+      Paint()..color = selected ? Colors.white : Colors.black,
+    );
     canvas.drawCircle(
       const Offset(24, 17),
       3,
@@ -158,7 +163,8 @@ class TitikIkatMarkerIconFactory {
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
     image.dispose();
     if (bytes == null) throw StateError('Gagal membuat ikon Titik Ikat');
-    _cached = bytes.buffer.asUint8List();
-    return _cached!;
+    final result = bytes.buffer.asUint8List();
+    _cache[selected] = result;
+    return result;
   }
 }

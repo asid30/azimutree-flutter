@@ -53,10 +53,12 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   late final VoidCallback _selectedCentroidListener;
   late final VoidCallback _treeToPlotToggleListener;
   late final VoidCallback _plotToPlotToggleListener;
+  late final VoidCallback _selectedTitikIkatListener;
   // Cache of tree models currently displayed on the map.
   final List<TreeModel> _treesCache = [];
   // Cache of plot models currently displayed on the map.
   final List<PlotModel> _plotsCache = [];
+  final List<TitikIkatModel> _titikIkatCache = [];
   // Timer used to differentiate single-tap from double-tap (double-tap = zoom).
   // Timer used to detect a short hold (long-press) before activating markers.
   Timer? _holdTimer;
@@ -174,6 +176,12 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     };
     selectedCentroidNotifier.addListener(_selectedCentroidListener);
 
+    _selectedTitikIkatListener = () {
+      if (!mounted || _mapboxMap == null) return;
+      _loadMarkers();
+    };
+    selectedTitikIkatNotifier.addListener(_selectedTitikIkatListener);
+
     _inspectedListener = () {
       if (!mounted) return;
       // Run asynchronously so the notifier call doesn't block the UI.
@@ -226,6 +234,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     isTreeToPlotLineVisibleNotifier.removeListener(_treeToPlotToggleListener);
     isPlotToPlotLineVisibleNotifier.removeListener(_plotToPlotToggleListener);
     selectedCentroidNotifier.removeListener(_selectedCentroidListener);
+    selectedTitikIkatNotifier.removeListener(_selectedTitikIkatListener);
     super.dispose();
   }
 
@@ -535,12 +544,15 @@ class _MapboxWidgetState extends State<MapboxWidget> {
 
   Future<void> _handleMapSingleTap(Offset localPosition) async {
     if (_mapboxMap == null) return;
-    if (_treesCache.isEmpty && _plotsCache.isEmpty) return;
+    if (_treesCache.isEmpty && _plotsCache.isEmpty && _titikIkatCache.isEmpty) {
+      return;
+    }
 
     // Convert tree and plot coordinates to screen pixels and find nearest.
     double minDist = double.infinity;
     TreeModel? nearestTree;
     PlotModel? nearestPlot;
+    TitikIkatModel? nearestTitikIkat;
 
     // Track nearest centroid candidate entry (contains cluster, lat, lon)
     Map<String, dynamic>? nearestCentroidEntry;
@@ -551,6 +563,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       double lat, {
       TreeModel? tree,
       PlotModel? plot,
+      TitikIkatModel? titikIkat,
       Map<String, dynamic>? centroidEntry,
     }) async {
       try {
@@ -566,9 +579,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           minDist = dist;
           nearestTree = tree;
           nearestPlot = plot;
-          if (centroidEntry != null) {
-            nearestCentroidEntry = centroidEntry;
-          }
+          nearestTitikIkat = titikIkat;
+          nearestCentroidEntry = centroidEntry;
         }
       } catch (_) {
         // ignore conversion errors per point
@@ -579,6 +591,16 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     for (final tree in _treesCache) {
       if (tree.latitude == null || tree.longitude == null) continue;
       await processCoordinate(tree.longitude!, tree.latitude!, tree: tree);
+    }
+
+    // Titik Ikat is at the same navigation level as plots.
+    for (final titikIkat in _titikIkatCache) {
+      if (titikIkat.latitude == null || titikIkat.longitude == null) continue;
+      await processCoordinate(
+        titikIkat.longitude!,
+        titikIkat.latitude!,
+        titikIkat: titikIkat,
+      );
     }
 
     // Then check plots
@@ -607,6 +629,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         // Clear centroid selection when selecting a tree so its marker
         // style deactivates immediately.
         selectedCentroidNotifier.value = null;
+        selectedTitikIkatNotifier.value = null;
+        selectedTitikIkatClusterNotifier.value = null;
         selectedPlotNotifier.value = null;
         selectedTreeNotifier.value = selTree;
         // Resolve plot and cluster for UI consumption
@@ -640,11 +664,43 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         return;
       }
 
+      if (nearestTitikIkat != null) {
+        final selected = nearestTitikIkat!;
+        selectedTreeNotifier.value = null;
+        selectedTreePlotNotifier.value = null;
+        selectedTreeClusterNotifier.value = null;
+        selectedPlotNotifier.value = null;
+        selectedPlotClusterNotifier.value = null;
+        selectedCentroidNotifier.value = null;
+        ClusterModel? selectedCluster;
+        try {
+          selectedCluster = await ClusterDao.getClusterById(selected.idCluster);
+        } catch (_) {
+          selectedCluster = null;
+        }
+        selectedTitikIkatClusterNotifier.value = selectedCluster;
+        selectedTitikIkatNotifier.value = selected;
+        selectedMarkerScreenOffsetNotifier.value = Offset(
+          localPosition.dx,
+          localPosition.dy - 48,
+        );
+        isFollowingUserLocationNotifier.value = false;
+        preserveZoomOnNextCenterNotifier.value = true;
+        selectedLocationFromSearchNotifier.value = false;
+        selectedLocationNotifier.value = Position(
+          selected.longitude!,
+          selected.latitude!,
+        );
+        return;
+      }
+
       if (nearestPlot != null) {
         final selPlot = nearestPlot;
         // Clear centroid selection when selecting a plot so centroid
         // loses the active style immediately.
         selectedCentroidNotifier.value = null;
+        selectedTitikIkatNotifier.value = null;
+        selectedTitikIkatClusterNotifier.value = null;
         selectedTreeNotifier.value = null;
         selectedTreePlotNotifier.value = null;
         selectedTreeClusterNotifier.value = null;
@@ -678,6 +734,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         final selLon = selEntry['lon'] as double?;
         selectedTreeNotifier.value = null;
         selectedPlotNotifier.value = null;
+        selectedTitikIkatNotifier.value = null;
+        selectedTitikIkatClusterNotifier.value = null;
         selectedCentroidNotifier.value = selCluster;
         selectedPlotClusterNotifier.value = selCluster;
         selectedMarkerScreenOffsetNotifier.value = Offset(
@@ -1192,6 +1250,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     _treesCache.addAll(trees);
     _plotsCache.clear();
     _plotsCache.addAll(plots);
+    _titikIkatCache.clear();
+    _titikIkatCache.addAll(titikIkat);
 
     await _addPlotAreas(plots, trees);
     await _addClusterMarkers(clusters, plots);
@@ -1223,18 +1283,18 @@ class _MapboxWidgetState extends State<MapboxWidget> {
 
   Future<void> _addTitikIkatMarkers(List<TitikIkatModel> titikIkat) async {
     if (_treePointManager == null) return;
-    final icon = await TitikIkatMarkerIconFactory.create();
     final markers = <PointAnnotationOptions>[];
     for (final item in titikIkat) {
       final latitude = item.latitude;
       final longitude = item.longitude;
       if (latitude == null || longitude == null) continue;
+      final selected = selectedTitikIkatNotifier.value?.id == item.id;
       markers.add(
         PointAnnotationOptions(
           geometry: Point(coordinates: Position(longitude, latitude)),
-          image: icon,
+          image: await TitikIkatMarkerIconFactory.create(selected: selected),
           iconAnchor: IconAnchor.BOTTOM,
-          iconSize: kTitikIkatIconSize,
+          iconSize: selected ? 1.0 : kTitikIkatIconSize,
           iconOpacity: 1,
         ),
       );

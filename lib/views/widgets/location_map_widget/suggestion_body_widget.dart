@@ -49,6 +49,8 @@ class SuggestionBodyWidget extends StatelessWidget {
                 // should not linger after user searches).
                 selectedTreeNotifier.value = null;
                 selectedPlotNotifier.value = null;
+                selectedTitikIkatNotifier.value = null;
+                selectedTitikIkatClusterNotifier.value = null;
                 // If this is a cluster/plot local result, resolve DB models
                 // and set selectedPlotNotifier so the UI shows the plot
                 // details. For local `plot`/`cluster` results we DO NOT want

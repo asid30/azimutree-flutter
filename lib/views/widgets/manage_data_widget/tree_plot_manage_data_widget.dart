@@ -341,6 +341,8 @@ class TreePlotManageDataWidget extends StatelessWidget {
     selectedPlotNotifier.value = null;
     selectedPlotClusterNotifier.value = null;
     selectedCentroidNotifier.value = null;
+    selectedTitikIkatNotifier.value = null;
+    selectedTitikIkatClusterNotifier.value = null;
     selectedTreePlotNotifier.value = null;
     selectedTreeClusterNotifier.value = null;
     selectedMarkerScreenOffsetNotifier.value = null;
