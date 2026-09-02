@@ -29,6 +29,14 @@ const double kPlotOpacity = 0.9;
 const int kPlotSelectedStrokeColor = 0xFFFFFFFF;
 const double kPlotSelectedStrokeWidth = 1.6;
 
+// A subtle plot coverage area, calculated from its farthest tree.
+const int kPlotAreaColor = 0xFF81D4FA;
+const int kPlotAreaOutlineColor = 0xFF4FC3F7;
+const double kPlotAreaOpacity = 0.18;
+const double kPlotAreaMarginMeters = 5.0;
+const double kEmptyPlotAreaRadiusMeters = 10.0;
+const int kPlotAreaSegments = 64;
+
 const int kTreeColor = 0xFFF57C00;
 const int kTreeStrokeColor = 0xFFE65100;
 const int kTreeSelectedStrokeColor = 0xFFFFFFFF;
@@ -67,6 +75,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   late final String _sateliteStyleUri;
   MapboxMap? _mapboxMap;
   CircleAnnotationManager? _circleManager;
+  PolygonAnnotationManager? _plotAreaManager;
   PointAnnotationManager? _treePointManager;
   CircleAnnotationManager? _searchResultManager;
   final Map<String, Uint8List> _treeIconCache = {};
@@ -775,6 +784,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     if (_mapboxMap == null) return;
     _circleManager ??=
         await _mapboxMap!.annotations.createCircleAnnotationManager();
+    // Keep plot areas underneath all interactive plot/tree annotations.
+    _plotAreaManager ??= await _mapboxMap!.annotations
+        .createPolygonAnnotationManager(below: _circleManager!.id);
     _treePointManager ??=
         await _mapboxMap!.annotations.createPointAnnotationManager();
   }
@@ -1209,6 +1221,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     if (_circleManager == null) return;
 
     await _circleManager!.deleteAll();
+    await _plotAreaManager?.deleteAll();
     await _treePointManager?.deleteAll();
 
     final clusters = await ClusterDao.getAllClusters();
@@ -1221,6 +1234,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     _plotsCache.clear();
     _plotsCache.addAll(plots);
 
+    await _addPlotAreas(plots, trees);
     await _addClusterMarkers(clusters, plots);
     await _addPlotMarkers(plots);
     await _addTreeMarkers(trees);
@@ -1245,6 +1259,106 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       // No selection: ensure no stale connection remains.
       await _removeConnectionMarkers();
     }
+  }
+
+  Future<void> _addPlotAreas(
+    List<PlotModel> plots,
+    List<TreeModel> trees,
+  ) async {
+    if (_plotAreaManager == null) return;
+
+    final treesByPlot = <int, List<TreeModel>>{};
+    for (final tree in trees) {
+      treesByPlot.putIfAbsent(tree.plotId, () => []).add(tree);
+    }
+
+    final areas = <PolygonAnnotationOptions>[];
+    for (final plot in plots) {
+      var farthestTreeMeters = 0.0;
+      for (final tree in treesByPlot[plot.id] ?? const <TreeModel>[]) {
+        final lat = tree.latitude;
+        final lon = tree.longitude;
+        final distance =
+            lat != null && lon != null
+                ? _distanceMeters(plot.latitude, plot.longitude, lat, lon)
+                : (tree.jarakPusatM ?? 0.0);
+        farthestTreeMeters = math.max(farthestTreeMeters, distance);
+      }
+
+      final radiusMeters =
+          farthestTreeMeters > 0
+              ? farthestTreeMeters + kPlotAreaMarginMeters
+              : kEmptyPlotAreaRadiusMeters;
+      areas.add(
+        PolygonAnnotationOptions(
+          geometry: Polygon(
+            coordinates: [
+              _circleCoordinates(plot.latitude, plot.longitude, radiusMeters),
+            ],
+          ),
+          fillColor: kPlotAreaColor,
+          fillOutlineColor: kPlotAreaOutlineColor,
+          fillOpacity: kPlotAreaOpacity,
+        ),
+      );
+    }
+
+    if (areas.isNotEmpty) await _plotAreaManager!.createMulti(areas);
+  }
+
+  double _distanceMeters(
+    double fromLat,
+    double fromLon,
+    double toLat,
+    double toLon,
+  ) {
+    const earthRadiusMeters = 6371008.8;
+    final lat1 = fromLat * math.pi / 180;
+    final lat2 = toLat * math.pi / 180;
+    final deltaLat = (toLat - fromLat) * math.pi / 180;
+    final deltaLon = (toLon - fromLon) * math.pi / 180;
+    final a =
+        math.sin(deltaLat / 2) * math.sin(deltaLat / 2) +
+        math.cos(lat1) *
+            math.cos(lat2) *
+            math.sin(deltaLon / 2) *
+            math.sin(deltaLon / 2);
+    return earthRadiusMeters * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+  }
+
+  List<Position> _circleCoordinates(
+    double centerLat,
+    double centerLon,
+    double radiusMeters,
+  ) {
+    const earthRadiusMeters = 6371008.8;
+    final angularDistance = radiusMeters / earthRadiusMeters;
+    final centerLatRadians = centerLat * math.pi / 180;
+    final centerLonRadians = centerLon * math.pi / 180;
+    final coordinates = <Position>[];
+
+    for (var index = 0; index <= kPlotAreaSegments; index++) {
+      final bearing = 2 * math.pi * index / kPlotAreaSegments;
+      final latitude = math.asin(
+        math.sin(centerLatRadians) * math.cos(angularDistance) +
+            math.cos(centerLatRadians) *
+                math.sin(angularDistance) *
+                math.cos(bearing),
+      );
+      final longitude =
+          centerLonRadians +
+          math.atan2(
+            math.sin(bearing) *
+                math.sin(angularDistance) *
+                math.cos(centerLatRadians),
+            math.cos(angularDistance) -
+                math.sin(centerLatRadians) * math.sin(latitude),
+          );
+      coordinates.add(
+        Position(longitude * 180 / math.pi, latitude * 180 / math.pi),
+      );
+    }
+    return coordinates;
   }
 
   Future<void> _addClusterMarkers(
