@@ -6,6 +6,7 @@ import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:azimutree/data/database/plot_dao.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/data/database/titik_ikat_dao.dart';
 
 Future<List<Map<String, dynamic>>> searchLocationService(String query) async {
   // Normalize query to avoid accidental mismatches from leading/trailing
@@ -44,6 +45,7 @@ Future<List<Map<String, dynamic>>> searchLocationService(String query) async {
   try {
     final clusters = await ClusterDao.getAllClusters();
     final plots = await PlotDao.getAllPlots();
+    final anchors = await TitikIkatDao.getAllTitikIkat();
 
     final q = normalized.toLowerCase();
 
@@ -71,6 +73,27 @@ Future<List<Map<String, dynamic>>> searchLocationService(String query) async {
             'latitude': targetPlot.latitude.toString(),
           });
         }
+      }
+    }
+
+    // Titik Ikat matches. The cluster code is included so users can search
+    // either "Titik Ikat" or the associated cluster.
+    for (final anchor in anchors) {
+      final cluster = clusters.firstWhere(
+        (c) => c.id == anchor.idCluster,
+        orElse: () => ClusterModel(id: null, kodeCluster: ''),
+      );
+      final display = 'Titik Ikat ${cluster.kodeCluster}'.trim();
+      if (display.toLowerCase().contains(q) ||
+          anchor.nama.toLowerCase().contains(q)) {
+        localResults.add({
+          'type': 'anchor',
+          'name': display,
+          'clusterId': anchor.idCluster,
+          'anchorId': anchor.id,
+          'longitude': anchor.longitude.toString(),
+          'latitude': anchor.latitude.toString(),
+        });
       }
     }
 

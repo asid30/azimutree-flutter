@@ -102,7 +102,7 @@ class SurveyNavigationNotifier extends ValueNotifier<SurveyNavigationState> {
     required double azimuth,
     required double distanceM,
   }) {
-    if (value.currentPlot?.kodePlot != 1) return;
+    if (value.currentPlot == null || value.currentPlot?.id == plot.id) return;
     value = SurveyNavigationState(
       cluster: value.cluster,
       anchorPoint: value.anchorPoint,
@@ -112,6 +112,36 @@ class SurveyNavigationNotifier extends ValueNotifier<SurveyNavigationState> {
       currentTarget: SurveyTargetType.plot,
       targetAzimuth: azimuth,
       targetDistanceM: distanceM,
+      hasStarted: true,
+    );
+  }
+
+  void selectAnchorTarget({
+    required double azimuth,
+    required double distanceM,
+  }) {
+    if (value.anchorPoint == null || value.currentPlot == null) return;
+    value = SurveyNavigationState(
+      cluster: value.cluster,
+      anchorPoint: value.anchorPoint,
+      targetPlot: value.currentPlot,
+      currentPlot: value.currentPlot,
+      currentReference: SurveyReferenceType.plot,
+      currentTarget: SurveyTargetType.anchorPoint,
+      targetAzimuth: azimuth,
+      targetDistanceM: distanceM,
+      hasStarted: true,
+    );
+  }
+
+  void confirmAnchorReturn() {
+    if (value.currentTarget != SurveyTargetType.anchorPoint) return;
+    value = SurveyNavigationState(
+      cluster: value.cluster,
+      anchorPoint: value.anchorPoint,
+      targetPlot: value.targetPlot,
+      currentReference: SurveyReferenceType.anchorPoint,
+      currentTarget: SurveyTargetType.none,
       hasStarted: true,
     );
   }

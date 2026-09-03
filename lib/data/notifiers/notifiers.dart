@@ -112,7 +112,7 @@ ValueNotifier<Set<int>> inspectedTreeIdsNotifier = ValueNotifier({});
 ValueNotifier<bool> isMarkerInfoOnSelectNotifier = ValueNotifier(true);
 
 /// Controls visibility of the line connecting a tree marker to its plot center.
-ValueNotifier<bool> isTreeToPlotLineVisibleNotifier = ValueNotifier(true);
+ValueNotifier<bool> isTreeToPlotLineVisibleNotifier = ValueNotifier(false);
 
 /// Controls visibility of connecting lines between different plots.
 ValueNotifier<bool> isPlotToPlotLineVisibleNotifier = ValueNotifier(true);

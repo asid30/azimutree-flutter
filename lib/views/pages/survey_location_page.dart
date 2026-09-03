@@ -22,7 +22,9 @@ import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:azimutree/views/widgets/survey_widget/tree_radar_widget.dart';
+import 'package:azimutree/views/widgets/survey_widget/anchor_mini_map_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 
@@ -51,6 +53,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
   bool _checkingLocation = false;
   bool _loading = true;
   bool _sessionListenerAttached = false;
+  bool _radarCompassEnabled = true;
 
   @override
   void initState() {
@@ -244,7 +247,13 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       false;
 
   void _openAnchorOnMap(TitikIkatModel anchor) {
-    selectedLocationFromSearchNotifier.value = true;
+    selectedTreeNotifier.value = null;
+    selectedPlotNotifier.value = null;
+    selectedCentroidNotifier.value = null;
+    selectedTitikIkatNotifier.value = anchor;
+    selectedTitikIkatClusterNotifier.value = _findCluster(anchor.idCluster);
+    selectedLocationFromSearchNotifier.value = false;
+    isFollowingUserLocationNotifier.value = false;
     selectedLocationNotifier.value = mapbox.Position(
       anchor.longitude!,
       anchor.latitude!,
@@ -325,37 +334,51 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
           style: TextStyle(color: foreground, fontSize: 16),
         ),
         const SizedBox(height: 8),
-        DropdownButtonFormField<int>(
-          initialValue: _selectedClusterId,
-          dropdownColor: cardColor,
-          style: TextStyle(
-            color: foreground,
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          decoration: BoxDecoration(
+            color:
+                isDark
+                    ? const Color.fromARGB(255, 36, 67, 42)
+                    : const Color.fromARGB(240, 180, 216, 187),
+            borderRadius: BorderRadius.circular(8),
           ),
-          iconEnabledColor: foreground,
-          decoration: InputDecoration(
-            border: const OutlineInputBorder(),
-            prefixIcon: Icon(Icons.hub_outlined, color: foreground),
+          child: DropdownButtonHideUnderline(
+            child: DropdownButton<int>(
+              value:
+                  _clusters.any((item) => item.id == _selectedClusterId)
+                      ? _selectedClusterId
+                      : null,
+              isExpanded: true,
+              dropdownColor:
+                  isDark
+                      ? const Color.fromARGB(255, 36, 67, 42)
+                      : const Color(0xFFb4d8bb),
+              style: TextStyle(
+                color: foreground,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+              hint: Text(
+                _clusters.isEmpty ? 'Tidak ada Klaster' : 'Pilih Klaster',
+                style: TextStyle(color: foreground),
+              ),
+              items:
+                  _clusters
+                      .where((item) => item.id != null)
+                      .map(
+                        (item) => DropdownMenuItem<int>(
+                          value: item.id,
+                          child: Text(
+                            item.kodeCluster,
+                            style: TextStyle(color: foreground),
+                          ),
+                        ),
+                      )
+                      .toList(),
+              onChanged: _selectCluster,
+            ),
           ),
-          hint: Text(
-            'Pilih klaster survei',
-            style: TextStyle(color: foreground),
-          ),
-          items:
-              _clusters
-                  .where((item) => item.id != null)
-                  .map(
-                    (item) => DropdownMenuItem(
-                      value: item.id,
-                      child: Text(
-                        item.kodeCluster,
-                        style: TextStyle(color: foreground),
-                      ),
-                    ),
-                  )
-                  .toList(),
-          onChanged: _selectCluster,
         ),
         const SizedBox(height: 16),
         if (_clusters.isEmpty)
@@ -387,9 +410,11 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
           _compass(session, cardColor, foreground)
         else if (session.currentReference == SurveyReferenceType.anchorPoint)
           _anchorReached(session, cardColor, foreground)
+        else if (session.currentTarget == SurveyTargetType.anchorPoint)
+          _anchorCompass(session, cardColor, foreground)
         else if (session.currentTarget == SurveyTargetType.plot)
           _plotCompass(session, cardColor, foreground)
-        else if (session.currentPlot?.kodePlot == 1)
+        else if (session.currentPlot != null)
           _plotTargetSelection(session, cardColor, foreground)
         else
           _plotReached(session, cardColor, foreground),
@@ -439,7 +464,14 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
         style: _themedPrimaryButtonStyle(
           isDark: foreground.computeLuminance() > 0.5,
         ),
-        onPressed: _session.start,
+        onPressed: () async {
+          if (await _confirm(
+            'Mulai Survey Lapangan',
+            'Anda akan melakukan survey di lapangan. Pastikan Anda sudah berada di sekitar lokasi. Alur survey dimulai dengan mencari Titik Ikat, dilanjutkan mencari pusat plot, lalu mencari pohon berdasarkan azimut yang telah didata.',
+          )) {
+            _session.start();
+          }
+        },
         icon: const Icon(Icons.explore),
         label: const Text('MULAI SURVEY'),
       ),
@@ -454,7 +486,12 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
     final anchor = session.anchorPoint!;
     final estimate = _gpsDistanceTo(anchor.latitude!, anchor.longitude!);
     return _card(color, [
-      Text(anchor.nama, style: _title(foreground)),
+      Text('Langkah 1 · Temukan Titik Ikat', style: _title(foreground)),
+      const SizedBox(height: 8),
+      Text(
+        '${anchor.nama} · ${session.cluster!.kodeCluster}',
+        style: TextStyle(color: foreground, fontSize: 16),
+      ),
       const SizedBox(height: 16),
       _metric(
         'Estimasi jarak GPS',
@@ -490,6 +527,26 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
           ),
         ),
       ],
+      const SizedBox(height: 16),
+      AnchorMiniMapWidget(
+        anchorLatitude: anchor.latitude!,
+        anchorLongitude: anchor.longitude!,
+        userLatitude: _position?.latitude,
+        userLongitude: _position?.longitude,
+        standardStyleUri:
+            dotenv.env['MAPBOX_STYLE_STANDARD']?.trim().isNotEmpty == true
+                ? dotenv.env['MAPBOX_STYLE_STANDARD']!.trim()
+                : 'mapbox://styles/mapbox/streets-v12',
+        satelliteStyleUri:
+            dotenv.env['MAPBOX_STYLE_SATELLITE']?.trim().isNotEmpty == true
+                ? dotenv.env['MAPBOX_STYLE_SATELLITE']!.trim()
+                : mapbox.MapboxStyles.SATELLITE_STREETS,
+      ),
+      const SizedBox(height: 8),
+      Text(
+        'Pin merah menunjukkan Titik Ikat; indikator lokasi menunjukkan posisi GPS Anda.',
+        style: TextStyle(color: foreground.withValues(alpha: 0.75)),
+      ),
       const SizedBox(height: 16),
       Text(
         'GPS hanya digunakan untuk mendekati lokasi. Temukan objek Titik Ikat secara fisik.',
@@ -541,7 +598,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
                 ? 'Putar kanan ${difference.abs().toStringAsFixed(0)}°'
                 : 'Putar kiri ${difference.abs().toStringAsFixed(0)}°';
         return _card(color, [
-          Text('Menuju Plot 1', style: _title(foreground)),
+          Text('Langkah 2 · Menuju Pusat Plot 1', style: _title(foreground)),
           const SizedBox(height: 20),
           Transform.rotate(
             angle:
@@ -653,8 +710,9 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
             .where(
               (plot) =>
                   plot.idCluster == session.cluster!.id &&
-                  plot.kodePlot >= 2 &&
-                  plot.kodePlot <= 4,
+                  plot.kodePlot >= 1 &&
+                  plot.kodePlot <= 4 &&
+                  plot.id != session.currentPlot?.id,
             )
             .toList()
           ..sort((a, b) => a.kodePlot.compareTo(b.kodePlot));
@@ -662,7 +720,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       const Icon(Icons.check_circle, color: Colors.green, size: 64),
       const SizedBox(height: 8),
       Text(
-        'Plot 1 terkonfirmasi',
+        'Plot ${session.currentPlot!.kodePlot} terkonfirmasi',
         textAlign: TextAlign.center,
         style: _title(foreground),
       ),
@@ -671,7 +729,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       const SizedBox(height: 12),
       if (availableTargets.isEmpty)
         Text(
-          'Plot 2, Plot 3, dan Plot 4 belum tersedia pada klaster ini.',
+          'Belum ada plot lain yang dapat dituju pada klaster ini.',
           style: TextStyle(color: foreground),
         )
       else
@@ -716,6 +774,13 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
             ),
           );
         }),
+      const Divider(height: 32),
+      OutlinedButton.icon(
+        style: _secondaryButtonStyle(foreground),
+        onPressed: () => _navigateBackToAnchor(session),
+        icon: const Icon(Icons.location_pin),
+        label: const Text('BATAL, KEMBALI KE TITIK IKAT'),
+      ),
       const Divider(height: 32),
       _treeCompassPanel(session.currentPlot!, foreground),
     ]);
@@ -782,7 +847,9 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
           _compassCalibrationInfo(foreground),
           const SizedBox(height: 20),
           FilledButton(
-            style: _primaryButtonStyle,
+            style: _themedPrimaryButtonStyle(
+              isDark: foreground.computeLuminance() > 0.5,
+            ),
             onPressed: () async {
               if (await _confirm(
                 'Konfirmasi Plot $plotCode',
@@ -796,9 +863,97 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
           const SizedBox(height: 8),
           OutlinedButton.icon(
             style: _secondaryButtonStyle(foreground),
-            onPressed: _session.cancelNavigation,
-            icon: const Icon(Icons.arrow_back),
-            label: const Text('BATAL, KEMBALI KE PLOT 1'),
+            onPressed: () => _navigateBackToAnchor(session),
+            icon: const Icon(Icons.location_pin),
+            label: const Text('BATAL, KEMBALI KE TITIK IKAT'),
+          ),
+        ]);
+      },
+    );
+  }
+
+  void _navigateBackToAnchor(SurveyNavigationState session) {
+    final anchor = session.anchorPoint;
+    final source = session.currentPlot;
+    if (anchor?.latitude == null ||
+        anchor?.longitude == null ||
+        source == null) {
+      return;
+    }
+    final direction = AzimuthLatLongService.toAzimuthDistance(
+      centerLatDeg: source.latitude,
+      centerLonDeg: source.longitude,
+      targetLatDeg: anchor!.latitude!,
+      targetLonDeg: anchor.longitude!,
+    );
+    _session.selectAnchorTarget(
+      azimuth: direction.azimuthDeg,
+      distanceM: direction.distanceM,
+    );
+  }
+
+  Widget _anchorCompass(
+    SurveyNavigationState session,
+    Color color,
+    Color foreground,
+  ) {
+    return StreamBuilder<double?>(
+      stream: widget.compassService.headingStream,
+      builder: (_, snapshot) {
+        final heading = snapshot.data;
+        final target = session.targetAzimuth!;
+        final difference =
+            heading == null ? null : signedAngleDifference(target, heading);
+        return _card(color, [
+          Text('Kembali ke Titik Ikat', style: _title(foreground)),
+          const SizedBox(height: 12),
+          Transform.rotate(
+            angle:
+                heading == null
+                    ? 0
+                    : signedAngleDifference(target, heading) * math.pi / 180,
+            child: Icon(Icons.navigation, size: 82, color: foreground),
+          ),
+          const SizedBox(height: 12),
+          _metric('Target', '${target.toStringAsFixed(1)}°', foreground),
+          _metric(
+            'Heading Anda',
+            heading == null ? '-' : '${heading.toStringAsFixed(1)}°',
+            foreground,
+          ),
+          _metric(
+            'Jarak referensi',
+            _meters(session.targetDistanceM!),
+            foreground,
+          ),
+          if (difference != null)
+            Text(
+              difference.abs() <= compassAlignmentTolerance
+                  ? 'Arah sudah sesuai'
+                  : difference > 0
+                  ? 'Putar kanan ${difference.abs().toStringAsFixed(0)}°'
+                  : 'Putar kiri ${difference.abs().toStringAsFixed(0)}°',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: foreground,
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          const SizedBox(height: 20),
+          FilledButton(
+            style: _themedPrimaryButtonStyle(
+              isDark: foreground.computeLuminance() > 0.5,
+            ),
+            onPressed: () async {
+              if (await _confirm(
+                'Konfirmasi Titik Ikat',
+                'Pastikan Anda sudah kembali ke Titik Ikat secara fisik.',
+              )) {
+                _session.confirmAnchorReturn();
+              }
+            },
+            child: const Text('SAYA SUDAH DI TITIK IKAT'),
           ),
         ]);
       },
@@ -848,19 +1003,47 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text('KOMPAS POHON', style: _title(foreground)),
+            Text('Langkah 3 · Radar Lokasi Pohon', style: _title(foreground)),
+            const SizedBox(height: 8),
+            Text(
+              'Pusat radar adalah pusat plot, bukan posisi pemegang ponsel. Untuk hasil yang lebih mudah dibaca, sebaiknya berdiri di pusat plot.',
+              style: TextStyle(color: foreground),
+            ),
             const SizedBox(height: 8),
             _metric('Plot aktif', 'P${activePlot.kodePlot}', foreground),
             _metric(
               'Heading',
-              heading == null ? '-' : '${heading.toStringAsFixed(1)}°',
+              !_radarCompassEnabled
+                  ? 'Kompas nonaktif (utara tetap)'
+                  : heading == null
+                  ? '-'
+                  : '${heading.toStringAsFixed(1)}°',
               foreground,
+            ),
+            SwitchListTile.adaptive(
+              contentPadding: EdgeInsets.zero,
+              title: Text(
+                'Aktifkan kompas radar',
+                style: TextStyle(color: foreground),
+              ),
+              subtitle: Text(
+                _radarCompassEnabled
+                    ? 'Sektor radar mengikuti arah ponsel.'
+                    : 'Radar tetap menghadap utara tanpa sektor bergerak.',
+                style: TextStyle(color: foreground.withValues(alpha: 0.75)),
+              ),
+              value: _radarCompassEnabled,
+              activeThumbColor: const Color(0xFFC1FF72),
+              onChanged:
+                  (value) => setState(() => _radarCompassEnabled = value),
             ),
             const SizedBox(height: 12),
             TreeRadarWidget(
               trees: plotTrees,
               heading: heading,
               isDark: foreground.computeLuminance() > 0.5,
+              plotCode: activePlot.kodePlot,
+              compassEnabled: _radarCompassEnabled,
             ),
             const SizedBox(height: 12),
             Text(
@@ -871,6 +1054,11 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
             if (plotTrees.isEmpty)
               Text(
                 'Belum ada data pohon pada plot ini.',
+                style: TextStyle(color: foreground),
+              )
+            else if (!_radarCompassEnabled)
+              Text(
+                'Semua pohon tetap ditampilkan dengan orientasi utara tetap. Tahan sebentar marker untuk melihat informasinya.',
                 style: TextStyle(color: foreground),
               )
             else if (heading == null)

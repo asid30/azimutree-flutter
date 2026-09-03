@@ -42,6 +42,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   // Use dynamic so we can support line annotation manager when available
   // while avoiding static analyzer errors on plugin API mismatches.
   dynamic _connectionManager;
+  dynamic _persistentPlotConnectionManager;
   // Track current zoom locally so zoom buttons can apply relative changes.
   double _currentZoom = 10.0;
   late final VoidCallback _styleListener;
@@ -131,15 +132,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     isTreeToPlotLineVisibleNotifier.addListener(_treeToPlotToggleListener);
 
     _plotToPlotToggleListener = () {
-      if (!isPlotToPlotLineVisibleNotifier.value) {
-        Future.microtask(() async => await _removeConnectionMarkers());
-      } else {
-        if (selectedPlotNotifier.value != null) {
-          Future.microtask(
-            () async => await _updateConnectionForSelectedPlot(),
-          );
-        }
-      }
+      Future.microtask(() async => await _refreshPersistentPlotConnections());
     };
     isPlotToPlotLineVisibleNotifier.addListener(_plotToPlotToggleListener);
     _selectedTreeListener = () {
@@ -835,6 +828,48 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     } catch (_) {}
   }
 
+  Future<void> _refreshPersistentPlotConnections([
+    List<PlotModel>? loadedPlots,
+  ]) async {
+    if (_mapboxMap == null) return;
+    try {
+      _persistentPlotConnectionManager ??=
+          await (_mapboxMap!.annotations as dynamic)
+              .createPolylineAnnotationManager();
+      await (_persistentPlotConnectionManager as dynamic).deleteAll();
+      if (!isPlotToPlotLineVisibleNotifier.value) return;
+
+      final plots = loadedPlots ?? await PlotDao.getAllPlots();
+      final byCluster = <int, List<PlotModel>>{};
+      for (final plot in plots) {
+        byCluster.putIfAbsent(plot.idCluster, () => []).add(plot);
+      }
+      for (final clusterPlots in byCluster.values) {
+        if (clusterPlots.length < 2) continue;
+        final plot1 = clusterPlots.firstWhere(
+          (plot) => plot.kodePlot == 1,
+          orElse: () => clusterPlots.first,
+        );
+        for (final plot in clusterPlots) {
+          if (plot.id == plot1.id) continue;
+          await (_persistentPlotConnectionManager as dynamic).create(
+            PolylineAnnotationOptions(
+              geometry: LineString(
+                coordinates: [
+                  Position(plot1.longitude, plot1.latitude),
+                  Position(plot.longitude, plot.latitude),
+                ],
+              ),
+              lineColor: kPlotConnectionColor,
+              lineWidth: 2.0,
+              lineOpacity: 1.0,
+            ),
+          );
+        }
+      }
+    } catch (_) {}
+  }
+
   Future<void> _showConnectionLine(
     double lonA,
     double latA,
@@ -1258,6 +1293,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     await _addPlotMarkers(plots);
     await _addTitikIkatMarkers(titikIkat);
     await _addTreeMarkers(trees);
+    // Plot connections are a persistent map layer: when enabled they remain
+    // visible without requiring a plot marker to be selected first.
+    await _refreshPersistentPlotConnections(plots);
     // If there's an active selected location that originated from a search,
     // show its pin. Other flows that set `selectedLocationNotifier` (e.g.
     // tracking, map marker taps) should set
