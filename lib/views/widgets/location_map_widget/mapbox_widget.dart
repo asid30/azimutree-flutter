@@ -55,6 +55,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   late final VoidCallback _treeToPlotToggleListener;
   late final VoidCallback _plotToPlotToggleListener;
   late final VoidCallback _selectedTitikIkatListener;
+  late final VoidCallback _markerSizeListener;
   // Cache of tree models currently displayed on the map.
   final List<TreeModel> _treesCache = [];
   // Cache of plot models currently displayed on the map.
@@ -63,6 +64,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   // Timer used to differentiate single-tap from double-tap (double-tap = zoom).
   // Timer used to detect a short hold (long-press) before activating markers.
   Timer? _holdTimer;
+  Timer? _markerSizeDebounce;
   // Whether a long-press was recognized for the current pointer sequence.
   bool _longPressRecognized = false;
 
@@ -174,6 +176,16 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       _loadMarkers();
     };
     selectedTitikIkatNotifier.addListener(_selectedTitikIkatListener);
+    _markerSizeListener = () {
+      _markerSizeDebounce?.cancel();
+      _markerSizeDebounce = Timer(const Duration(milliseconds: 120), () {
+        if (mounted && _mapboxMap != null) _loadMarkers();
+      });
+    };
+    titikIkatMarkerScaleNotifier.addListener(_markerSizeListener);
+    plotMarkerScaleNotifier.addListener(_markerSizeListener);
+    centroidMarkerScaleNotifier.addListener(_markerSizeListener);
+    treeMarkerScaleNotifier.addListener(_markerSizeListener);
 
     _inspectedListener = () {
       if (!mounted) return;
@@ -215,6 +227,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
 
   @override
   void dispose() {
+    _markerSizeDebounce?.cancel();
     selectedMenuBottomSheetNotifier.removeListener(_styleListener);
     selectedLocationNotifier.removeListener(_onLocationChanged);
     northResetRequestNotifier.removeListener(_northResetListener);
@@ -228,6 +241,10 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     isPlotToPlotLineVisibleNotifier.removeListener(_plotToPlotToggleListener);
     selectedCentroidNotifier.removeListener(_selectedCentroidListener);
     selectedTitikIkatNotifier.removeListener(_selectedTitikIkatListener);
+    titikIkatMarkerScaleNotifier.removeListener(_markerSizeListener);
+    plotMarkerScaleNotifier.removeListener(_markerSizeListener);
+    centroidMarkerScaleNotifier.removeListener(_markerSizeListener);
+    treeMarkerScaleNotifier.removeListener(_markerSizeListener);
     super.dispose();
   }
 
@@ -1332,7 +1349,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           geometry: Point(coordinates: Position(longitude, latitude)),
           image: await TitikIkatMarkerIconFactory.create(selected: selected),
           iconAnchor: IconAnchor.BOTTOM,
-          iconSize: selected ? 1.0 : kTitikIkatIconSize,
+          iconSize:
+              (selected ? 1.0 : kTitikIkatIconSize) *
+              titikIkatMarkerScaleNotifier.value,
           iconOpacity: 1,
         ),
       );
@@ -1485,7 +1504,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             _buildCircleOptions(
               Position(centroidLon, centroidLat),
               circleColor: kCentroidColor,
-              circleRadius: kPlotRadius,
+              circleRadius: kPlotRadius * centroidMarkerScaleNotifier.value,
               circleStrokeColor:
                   isSelectedCentroid
                       ? kPlotSelectedStrokeColor
@@ -1515,7 +1534,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           _buildCircleOptions(
             Position(plot.longitude, plot.latitude),
             circleColor: kPlotColor,
-            circleRadius: kPlotRadius,
+            circleRadius: kPlotRadius * plotMarkerScaleNotifier.value,
             circleStrokeColor:
                 selected ? kPlotSelectedStrokeColor : kPlotStrokeColor,
             circleStrokeWidth:
@@ -1626,7 +1645,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             ),
             image: icon,
             iconAnchor: IconAnchor.BOTTOM,
-            iconSize: selected ? kTreeSelectedIconSize : kTreeIconSize,
+            iconSize:
+                (selected ? kTreeSelectedIconSize : kTreeIconSize) *
+                treeMarkerScaleNotifier.value,
             iconOpacity: kTreeOpacity,
           ),
         ),

@@ -9,7 +9,6 @@ import 'package:azimutree/views/widgets/location_map_widget/map_marker_style.dar
 import 'package:azimutree/views/widgets/location_map_widget/map_legend_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 class PickedCoordinate {
@@ -61,24 +60,45 @@ class _CoordinatePickerPageState extends State<CoordinatePickerPage> {
   PointAnnotationManager? _treeManager;
   late double _latitude;
   late double _longitude;
-  bool _locating = false;
+  late final ValueNotifier<PickedCoordinate> _displayedCoordinate;
+  bool _updatingCenter = false;
 
   @override
   void initState() {
     super.initState();
     _latitude = widget.initialLatitude;
     _longitude = widget.initialLongitude;
+    _displayedCoordinate = ValueNotifier(
+      PickedCoordinate(latitude: _latitude, longitude: _longitude),
+    );
+  }
+
+  @override
+  void dispose() {
+    _displayedCoordinate.dispose();
+    super.dispose();
   }
 
   Future<void> _updateCenter() async {
     final map = _map;
-    if (map == null) return;
-    final camera = await map.getCameraState();
-    if (!mounted) return;
-    setState(() {
-      _latitude = camera.center.coordinates.lat.toDouble();
-      _longitude = camera.center.coordinates.lng.toDouble();
-    });
+    if (map == null || _updatingCenter) return;
+    _updatingCenter = true;
+    try {
+      final camera = await map.getCameraState();
+      if (!mounted) return;
+      final latitude = camera.center.coordinates.lat.toDouble();
+      final longitude = camera.center.coordinates.lng.toDouble();
+      if (latitude != _latitude || longitude != _longitude) {
+        _latitude = latitude;
+        _longitude = longitude;
+        _displayedCoordinate.value = PickedCoordinate(
+          latitude: latitude,
+          longitude: longitude,
+        );
+      }
+    } finally {
+      _updatingCenter = false;
+    }
   }
 
   Future<void> _loadContextMarkers() async {
@@ -109,7 +129,7 @@ class _CoordinatePickerPageState extends State<CoordinatePickerPage> {
           ),
           image: titikIkatIcon,
           iconAnchor: IconAnchor.BOTTOM,
-          iconSize: kTitikIkatIconSize,
+          iconSize: kTitikIkatIconSize * titikIkatMarkerScaleNotifier.value,
           iconOpacity: 1,
         ),
       );
@@ -120,7 +140,7 @@ class _CoordinatePickerPageState extends State<CoordinatePickerPage> {
           plot.longitude,
           plot.latitude,
           color: kPlotColor,
-          radius: kPlotRadius,
+          radius: kPlotRadius * plotMarkerScaleNotifier.value,
           strokeColor: kPlotStrokeColor,
           strokeWidth: kPlotStrokeWidth,
           opacity: kPlotOpacity,
@@ -140,7 +160,7 @@ class _CoordinatePickerPageState extends State<CoordinatePickerPage> {
             inspected ? kTreeInspectedColor : kTreeColor,
           ),
           iconAnchor: IconAnchor.BOTTOM,
-          iconSize: kTreeIconSize,
+          iconSize: kTreeIconSize * treeMarkerScaleNotifier.value,
           iconOpacity: kTreeOpacity,
         ),
       );
@@ -163,7 +183,7 @@ class _CoordinatePickerPageState extends State<CoordinatePickerPage> {
           longitude,
           latitude,
           color: kCentroidColor,
-          radius: kPlotRadius,
+          radius: kPlotRadius * centroidMarkerScaleNotifier.value,
           strokeColor: kPlotStrokeColor,
           strokeWidth: kPlotStrokeWidth,
         ),
@@ -281,55 +301,6 @@ class _CoordinatePickerPageState extends State<CoordinatePickerPage> {
     return result;
   }
 
-  Future<void> _useCurrentLocation() async {
-    if (_locating) return;
-    setState(() => _locating = true);
-    try {
-      if (!await geo.Geolocator.isLocationServiceEnabled()) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Aktifkan GPS terlebih dahulu.')),
-          );
-        }
-        return;
-      }
-      var permission = await geo.Geolocator.checkPermission();
-      if (permission == geo.LocationPermission.denied) {
-        permission = await geo.Geolocator.requestPermission();
-      }
-      if (permission == geo.LocationPermission.denied ||
-          permission == geo.LocationPermission.deniedForever) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Izin lokasi belum diberikan.')),
-          );
-        }
-        return;
-      }
-      final position = await geo.Geolocator.getCurrentPosition(
-        desiredAccuracy: geo.LocationAccuracy.high,
-      );
-      _latitude = position.latitude;
-      _longitude = position.longitude;
-      await _map?.easeTo(
-        CameraOptions(
-          center: Point(coordinates: Position(_longitude, _latitude)),
-          zoom: 18,
-        ),
-        MapAnimationOptions(duration: 700),
-      );
-      if (mounted) setState(() {});
-    } catch (_) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lokasi GPS belum dapat diperoleh.')),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _locating = false);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final isDark = !isLightModeNotifier.value;
@@ -363,6 +334,7 @@ class _CoordinatePickerPageState extends State<CoordinatePickerPage> {
               );
               _loadContextMarkers();
             },
+            onCameraChangeListener: (_) => _updateCenter(),
             onMapIdleListener: (_) => _updateCenter(),
           ),
           IgnorePointer(
@@ -387,27 +359,6 @@ class _CoordinatePickerPageState extends State<CoordinatePickerPage> {
               showCloseButton: false,
             ),
           ),
-          Positioned(
-            right: 16,
-            bottom: 190,
-            child: FloatingActionButton(
-              heroTag: 'coordinate_picker_gps',
-              onPressed: _locating ? null : _useCurrentLocation,
-              backgroundColor: const Color(0xFF1F4226),
-              foregroundColor: Colors.white,
-              child:
-                  _locating
-                      ? const SizedBox(
-                        width: 22,
-                        height: 22,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                      : const Icon(Icons.my_location),
-            ),
-          ),
           Align(
             alignment: Alignment.bottomCenter,
             child: Container(
@@ -425,19 +376,31 @@ class _CoordinatePickerPageState extends State<CoordinatePickerPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
+                      'Koordinat Saat Ini',
+                      style: TextStyle(
+                        color: isDark ? Colors.white : Colors.black,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
                       'Geser peta hingga pin tepat di lokasi tujuan',
                       style: TextStyle(
                         color: isDark ? Colors.white70 : Colors.black54,
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(
-                      'Lintang ${_latitude.toStringAsFixed(7)}  •  '
-                      'Bujur ${_longitude.toStringAsFixed(7)}',
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
-                        fontWeight: FontWeight.w600,
-                      ),
+                    ValueListenableBuilder<PickedCoordinate>(
+                      valueListenable: _displayedCoordinate,
+                      builder:
+                          (_, coordinate, __) => Text(
+                            'Lintang ${coordinate.latitude.toStringAsFixed(7)}  •  '
+                            'Bujur ${coordinate.longitude.toStringAsFixed(7)}',
+                            style: TextStyle(
+                              color: isDark ? Colors.white : Colors.black,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
                     ),
                     const SizedBox(height: 10),
                     SizedBox(
@@ -448,13 +411,22 @@ class _CoordinatePickerPageState extends State<CoordinatePickerPage> {
                           foregroundColor: Colors.white,
                           padding: const EdgeInsets.symmetric(vertical: 13),
                         ),
-                        onPressed:
-                            () => Navigator.of(context).pop(
-                              PickedCoordinate(
-                                latitude: _latitude,
-                                longitude: _longitude,
-                              ),
+                        onPressed: () async {
+                          final camera = await _map?.getCameraState();
+                          if (!context.mounted) return;
+                          final latitude =
+                              camera?.center.coordinates.lat.toDouble() ??
+                              _latitude;
+                          final longitude =
+                              camera?.center.coordinates.lng.toDouble() ??
+                              _longitude;
+                          Navigator.of(context).pop(
+                            PickedCoordinate(
+                              latitude: latitude,
+                              longitude: longitude,
                             ),
+                          );
+                        },
                         icon: const Icon(Icons.check),
                         label: const Text('Gunakan Lokasi Ini'),
                       ),

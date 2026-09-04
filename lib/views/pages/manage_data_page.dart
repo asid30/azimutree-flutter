@@ -266,6 +266,8 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                                           plotNotifier,
                                                       treeNotifier:
                                                           treeNotifier,
+                                                      titikIkatData:
+                                                          selectedTitikIkat,
                                                       isEmpty:
                                                           plotsForSelectedCluster
                                                               .isEmpty,

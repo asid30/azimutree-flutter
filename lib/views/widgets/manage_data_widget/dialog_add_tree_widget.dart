@@ -42,12 +42,14 @@ class DialogAddTreeWidget extends StatefulWidget {
   final TreeNotifier treeNotifier;
   final List<ClusterModel> clusters;
   final List<PlotModel> plots;
+  final TreeModel? tree;
 
   const DialogAddTreeWidget({
     super.key,
     required this.treeNotifier,
     required this.clusters,
     required this.plots,
+    this.tree,
   });
 
   @override
@@ -83,22 +85,40 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
     super.initState();
 
     if (widget.clusters.isNotEmpty) {
-      final activeCode = selectedDropdownClusterNotifier.value;
-      ClusterModel? activeCluster;
-      if (activeCode != null) {
-        try {
-          activeCluster = widget.clusters.firstWhere(
-            (cluster) => cluster.kodeCluster == activeCode,
-          );
-        } catch (_) {
-          activeCluster = null;
+      if (widget.tree != null) {
+        final tree = widget.tree!;
+        final plot = widget.plots.firstWhere((item) => item.id == tree.plotId);
+        _selectedClusterId = plot.idCluster;
+        _selectedPlotId = tree.plotId;
+        _kodePohonController.text = tree.kodePohon.toString();
+        _namaPohonController.text = tree.namaPohon ?? '';
+        _namaIlmiahController.text = tree.namaIlmiah ?? '';
+        _azimutController.text = tree.azimut?.toString() ?? '';
+        _jarakPusatController.text = tree.jarakPusatM?.toString() ?? '';
+        _latitudeController.text = tree.latitude?.toString() ?? '';
+        _longitudeController.text = tree.longitude?.toString() ?? '';
+        _altitudeController.text = tree.altitude?.toString() ?? '';
+        _keteranganController.text = tree.keterangan ?? '';
+        _urlFotoController.text = tree.urlFoto ?? '';
+        _positionMode = TreePositionInputMode.coordinates;
+      } else {
+        final activeCode = selectedDropdownClusterNotifier.value;
+        ClusterModel? activeCluster;
+        if (activeCode != null) {
+          try {
+            activeCluster = widget.clusters.firstWhere(
+              (cluster) => cluster.kodeCluster == activeCode,
+            );
+          } catch (_) {
+            activeCluster = null;
+          }
         }
-      }
 
-      _selectedClusterId = activeCluster?.id ?? widget.clusters.first.id;
-      final firstPlots = _filteredPlots;
-      if (firstPlots.isNotEmpty) {
-        _selectedPlotId = firstPlots.first.id;
+        _selectedClusterId = activeCluster?.id ?? widget.clusters.first.id;
+        final firstPlots = _filteredPlots;
+        if (firstPlots.isNotEmpty) {
+          _selectedPlotId = firstPlots.first.id;
+        }
       }
     }
 
@@ -170,7 +190,9 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
         _selectedPlotId != null && kodePohon != null
             ? widget.treeNotifier.value.any(
               (tree) =>
-                  tree.plotId == _selectedPlotId && tree.kodePohon == kodePohon,
+                  tree.plotId == _selectedPlotId &&
+                  tree.id != widget.tree?.id &&
+                  tree.kodePohon == kodePohon,
             )
             : false;
 
@@ -265,7 +287,10 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
     }
 
     final hasDuplicate = widget.treeNotifier.value.any(
-      (tree) => tree.plotId == selectedPlotId && tree.kodePohon == kodePohon,
+      (tree) =>
+          tree.plotId == selectedPlotId &&
+          tree.id != widget.tree?.id &&
+          tree.kodePohon == kodePohon,
     );
 
     if (hasDuplicate) {
@@ -281,6 +306,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
     }
 
     final newTree = TreeModel(
+      id: widget.tree?.id,
       plotId: selectedPlotId,
       kodePohon: kodePohon,
       namaPohon: namaPohonText,
@@ -294,10 +320,14 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
       urlFoto: urlFoto,
     );
 
-    await widget.treeNotifier.addTree(newTree);
+    if (widget.tree == null) {
+      await widget.treeNotifier.addTree(newTree);
+    } else {
+      await widget.treeNotifier.updateTree(newTree);
+    }
 
     if (!mounted) return;
-    Navigator.of(context).pop(true);
+    Navigator.of(context).pop(newTree);
   }
 
   Future<void> _pickCoordinate() async {
@@ -368,7 +398,10 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
         final labelColor = isDark ? Colors.white70 : null;
         return AlertDialog(
           backgroundColor: dialogBgColor,
-          title: Text("Tambah Pohon Baru", style: TextStyle(color: dialogText)),
+          title: Text(
+            widget.tree == null ? "Tambah Pohon Baru" : "Edit Pohon",
+            style: TextStyle(color: dialogText),
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -922,7 +955,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
           actions: [
             TextButton(
               child: Text("Batal", style: TextStyle(color: dialogText)),
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => Navigator.of(context).pop(),
             ),
             ValueListenableBuilder<bool>(
               valueListenable: _isFormValid,

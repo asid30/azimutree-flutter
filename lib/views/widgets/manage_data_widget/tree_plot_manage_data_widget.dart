@@ -3,7 +3,7 @@ import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
-import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_tree_widget.dart';
+import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
@@ -363,7 +363,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
     final updated = await showDialog<TreeModel>(
       context: context,
       builder:
-          (_) => DialogEditTreeWidget(
+          (_) => DialogAddTreeWidget(
             tree: tree,
             clusters: clusters,
             plots: plots,

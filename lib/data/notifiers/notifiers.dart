@@ -117,6 +117,12 @@ ValueNotifier<bool> isTreeToPlotLineVisibleNotifier = ValueNotifier(false);
 /// Controls visibility of connecting lines between different plots.
 ValueNotifier<bool> isPlotToPlotLineVisibleNotifier = ValueNotifier(true);
 
+/// Independent size multipliers for each map marker category.
+ValueNotifier<double> titikIkatMarkerScaleNotifier = ValueNotifier(1.0);
+ValueNotifier<double> plotMarkerScaleNotifier = ValueNotifier(1.0);
+ValueNotifier<double> centroidMarkerScaleNotifier = ValueNotifier(1.0);
+ValueNotifier<double> treeMarkerScaleNotifier = ValueNotifier(1.0);
+
 /// Increment to request the bottomsheet to minimize. Observers treat this
 /// as a one-shot signal when the integer value changes.
 ValueNotifier<int> bottomsheetMinimizeRequestNotifier = ValueNotifier(0);

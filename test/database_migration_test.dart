@@ -15,7 +15,7 @@ void main() {
   });
 
   test(
-    'migration v1 to v4 preserves data and allows pending direction',
+    'migration v1 to v6 preserves data and removes obsolete anchor columns',
     () async {
       final temporaryDirectory = await Directory.systemTemp.createTemp(
         'azimutree_migration_test_',
@@ -89,7 +89,7 @@ void main() {
       db = await factory.openDatabase(
         path,
         options: OpenDatabaseOptions(
-          version: 4,
+          version: 6,
           onConfigure: (database) async {
             await database.execute('PRAGMA foreign_keys = ON');
           },
@@ -106,18 +106,19 @@ void main() {
       await db.insert(TitikIkatDao.tableName, {
         'idCluster': 1,
         'nama': 'Patok Lama',
-        'azimutKePlot1': 73.0,
-        'jarakKePlot1M': 41.2,
-      });
-      expect(await db.query(TitikIkatDao.tableName), hasLength(1));
-
-      await db.insert(TitikIkatDao.tableName, {
-        'idCluster': 1,
-        'nama': 'Titik Ikat Koordinat',
         'latitude': -5.4,
         'longitude': 105.2,
       });
-      expect(await db.query(TitikIkatDao.tableName), hasLength(2));
+      expect(await db.query(TitikIkatDao.tableName), hasLength(1));
+
+      final anchorColumns = await db.rawQuery(
+        'PRAGMA table_info(${TitikIkatDao.tableName})',
+      );
+      final anchorColumnNames = anchorColumns.map((row) => row['name']);
+      expect(anchorColumnNames, isNot(contains('jenis')));
+      expect(anchorColumnNames, isNot(contains('azimutKePlot1')));
+      expect(anchorColumnNames, isNot(contains('jarakKePlot1M')));
+      expect(anchorColumnNames, contains('urlFoto'));
 
       await db.delete('clusters', where: 'id = ?', whereArgs: [1]);
       expect(await db.query(TitikIkatDao.tableName), isEmpty);

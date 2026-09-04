@@ -11,12 +11,9 @@ class TitikIkatDao {
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         idCluster INTEGER NOT NULL,
         nama TEXT NOT NULL,
-        jenis TEXT,
         latitude REAL,
         longitude REAL,
         altitude REAL,
-        azimutKePlot1 REAL,
-        jarakKePlot1M REAL,
         keterangan TEXT,
         urlFoto TEXT,
         FOREIGN KEY (idCluster) REFERENCES clusters(id) ON DELETE CASCADE

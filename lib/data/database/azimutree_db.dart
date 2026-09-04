@@ -25,7 +25,7 @@ class AzimutreeDB {
 
     return await openDatabase(
       path,
-      version: 5,
+      version: 6,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -64,7 +64,14 @@ class AzimutreeDB {
       await TitikIkatDao.createTable(db);
     }
     if (oldVersion < 4 && newVersion >= 4) {
-      await db.execute('''
+      final columns = await db.rawQuery(
+        'PRAGMA table_info(${TitikIkatDao.tableName})',
+      );
+      final hasLegacyDirectionColumns = columns.any(
+        (column) => column['name'] == 'azimutKePlot1',
+      );
+      if (hasLegacyDirectionColumns) {
+        await db.execute('''
         CREATE TABLE titik_ikat_v4 (
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           idCluster INTEGER NOT NULL,
@@ -79,7 +86,7 @@ class AzimutreeDB {
           FOREIGN KEY (idCluster) REFERENCES clusters(id) ON DELETE CASCADE
         )
       ''');
-      await db.execute('''
+        await db.execute('''
         INSERT INTO titik_ikat_v4 (
           id, idCluster, nama, jenis, latitude, longitude, altitude,
           azimutKePlot1, jarakKePlot1M, keterangan
@@ -89,14 +96,47 @@ class AzimutreeDB {
           azimutKePlot1, jarakKePlot1M, keterangan
         FROM ${TitikIkatDao.tableName}
       ''');
-      await db.execute('DROP TABLE ${TitikIkatDao.tableName}');
-      await db.execute(
-        'ALTER TABLE titik_ikat_v4 RENAME TO ${TitikIkatDao.tableName}',
-      );
+        await db.execute('DROP TABLE ${TitikIkatDao.tableName}');
+        await db.execute(
+          'ALTER TABLE titik_ikat_v4 RENAME TO ${TitikIkatDao.tableName}',
+        );
+      }
     }
     if (oldVersion < 5 && newVersion >= 5) {
+      final columns = await db.rawQuery(
+        'PRAGMA table_info(${TitikIkatDao.tableName})',
+      );
+      if (!columns.any((column) => column['name'] == 'urlFoto')) {
+        await db.execute(
+          'ALTER TABLE ${TitikIkatDao.tableName} ADD COLUMN urlFoto TEXT',
+        );
+      }
+    }
+    if (oldVersion < 6 && newVersion >= 6) {
+      await db.execute('''
+        CREATE TABLE titik_ikat_v6 (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          idCluster INTEGER NOT NULL UNIQUE,
+          nama TEXT NOT NULL,
+          latitude REAL,
+          longitude REAL,
+          altitude REAL,
+          keterangan TEXT,
+          urlFoto TEXT,
+          FOREIGN KEY (idCluster) REFERENCES clusters(id) ON DELETE CASCADE
+        )
+      ''');
+      await db.execute('''
+        INSERT INTO titik_ikat_v6 (
+          id, idCluster, nama, latitude, longitude, altitude, keterangan, urlFoto
+        )
+        SELECT
+          id, idCluster, nama, latitude, longitude, altitude, keterangan, urlFoto
+        FROM ${TitikIkatDao.tableName}
+      ''');
+      await db.execute('DROP TABLE ${TitikIkatDao.tableName}');
       await db.execute(
-        'ALTER TABLE ${TitikIkatDao.tableName} ADD COLUMN urlFoto TEXT',
+        'ALTER TABLE titik_ikat_v6 RENAME TO ${TitikIkatDao.tableName}',
       );
     }
   }

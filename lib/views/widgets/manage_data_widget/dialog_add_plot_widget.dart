@@ -48,12 +48,14 @@ class DialogAddPlotWidget extends StatefulWidget {
   final PlotNotifier plotNotifier;
   final List<ClusterModel> clusters;
   final List<TitikIkatModel> titikIkat;
+  final PlotModel? plot;
 
   const DialogAddPlotWidget({
     super.key,
     required this.plotNotifier,
     required this.clusters,
     required this.titikIkat,
+    this.plot,
   });
 
   @override
@@ -78,13 +80,25 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
   void initState() {
     super.initState();
     if (widget.clusters.isNotEmpty) {
-      final activeCode = selectedDropdownClusterNotifier.value;
-      final active = widget.clusters.where(
-        (cluster) => cluster.kodeCluster == activeCode,
-      );
-      _selectedClusterId =
-          active.isNotEmpty ? active.first.id : widget.clusters.first.id;
-      _resetSelections();
+      if (widget.plot != null) {
+        _selectedClusterId = widget.plot!.idCluster;
+        _selectedPlotCode = widget.plot!.kodePlot;
+        _latitudeController.text = widget.plot!.latitude.toString();
+        _longitudeController.text = widget.plot!.longitude.toString();
+        _altitudeController.text = widget.plot!.altitude?.toString() ?? '';
+        _positionMode = PlotPositionInputMode.coordinates;
+        final references = _referenceOptions;
+        _selectedReferenceKey =
+            references.isEmpty ? null : references.first.key;
+      } else {
+        final activeCode = selectedDropdownClusterNotifier.value;
+        final active = widget.clusters.where(
+          (cluster) => cluster.kodeCluster == activeCode,
+        );
+        _selectedClusterId =
+            active.isNotEmpty ? active.first.id : widget.clusters.first.id;
+        _resetSelections();
+      }
     }
     for (final controller in [
       _azimuthController,
@@ -110,13 +124,19 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
 
   List<PlotModel> get _plotsForSelectedCluster =>
       widget.plotNotifier.value
-          .where((plot) => plot.idCluster == _selectedClusterId)
+          .where(
+            (plot) =>
+                plot.idCluster == _selectedClusterId &&
+                plot.id != widget.plot?.id,
+          )
           .toList()
         ..sort((a, b) => a.kodePlot.compareTo(b.kodePlot));
 
   List<int> get _availablePlotCodes {
     final used = _plotsForSelectedCluster.map((plot) => plot.kodePlot).toSet();
-    return [1, 2, 3, 4].where((code) => !used.contains(code)).toList();
+    return [1, 2, 3, 4]
+        .where((code) => !used.contains(code) || code == widget.plot?.kodePlot)
+        .toList();
   }
 
   List<_PlotReference> get _referenceOptions {
@@ -178,6 +198,7 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
         widget.plotNotifier.value.any(
           (plot) =>
               plot.idCluster == _selectedClusterId &&
+              plot.id != widget.plot?.id &&
               plot.kodePlot == _selectedPlotCode,
         );
     if (_isDuplicateCode != duplicate && mounted) {
@@ -244,7 +265,10 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
     }
 
     final duplicate = widget.plotNotifier.value.any(
-      (plot) => plot.idCluster == clusterId && plot.kodePlot == plotCode,
+      (plot) =>
+          plot.idCluster == clusterId &&
+          plot.id != widget.plot?.id &&
+          plot.kodePlot == plotCode,
     );
     if (duplicate) {
       if (!mounted) return;
@@ -255,16 +279,20 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
     }
 
     final altitudeText = _altitudeController.text.trim();
-    await widget.plotNotifier.addPlot(
-      PlotModel(
-        idCluster: clusterId,
-        kodePlot: plotCode,
-        latitude: latitude,
-        longitude: longitude,
-        altitude: altitudeText.isEmpty ? null : double.tryParse(altitudeText),
-      ),
+    final result = PlotModel(
+      id: widget.plot?.id,
+      idCluster: clusterId,
+      kodePlot: plotCode,
+      latitude: latitude,
+      longitude: longitude,
+      altitude: altitudeText.isEmpty ? null : double.tryParse(altitudeText),
     );
-    if (mounted) Navigator.of(context).pop(true);
+    if (widget.plot == null) {
+      await widget.plotNotifier.addPlot(result);
+    } else {
+      await widget.plotNotifier.updatePlot(result);
+    }
+    if (mounted) Navigator.of(context).pop(result);
   }
 
   Future<void> _pickCoordinate() async {
@@ -358,7 +386,10 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
         final references = _referenceOptions;
         return AlertDialog(
           backgroundColor: background,
-          title: Text('Tambah Plot Baru', style: TextStyle(color: foreground)),
+          title: Text(
+            widget.plot == null ? 'Tambah Plot Baru' : 'Edit Plot',
+            style: TextStyle(color: foreground),
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -573,7 +604,7 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
+              onPressed: () => Navigator.of(context).pop(),
               child: Text('Batal', style: TextStyle(color: foreground)),
             ),
             ValueListenableBuilder<bool>(

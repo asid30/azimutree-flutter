@@ -52,6 +52,14 @@ void main() async {
     if (plotPlotLines != null) {
       isPlotToPlotLineVisibleNotifier.value = plotPlotLines;
     }
+    titikIkatMarkerScaleNotifier.value =
+        prefs.getDouble('map_marker_scale_titik_ikat') ?? 1.0;
+    plotMarkerScaleNotifier.value =
+        prefs.getDouble('map_marker_scale_plot') ?? 1.0;
+    centroidMarkerScaleNotifier.value =
+        prefs.getDouble('map_marker_scale_centroid') ?? 1.0;
+    treeMarkerScaleNotifier.value =
+        prefs.getDouble('map_marker_scale_tree') ?? 1.0;
   } catch (_) {}
   // Load persisted inspected tree ids from DB so UI reflects saved state.
   try {
