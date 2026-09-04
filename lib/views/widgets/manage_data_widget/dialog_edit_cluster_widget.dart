@@ -270,194 +270,197 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
           backgroundColor: dialogBgColor,
           title: Text("Edit Klaster", style: TextStyle(color: dialogText)),
           content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: _kodeController,
-                  style: TextStyle(color: dialogText),
-                  decoration: InputDecoration(
-                    labelText: "Kode Klaster",
-                    labelStyle: TextStyle(color: labelColor),
-                    border: const OutlineInputBorder(),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: isDark ? Colors.white54 : Colors.grey,
+            child: Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: _kodeController,
+                    style: TextStyle(color: dialogText),
+                    decoration: InputDecoration(
+                      labelText: "Kode Klaster",
+                      labelStyle: TextStyle(color: labelColor),
+                      border: const OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.white54 : Colors.grey,
+                        ),
                       ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color:
-                            isDark
-                                ? Colors.white
-                                : Theme.of(context).colorScheme.primary,
-                        width: 2.0,
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color:
+                              isDark
+                                  ? Colors.white
+                                  : Theme.of(context).colorScheme.primary,
+                          width: 2.0,
+                        ),
                       ),
+                      errorText: _isDuplicate ? "Kode klaster sudah ada" : null,
                     ),
-                    errorText: _isDuplicate ? "Kode klaster sudah ada" : null,
+                    textCapitalization: TextCapitalization.characters,
                   ),
-                  textCapitalization: TextCapitalization.characters,
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _namaController,
-                  style: TextStyle(color: dialogText),
-                  decoration: InputDecoration(
-                    labelText: "Nama Pengukur",
-                    labelStyle: TextStyle(color: labelColor),
-                    border: const OutlineInputBorder(),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: isDark ? Colors.white54 : Colors.grey,
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _namaController,
+                    style: TextStyle(color: dialogText),
+                    decoration: InputDecoration(
+                      labelText: "Nama Pengukur",
+                      labelStyle: TextStyle(color: labelColor),
+                      border: const OutlineInputBorder(),
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color: isDark ? Colors.white54 : Colors.grey,
+                        ),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                          color:
+                              isDark
+                                  ? Colors.white
+                                  : Theme.of(context).colorScheme.primary,
+                          width: 2.0,
+                        ),
                       ),
                     ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color:
-                            isDark
-                                ? Colors.white
-                                : Theme.of(context).colorScheme.primary,
-                        width: 2.0,
-                      ),
-                    ),
+                    textCapitalization: TextCapitalization.words,
                   ),
-                  textCapitalization: TextCapitalization.words,
-                ),
-                const SizedBox(height: 8),
-                GestureDetector(
-                  onTap: _pickDate,
-                  child: AbsorbPointer(
-                    child: TextField(
-                      controller: _tanggalController,
-                      readOnly: true,
-                      style: TextStyle(color: dialogText),
-                      decoration: InputDecoration(
-                        labelText: "Tanggal Pengukuran",
-                        labelStyle: TextStyle(color: labelColor),
-                        border: const OutlineInputBorder(),
-                        enabledBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color: isDark ? Colors.white54 : Colors.grey,
+                  const SizedBox(height: 8),
+                  GestureDetector(
+                    onTap: _pickDate,
+                    child: AbsorbPointer(
+                      child: TextField(
+                        controller: _tanggalController,
+                        readOnly: true,
+                        style: TextStyle(color: dialogText),
+                        decoration: InputDecoration(
+                          labelText: "Tanggal Pengukuran",
+                          labelStyle: TextStyle(color: labelColor),
+                          border: const OutlineInputBorder(),
+                          enabledBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color: isDark ? Colors.white54 : Colors.grey,
+                            ),
                           ),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderSide: BorderSide(
-                            color:
-                                isDark
-                                    ? Colors.white
-                                    : Theme.of(context).colorScheme.primary,
-                            width: 2.0,
+                          focusedBorder: OutlineInputBorder(
+                            borderSide: BorderSide(
+                              color:
+                                  isDark
+                                      ? Colors.white
+                                      : Theme.of(context).colorScheme.primary,
+                              width: 2.0,
+                            ),
                           ),
+                          suffixIcon: Icon(
+                            Icons.calendar_today,
+                            color: isDark ? Colors.white70 : null,
+                          ),
+                          hintText: "YYYY-MM-DD",
                         ),
-                        suffixIcon: Icon(
-                          Icons.calendar_today,
-                          color: isDark ? Colors.white70 : null,
-                        ),
-                        hintText: "YYYY-MM-DD",
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 16),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Koordinat Titik Ikat',
-                    style: TextStyle(
-                      color: dialogText,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
+                  const SizedBox(height: 16),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Koordinat Titik Ikat',
+                      style: TextStyle(
+                        color: dialogText,
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Text(
-                    'Nama dibuat otomatis mengikuti kode klaster.',
-                    style: TextStyle(color: labelColor, fontSize: 12),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _latitudeController,
-                  style: TextStyle(color: dialogText),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                    signed: true,
-                  ),
-                  decoration: _fieldDecoration(
-                    'Lintang Titik Ikat (wajib)',
-                    isDark,
-                    labelColor,
-                    helperText: 'Rentang -90 sampai 90',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _longitudeController,
-                  style: TextStyle(color: dialogText),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                    signed: true,
-                  ),
-                  decoration: _fieldDecoration(
-                    'Bujur Titik Ikat (wajib)',
-                    isDark,
-                    labelColor,
-                    helperText: 'Rentang -180 sampai 180',
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _pickCoordinate,
-                    icon: const Icon(Icons.map_outlined),
-                    label: const Text('Pilih dari Peta'),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: dialogText,
+                  const SizedBox(height: 4),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Nama dibuat otomatis mengikuti kode klaster.',
+                      style: TextStyle(color: labelColor, fontSize: 12),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _altitudeController,
-                  style: TextStyle(color: dialogText),
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                    signed: true,
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _latitudeController,
+                    style: TextStyle(color: dialogText),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                      signed: true,
+                    ),
+                    decoration: _fieldDecoration(
+                      'Lintang Titik Ikat (wajib)',
+                      isDark,
+                      labelColor,
+                      helperText: 'Rentang -90 sampai 90',
+                    ),
                   ),
-                  decoration: _fieldDecoration(
-                    'Altitude Titik Ikat (opsional)',
-                    isDark,
-                    labelColor,
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _longitudeController,
+                    style: TextStyle(color: dialogText),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                      signed: true,
+                    ),
+                    decoration: _fieldDecoration(
+                      'Bujur Titik Ikat (wajib)',
+                      isDark,
+                      labelColor,
+                      helperText: 'Rentang -180 sampai 180',
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _keteranganController,
-                  style: TextStyle(color: dialogText),
-                  maxLines: 3,
-                  decoration: _fieldDecoration(
-                    'Keterangan Titik Ikat (opsional)',
-                    isDark,
-                    labelColor,
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: _pickCoordinate,
+                      icon: const Icon(Icons.map_outlined),
+                      label: const Text('Pilih dari Peta'),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: dialogText,
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                TextField(
-                  controller: _urlFotoController,
-                  style: TextStyle(color: dialogText),
-                  keyboardType: TextInputType.url,
-                  decoration: _fieldDecoration(
-                    'Link gambar Titik Ikat (opsional)',
-                    isDark,
-                    labelColor,
-                    helperText: 'URL gambar atau tautan Google Drive',
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _altitudeController,
+                    style: TextStyle(color: dialogText),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                      signed: true,
+                    ),
+                    decoration: _fieldDecoration(
+                      'Altitude Titik Ikat (opsional)',
+                      isDark,
+                      labelColor,
+                    ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _keteranganController,
+                    style: TextStyle(color: dialogText),
+                    maxLines: 3,
+                    decoration: _fieldDecoration(
+                      'Keterangan Titik Ikat (opsional)',
+                      isDark,
+                      labelColor,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: _urlFotoController,
+                    style: TextStyle(color: dialogText),
+                    keyboardType: TextInputType.url,
+                    decoration: _fieldDecoration(
+                      'Link gambar Titik Ikat (opsional)',
+                      isDark,
+                      labelColor,
+                      helperText: 'URL gambar atau tautan Google Drive',
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
           actions: [
@@ -473,10 +476,15 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
               builder: (context, isValid, _) {
                 return TextButton(
                   onPressed: isValid ? _save : null,
-                  child: Text(
-                    "Simpan",
-                    style: TextStyle(color: isDark ? Colors.white : null),
+                  style: ButtonStyle(
+                    foregroundColor: WidgetStateProperty.resolveWith(
+                      (states) =>
+                          states.contains(WidgetState.disabled)
+                              ? Colors.grey
+                              : dialogText,
+                    ),
                   ),
+                  child: const Text("Simpan"),
                 );
               },
             ),

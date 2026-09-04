@@ -612,9 +612,16 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
               builder:
                   (context, valid, _) => TextButton(
                     onPressed: valid ? _savePlot : null,
-                    style: TextButton.styleFrom(
-                      backgroundColor: isDark ? const Color(0xFF14351D) : null,
-                      foregroundColor: foreground,
+                    style: ButtonStyle(
+                      backgroundColor: WidgetStatePropertyAll(
+                        isDark ? const Color(0xFF14351D) : null,
+                      ),
+                      foregroundColor: WidgetStateProperty.resolveWith(
+                        (states) =>
+                            states.contains(WidgetState.disabled)
+                                ? Colors.grey
+                                : foreground,
+                      ),
                     ),
                     child: const Text('Simpan'),
                   ),
