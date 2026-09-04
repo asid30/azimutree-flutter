@@ -308,7 +308,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             MapWidget(
               onMapCreated: (map) {
                 _mapboxMap = map;
-                // Initial zoom matches the MapWidget cameraOptions below.
+                // Initial zoom matches the MapWidget viewport below.
                 _currentZoom = 10.0;
                 final style =
                     // Use satellite as the default for menu index 0
@@ -337,7 +337,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                   selectedMenuBottomSheet == 0
                       ? _sateliteStyleUri
                       : _standardStyleUri,
-              cameraOptions: CameraOptions(
+              viewport: CameraViewportState(
                 // Center the initial camera on Bandar Lampung (Lampung province)
                 center: Point(
                   // Longitude, Latitude for Bandar Lampung
