@@ -9,6 +9,7 @@ class TitikIkatModel {
   double? azimutKePlot1;
   double? jarakKePlot1M;
   String? keterangan;
+  String? urlFoto;
 
   TitikIkatModel({
     this.id,
@@ -21,6 +22,7 @@ class TitikIkatModel {
     this.azimutKePlot1,
     this.jarakKePlot1M,
     this.keterangan,
+    this.urlFoto,
   });
 
   void validate() {
@@ -81,6 +83,7 @@ class TitikIkatModel {
       'azimutKePlot1': azimutKePlot1,
       'jarakKePlot1M': jarakKePlot1M,
       'keterangan': keterangan,
+      'urlFoto': urlFoto,
     };
   }
 
@@ -96,6 +99,7 @@ class TitikIkatModel {
       azimutKePlot1: (map['azimutKePlot1'] as num?)?.toDouble(),
       jarakKePlot1M: (map['jarakKePlot1M'] as num?)?.toDouble(),
       keterangan: map['keterangan'] as String?,
+      urlFoto: map['urlFoto'] as String?,
     );
   }
 }

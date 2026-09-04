@@ -3,9 +3,11 @@ import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
-import 'package:azimutree/views/widgets/manage_data_widget/dialog_titik_ikat_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
+import 'package:azimutree/services/gdrive_thumbnail_service.dart';
 
 class TitikIkatManageDataWidget extends StatelessWidget {
   const TitikIkatManageDataWidget({
@@ -23,20 +25,6 @@ class TitikIkatManageDataWidget extends StatelessWidget {
   final List<TitikIkatModel> titikIkatData;
   final TitikIkatNotifier titikIkatNotifier;
 
-  Future<void> _edit(BuildContext context, TitikIkatModel titikIkat) async {
-    await showDialog<TitikIkatModel>(
-      context: context,
-      barrierDismissible: false,
-      builder:
-          (_) => DialogTitikIkatWidget(
-            clusters: clusters,
-            plots: plots,
-            titikIkatNotifier: titikIkatNotifier,
-            titikIkat: titikIkat,
-          ),
-    );
-  }
-
   TableRow _row(String label, String value, Color color) {
     return TableRow(
       children: [
@@ -49,6 +37,58 @@ class TitikIkatManageDataWidget extends StatelessWidget {
           child: Text(': $value', style: TextStyle(color: color)),
         ),
       ],
+    );
+  }
+
+  void _trackLocation(BuildContext context, TitikIkatModel titikIkat) {
+    if (titikIkat.latitude == null || titikIkat.longitude == null) return;
+    selectedPageNotifier.value = 'location_map_page';
+    selectedTreeNotifier.value = null;
+    selectedTreePlotNotifier.value = null;
+    selectedTreeClusterNotifier.value = null;
+    selectedPlotNotifier.value = null;
+    selectedPlotClusterNotifier.value = null;
+    selectedCentroidNotifier.value = null;
+    selectedMarkerScreenOffsetNotifier.value = null;
+    selectedLocationFromSearchNotifier.value = false;
+    isFollowingUserLocationNotifier.value = false;
+    preserveZoomOnNextCenterNotifier.value = true;
+    selectedTitikIkatNotifier.value = titikIkat;
+    selectedTitikIkatClusterNotifier.value = cluster;
+    selectedLocationNotifier.value = Position(
+      titikIkat.longitude!,
+      titikIkat.latitude!,
+    );
+    Navigator.pushNamed(context, 'location_map_page');
+  }
+
+  Widget _image(TitikIkatModel titikIkat) => CachedNetworkImage(
+    imageUrl: GDriveThumbnailService.toThumbnailUrl(titikIkat.urlFoto!),
+    fit: BoxFit.cover,
+    placeholder:
+        (_, __) => const Center(
+          child: SizedBox.square(
+            dimension: 28,
+            child: CircularProgressIndicator(strokeWidth: 2.5),
+          ),
+        ),
+    errorWidget:
+        (_, __, ___) =>
+            const Center(child: Icon(Icons.broken_image, color: Colors.grey)),
+  );
+
+  void _openPhoto(BuildContext context, TitikIkatModel titikIkat, String tag) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder:
+            (_) => _TitikIkatPhotoPreview(
+              imageUrl: GDriveThumbnailService.toThumbnailUrl(
+                titikIkat.urlFoto!,
+              ),
+              heroTag: tag,
+            ),
+      ),
     );
   }
 
@@ -98,23 +138,6 @@ class TitikIkatManageDataWidget extends StatelessWidget {
                     padding: const EdgeInsets.only(bottom: 8),
                     child: Slidable(
                       key: ValueKey('titik_ikat_${titikIkat.id}'),
-                      startActionPane: ActionPane(
-                        motion: const DrawerMotion(),
-                        extentRatio: 0.28,
-                        children: [
-                          SlidableAction(
-                            onPressed: (_) => _edit(context, titikIkat),
-                            backgroundColor:
-                                isDark
-                                    ? const Color.fromARGB(255, 54, 92, 50)
-                                    : Colors.blue.shade100,
-                            foregroundColor:
-                                isDark ? Colors.white : Colors.blue.shade900,
-                            icon: Icons.edit,
-                            label: 'Edit',
-                          ),
-                        ],
-                      ),
                       child: Card(
                         margin: EdgeInsets.zero,
                         color: cardColor,
@@ -130,11 +153,7 @@ class TitikIkatManageDataWidget extends StatelessWidget {
                             ),
                           ),
                           subtitle: Text(
-                            titikIkat.azimutKePlot1 == null ||
-                                    titikIkat.jarakKePlot1M == null
-                                ? 'Arah dan jarak ke P1 belum dihitung'
-                                : '${titikIkat.azimutKePlot1!.toStringAsFixed(1)}° • '
-                                    '${titikIkat.jarakKePlot1M!.toStringAsFixed(1)} m ke P1',
+                            'Titik referensi ${cluster.kodeCluster}',
                             style: TextStyle(color: foreground),
                           ),
                           childrenPadding: const EdgeInsets.fromLTRB(
@@ -144,31 +163,46 @@ class TitikIkatManageDataWidget extends StatelessWidget {
                             14,
                           ),
                           children: [
+                            if (titikIkat.urlFoto?.trim().isNotEmpty ==
+                                true) ...[
+                              Builder(
+                                builder: (context) {
+                                  final tag =
+                                      'anchor_photo_${titikIkat.id}_${titikIkat.urlFoto.hashCode}';
+                                  return Align(
+                                    alignment: Alignment.centerLeft,
+                                    child: SizedBox.square(
+                                      dimension: 120,
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            onTap:
+                                                () => _openPhoto(
+                                                  context,
+                                                  titikIkat,
+                                                  tag,
+                                                ),
+                                            child: Hero(
+                                              tag: tag,
+                                              child: _image(titikIkat),
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                              const SizedBox(height: 10),
+                            ],
                             Table(
                               columnWidths: const {
                                 0: FlexColumnWidth(1.1),
                                 1: FlexColumnWidth(1.9),
                               },
                               children: [
-                                _row(
-                                  'Jenis',
-                                  titikIkat.jenis ?? '-',
-                                  foreground,
-                                ),
-                                _row(
-                                  'Azimut ke P1',
-                                  titikIkat.azimutKePlot1 == null
-                                      ? '-'
-                                      : '${titikIkat.azimutKePlot1!.toStringAsFixed(1)}°',
-                                  foreground,
-                                ),
-                                _row(
-                                  'Jarak ke P1',
-                                  titikIkat.jarakKePlot1M == null
-                                      ? '-'
-                                      : '${titikIkat.jarakKePlot1M!.toStringAsFixed(2)} m',
-                                  foreground,
-                                ),
                                 _row(
                                   'Lintang',
                                   titikIkat.latitude?.toStringAsFixed(6) ?? '-',
@@ -194,6 +228,32 @@ class TitikIkatManageDataWidget extends StatelessWidget {
                                 ),
                               ],
                             ),
+                            if (titikIkat.latitude != null &&
+                                titikIkat.longitude != null) ...[
+                              const SizedBox(height: 10),
+                              Align(
+                                alignment: Alignment.centerRight,
+                                child: OutlinedButton.icon(
+                                  onPressed:
+                                      () => _trackLocation(context, titikIkat),
+                                  icon: Icon(
+                                    Icons.my_location,
+                                    color: foreground,
+                                  ),
+                                  label: Text(
+                                    'Tracking Data',
+                                    style: TextStyle(color: foreground),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                      color:
+                                          isDark ? Colors.white54 : Colors.grey,
+                                    ),
+                                    foregroundColor: foreground,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -205,4 +265,42 @@ class TitikIkatManageDataWidget extends StatelessWidget {
       },
     );
   }
+}
+
+class _TitikIkatPhotoPreview extends StatelessWidget {
+  const _TitikIkatPhotoPreview({required this.imageUrl, required this.heroTag});
+
+  final String imageUrl;
+  final String heroTag;
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Colors.black,
+    body: SafeArea(
+      child: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () => Navigator.pop(context),
+        child: Center(
+          child: InteractiveViewer(
+            minScale: 1,
+            maxScale: 5,
+            child: Hero(
+              tag: heroTag,
+              child: CachedNetworkImage(
+                imageUrl: imageUrl,
+                fit: BoxFit.contain,
+                placeholder: (_, __) => const CircularProgressIndicator(),
+                errorWidget:
+                    (_, __, ___) => const Icon(
+                      Icons.broken_image,
+                      color: Colors.white70,
+                      size: 48,
+                    ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    ),
+  );
 }

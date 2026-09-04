@@ -32,6 +32,10 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
       TextEditingController();
   final TextEditingController _titikIkatAltitudeController =
       TextEditingController();
+  final TextEditingController _titikIkatKeteranganController =
+      TextEditingController();
+  final TextEditingController _titikIkatUrlFotoController =
+      TextEditingController();
 
   // Notifier: apakah form valid?
   final ValueNotifier<bool> _isFormValid = ValueNotifier(false);
@@ -63,6 +67,8 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
     _titikIkatLatitudeController.dispose();
     _titikIkatLongitudeController.dispose();
     _titikIkatAltitudeController.dispose();
+    _titikIkatKeteranganController.dispose();
+    _titikIkatUrlFotoController.dispose();
     _isFormValid.dispose();
     super.dispose();
   }
@@ -166,6 +172,14 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
               : double.parse(
                 _titikIkatAltitudeController.text.trim().replaceAll(',', '.'),
               ),
+      keterangan:
+          _titikIkatKeteranganController.text.trim().isEmpty
+              ? null
+              : _titikIkatKeteranganController.text.trim(),
+      urlFoto:
+          _titikIkatUrlFotoController.text.trim().isEmpty
+              ? null
+              : _titikIkatUrlFotoController.text.trim(),
     );
 
     await widget.clusterNotifier.addClusterWithTitikIkat(newCluster, titikIkat);
@@ -467,6 +481,40 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                   decoration: InputDecoration(
                     labelText: 'Altitude Titik Ikat (opsional)',
                     labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _titikIkatKeteranganController,
+                  style: TextStyle(color: dialogText),
+                  maxLines: 3,
+                  decoration: InputDecoration(
+                    labelText: 'Keterangan Titik Ikat (opsional)',
+                    labelStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _titikIkatUrlFotoController,
+                  style: TextStyle(color: dialogText),
+                  keyboardType: TextInputType.url,
+                  decoration: InputDecoration(
+                    labelText: 'Link gambar Titik Ikat (opsional)',
+                    labelStyle: TextStyle(color: labelColor),
+                    hintText: 'URL gambar atau tautan Google Drive',
+                    hintStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
                     enabledBorder: OutlineInputBorder(
                       borderSide: BorderSide(

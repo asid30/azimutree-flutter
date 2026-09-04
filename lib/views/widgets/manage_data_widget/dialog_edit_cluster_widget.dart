@@ -2,15 +2,22 @@ import 'package:flutter/material.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
+import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
+import 'package:azimutree/views/widgets/location_map_widget/coordinate_picker_page.dart';
 
 class DialogEditClusterWidget extends StatefulWidget {
   final ClusterModel cluster;
   final ClusterNotifier clusterNotifier;
+  final TitikIkatModel titikIkat;
+  final TitikIkatNotifier titikIkatNotifier;
 
   const DialogEditClusterWidget({
     super.key,
     required this.cluster,
     required this.clusterNotifier,
+    required this.titikIkat,
+    required this.titikIkatNotifier,
   });
 
   @override
@@ -22,6 +29,11 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
   late final TextEditingController _kodeController;
   late final TextEditingController _namaController;
   late final TextEditingController _tanggalController;
+  late final TextEditingController _latitudeController;
+  late final TextEditingController _longitudeController;
+  late final TextEditingController _altitudeController;
+  late final TextEditingController _keteranganController;
+  late final TextEditingController _urlFotoController;
   final ValueNotifier<bool> _isFormValid = ValueNotifier(false);
   bool _isDuplicate = false;
 
@@ -41,12 +53,31 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
                   .first
               : "",
     );
+    _latitudeController = TextEditingController(
+      text: widget.titikIkat.latitude?.toString() ?? '',
+    );
+    _longitudeController = TextEditingController(
+      text: widget.titikIkat.longitude?.toString() ?? '',
+    );
+    _altitudeController = TextEditingController(
+      text: widget.titikIkat.altitude?.toString() ?? '',
+    );
+    _keteranganController = TextEditingController(
+      text: widget.titikIkat.keterangan ?? '',
+    );
+    _urlFotoController = TextEditingController(
+      text: widget.titikIkat.urlFoto ?? '',
+    );
 
     _kodeController.addListener(_validateForm);
     _namaController.addListener(() {
       _syncCapitalizedWords(_namaController);
       _validateForm();
     });
+    _latitudeController.addListener(_validateForm);
+    _longitudeController.addListener(_validateForm);
+    _altitudeController.addListener(_validateForm);
+    _validateForm();
   }
 
   @override
@@ -54,6 +85,11 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
     _kodeController.dispose();
     _namaController.dispose();
     _tanggalController.dispose();
+    _latitudeController.dispose();
+    _longitudeController.dispose();
+    _altitudeController.dispose();
+    _keteranganController.dispose();
+    _urlFotoController.dispose();
     _isFormValid.dispose();
     super.dispose();
   }
@@ -62,6 +98,14 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
     final kode =
         _kodeController.text.replaceAll(RegExp(r'\s+'), '').toUpperCase();
     final nama = _namaController.text.trim();
+    final latitude = double.tryParse(
+      _latitudeController.text.trim().replaceAll(',', '.'),
+    );
+    final longitude = double.tryParse(
+      _longitudeController.text.trim().replaceAll(',', '.'),
+    );
+    final altitudeText = _altitudeController.text.trim();
+    final altitude = double.tryParse(altitudeText.replaceAll(',', '.'));
 
     final duplicate = widget.clusterNotifier.value.any(
       (c) => c.id != widget.cluster.id && c.kodeCluster.toUpperCase() == kode,
@@ -75,7 +119,23 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
       _isDuplicate = duplicate;
     }
 
-    final isValid = kode.isNotEmpty && nama.isNotEmpty && !duplicate;
+    final coordinatesValid =
+        latitude != null &&
+        latitude.isFinite &&
+        latitude >= -90 &&
+        latitude <= 90 &&
+        longitude != null &&
+        longitude.isFinite &&
+        longitude >= -180 &&
+        longitude <= 180;
+    final altitudeValid =
+        altitudeText.isEmpty || (altitude != null && altitude.isFinite);
+    final isValid =
+        kode.isNotEmpty &&
+        nama.isNotEmpty &&
+        !duplicate &&
+        coordinatesValid &&
+        altitudeValid;
     if (_isFormValid.value != isValid) {
       _isFormValid.value = isValid;
     }
@@ -99,6 +159,29 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
     );
 
     await widget.clusterNotifier.updateCluster(updated);
+    final keterangan = _keteranganController.text.trim();
+    final urlFoto = _urlFotoController.text.trim();
+    await widget.titikIkatNotifier.updateTitikIkat(
+      TitikIkatModel(
+        id: widget.titikIkat.id,
+        idCluster: widget.cluster.id!,
+        nama: 'Titik Ikat $kodeCluster',
+        latitude: double.parse(
+          _latitudeController.text.trim().replaceAll(',', '.'),
+        ),
+        longitude: double.parse(
+          _longitudeController.text.trim().replaceAll(',', '.'),
+        ),
+        altitude:
+            _altitudeController.text.trim().isEmpty
+                ? null
+                : double.parse(
+                  _altitudeController.text.trim().replaceAll(',', '.'),
+                ),
+        keterangan: keterangan.isEmpty ? null : keterangan,
+        urlFoto: urlFoto.isEmpty ? null : urlFoto,
+      ),
+    );
     if (!mounted) return;
     Navigator.of(context).pop(updated);
   }
@@ -129,6 +212,21 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
       _tanggalController.text =
           "${picked.year}-${picked.month.toString().padLeft(2, '0')}-${picked.day.toString().padLeft(2, '0')}";
     }
+  }
+
+  Future<void> _pickCoordinate() async {
+    final selected = await pickCoordinateFromMap(
+      context,
+      initialLatitude: double.tryParse(
+        _latitudeController.text.trim().replaceAll(',', '.'),
+      ),
+      initialLongitude: double.tryParse(
+        _longitudeController.text.trim().replaceAll(',', '.'),
+      ),
+    );
+    if (selected == null || !mounted) return;
+    _latitudeController.text = selected.latitude.toStringAsFixed(7);
+    _longitudeController.text = selected.longitude.toStringAsFixed(7);
   }
 
   void _syncCapitalizedWords(TextEditingController controller) {
@@ -260,6 +358,105 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
                     ),
                   ),
                 ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Koordinat Titik Ikat',
+                    style: TextStyle(
+                      color: dialogText,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    'Nama dibuat otomatis mengikuti kode klaster.',
+                    style: TextStyle(color: labelColor, fontSize: 12),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _latitudeController,
+                  style: TextStyle(color: dialogText),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  decoration: _fieldDecoration(
+                    'Lintang Titik Ikat (wajib)',
+                    isDark,
+                    labelColor,
+                    helperText: 'Rentang -90 sampai 90',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _longitudeController,
+                  style: TextStyle(color: dialogText),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  decoration: _fieldDecoration(
+                    'Bujur Titik Ikat (wajib)',
+                    isDark,
+                    labelColor,
+                    helperText: 'Rentang -180 sampai 180',
+                  ),
+                ),
+                const SizedBox(height: 8),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _pickCoordinate,
+                    icon: const Icon(Icons.map_outlined),
+                    label: const Text('Pilih dari Peta'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: dialogText,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _altitudeController,
+                  style: TextStyle(color: dialogText),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                    signed: true,
+                  ),
+                  decoration: _fieldDecoration(
+                    'Altitude Titik Ikat (opsional)',
+                    isDark,
+                    labelColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _keteranganController,
+                  style: TextStyle(color: dialogText),
+                  maxLines: 3,
+                  decoration: _fieldDecoration(
+                    'Keterangan Titik Ikat (opsional)',
+                    isDark,
+                    labelColor,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                TextField(
+                  controller: _urlFotoController,
+                  style: TextStyle(color: dialogText),
+                  keyboardType: TextInputType.url,
+                  decoration: _fieldDecoration(
+                    'Link gambar Titik Ikat (opsional)',
+                    isDark,
+                    labelColor,
+                    helperText: 'URL gambar atau tautan Google Drive',
+                  ),
+                ),
               ],
             ),
           ),
@@ -288,4 +485,20 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
       },
     );
   }
+
+  InputDecoration _fieldDecoration(
+    String label,
+    bool isDark,
+    Color? labelColor, {
+    String? helperText,
+  }) => InputDecoration(
+    labelText: label,
+    labelStyle: TextStyle(color: labelColor),
+    helperText: helperText,
+    helperStyle: TextStyle(color: labelColor),
+    border: const OutlineInputBorder(),
+    enabledBorder: OutlineInputBorder(
+      borderSide: BorderSide(color: isDark ? Colors.white54 : Colors.grey),
+    ),
+  );
 }

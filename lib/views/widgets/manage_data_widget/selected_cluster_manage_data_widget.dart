@@ -1,6 +1,7 @@
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
@@ -310,12 +311,23 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
   }
 
   Future<void> _editCluster(BuildContext context, ClusterModel cluster) async {
+    TitikIkatModel? titikIkat;
+    for (final item in titikIkatNotifier.value) {
+      if (item.idCluster == cluster.id) {
+        titikIkat = item;
+        break;
+      }
+    }
+    if (titikIkat == null) return;
+    final titikIkatAktif = titikIkat;
     final result = await showDialog<ClusterModel>(
       context: context,
       builder:
           (_) => DialogEditClusterWidget(
             cluster: cluster,
             clusterNotifier: clusterNotifier,
+            titikIkat: titikIkatAktif,
+            titikIkatNotifier: titikIkatNotifier,
           ),
     );
 

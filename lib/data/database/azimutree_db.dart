@@ -25,7 +25,7 @@ class AzimutreeDB {
 
     return await openDatabase(
       path,
-      version: 4,
+      version: 5,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -92,6 +92,11 @@ class AzimutreeDB {
       await db.execute('DROP TABLE ${TitikIkatDao.tableName}');
       await db.execute(
         'ALTER TABLE titik_ikat_v4 RENAME TO ${TitikIkatDao.tableName}',
+      );
+    }
+    if (oldVersion < 5 && newVersion >= 5) {
+      await db.execute(
+        'ALTER TABLE ${TitikIkatDao.tableName} ADD COLUMN urlFoto TEXT',
       );
     }
   }

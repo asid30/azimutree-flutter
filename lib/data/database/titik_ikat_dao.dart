@@ -18,6 +18,7 @@ class TitikIkatDao {
         azimutKePlot1 REAL,
         jarakKePlot1M REAL,
         keterangan TEXT,
+        urlFoto TEXT,
         FOREIGN KEY (idCluster) REFERENCES clusters(id) ON DELETE CASCADE
       )
     ''');

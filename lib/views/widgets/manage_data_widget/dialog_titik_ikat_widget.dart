@@ -55,6 +55,7 @@ class _DialogTitikIkatWidgetState extends State<DialogTitikIkatWidget> {
   late final TextEditingController _azimutController;
   late final TextEditingController _jarakController;
   late final TextEditingController _keteranganController;
+  late final TextEditingController _urlFotoController;
   final ValueNotifier<bool> _isFormValid = ValueNotifier(false);
   int? _selectedClusterId;
   String? _coordinateError;
@@ -88,6 +89,7 @@ class _DialogTitikIkatWidgetState extends State<DialogTitikIkatWidget> {
       text: data?.jarakKePlot1M?.toString() ?? '',
     );
     _keteranganController = TextEditingController(text: data?.keterangan ?? '');
+    _urlFotoController = TextEditingController(text: data?.urlFoto ?? '');
 
     for (final controller in _controllers) {
       controller.addListener(_validateForm);
@@ -104,6 +106,7 @@ class _DialogTitikIkatWidgetState extends State<DialogTitikIkatWidget> {
     _azimutController,
     _jarakController,
     _keteranganController,
+    _urlFotoController,
   ];
 
   @override
@@ -228,6 +231,7 @@ class _DialogTitikIkatWidgetState extends State<DialogTitikIkatWidget> {
       azimutKePlot1: azimutKePlot1,
       jarakKePlot1M: jarakKePlot1M,
       keterangan: _optionalText(_keteranganController),
+      urlFoto: _optionalText(_urlFotoController),
     );
 
     if (widget.isEditing) {
@@ -467,6 +471,13 @@ class _DialogTitikIkatWidgetState extends State<DialogTitikIkatWidget> {
                     controller: _keteranganController,
                     label: 'Keterangan (opsional)',
                     maxLines: 3,
+                  ),
+                  const SizedBox(height: 10),
+                  _field(
+                    context,
+                    controller: _urlFotoController,
+                    label: 'Link gambar (opsional)',
+                    helperText: 'URL gambar atau tautan Google Drive',
                   ),
                 ],
               ),
