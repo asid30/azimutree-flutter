@@ -1029,7 +1029,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
               subtitle: Text(
                 _radarCompassEnabled
                     ? 'Sektor radar mengikuti arah ponsel.'
-                    : 'Radar tetap menghadap utara tanpa sektor bergerak.',
+                    : 'Sektor radar dimatikan',
                 style: TextStyle(color: foreground.withValues(alpha: 0.75)),
               ),
               value: _radarCompassEnabled,
