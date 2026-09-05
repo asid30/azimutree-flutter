@@ -361,17 +361,20 @@ class _BottomsheetManageDataWidgetState
                       builder: (context, isLightMode, _) {
                         final isDark = !isLightMode;
                         return Text(
-                          'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor data untuk menambahkan data dari file eksternal (sheet), ekspor data untuk menyimpan salinan data Anda, atau unduh template untuk format data (sheet) yang benar.',
+                          'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor dan ekspor data melalui file Excel, unduh template dengan format yang benar, atau simpan data ke penyimpanan awan.',
                           textAlign: TextAlign.justify,
                           style: TextStyle(color: isDark ? Colors.white : null),
                         );
                       },
                     ),
                     const SizedBox(height: 20),
-                    Wrap(
-                      spacing: 20,
-                      runSpacing: 20,
-                      alignment: WrapAlignment.spaceEvenly,
+                    GridView.count(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                      childAspectRatio: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
                       children: [
                         BtmButtonManageDataWidget(
                           label: "Ekspor Data",
@@ -467,6 +470,26 @@ class _BottomsheetManageDataWidgetState
                                   : const Color.fromARGB(255, 32, 72, 43),
                           onPressed: () {
                             _confirmAndOpenTemplate();
+                          },
+                        ),
+                        BtmButtonManageDataWidget(
+                          label: "Penyimpanan Awan",
+                          icon: Icons.cloud,
+                          backgroundColor:
+                              isDark
+                                  ? const Color.fromARGB(255, 18, 43, 25)
+                                  : const Color.fromARGB(255, 32, 72, 43),
+                          onPressed: () {
+                            _showAlert(
+                              title: 'Penyimpanan Awan',
+                              message:
+                                  'Integrasi penyimpanan awan akan tersedia pada tahap berikutnya.',
+                              backgroundColor:
+                                  isDark
+                                      ? const Color.fromARGB(255, 32, 72, 43)
+                                      : Colors.lightGreen.shade200,
+                              textColor: isDark ? Colors.white : Colors.black,
+                            );
                           },
                         ),
                       ],
