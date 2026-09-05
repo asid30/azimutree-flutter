@@ -136,7 +136,7 @@ class SidebarWidget extends StatelessWidget {
                         children: [
                           ListTile(
                             leading: Icon(
-                              Icons.folder_copy_outlined,
+                              Icons.folder_copy,
                               color: isDark ? Colors.white70 : null,
                             ),
                             title: Text(

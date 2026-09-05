@@ -24,6 +24,17 @@ class CloudUserProfileService {
   DocumentReference<Map<String, dynamic>> _profileReference(String uid) =>
       _firestore.collection('users').doc(uid);
 
+  static String? validateDisplayName(String value) {
+    final normalized = value.trim();
+    if (normalized.length < 2 || normalized.length > 20) {
+      return 'Nama harus terdiri dari 2 sampai 20 karakter.';
+    }
+    if (normalized.toLowerCase().contains('admin')) {
+      return 'Nama tidak boleh mengandung kata “admin”.';
+    }
+    return null;
+  }
+
   Stream<CloudUserProfile?> watchProfile(String uid) {
     return _profileReference(uid).snapshots().map((snapshot) {
       final data = snapshot.data();
@@ -40,7 +51,7 @@ class CloudUserProfileService {
     final reference = _profileReference(user.uid);
     final fallbackName = user.displayName?.trim();
     final initialName =
-        fallbackName == null || fallbackName.length < 2
+        fallbackName == null || validateDisplayName(fallbackName) != null
             ? 'Pengguna Azimutree'
             : fallbackName;
 
@@ -69,14 +80,26 @@ class CloudUserProfileService {
     required String displayName,
   }) async {
     final normalized = displayName.trim();
-    if (normalized.length < 2 || normalized.length > 80) {
-      throw ArgumentError('Nama harus terdiri dari 2 sampai 80 karakter.');
+    final validationMessage = validateDisplayName(normalized);
+    if (validationMessage != null) {
+      throw ArgumentError(validationMessage);
     }
-    await _profileReference(uid)
-        .update({
-          'displayName': normalized,
-          'updatedAt': FieldValue.serverTimestamp(),
-        })
+    final ownedLocations = await _firestore
+        .collection('researchLocations')
+        .where('ownerId', isEqualTo: uid)
+        .get()
         .timeout(const Duration(seconds: 10));
+    final batch = _firestore.batch();
+    batch.update(_profileReference(uid), {
+      'displayName': normalized,
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+    for (final location in ownedLocations.docs) {
+      batch.update(location.reference, {
+        'ownerName': normalized,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    }
+    await batch.commit().timeout(const Duration(seconds: 10));
   }
 }

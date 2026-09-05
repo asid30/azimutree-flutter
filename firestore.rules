@@ -17,7 +17,7 @@ service cloud.firestore {
         ])
         && request.resource.data.displayName is string
         && request.resource.data.displayName.size() >= 2
-        && request.resource.data.displayName.size() <= 80
+        && request.resource.data.displayName.size() <= 20
         && request.resource.data.email is string;
 
       allow update: if request.auth != null
@@ -27,7 +27,7 @@ service cloud.firestore {
         ])
         && request.resource.data.displayName is string
         && request.resource.data.displayName.size() >= 2
-        && request.resource.data.displayName.size() <= 80
+        && request.resource.data.displayName.size() <= 20
         && request.resource.data.email is string;
 
       allow delete: if false;
@@ -44,11 +44,7 @@ service cloud.firestore {
         ])
         && request.resource.data.ownerId == request.auth.uid
         && request.resource.data.ownerName is string
-        && request.resource.data.ownerName.size() >= 2
-        && request.resource.data.ownerName.size() <= 80
         && request.resource.data.name is string
-        && request.resource.data.name.size() >= 3
-        && request.resource.data.name.size() <= 100
         && request.resource.data.researchDate is timestamp
         && request.resource.data.isPublic is bool
         && request.resource.data.clusterCount == 0
@@ -59,12 +55,11 @@ service cloud.firestore {
         && resource.data.ownerId == request.auth.uid
         && request.resource.data.ownerId == resource.data.ownerId
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'name', 'researchDate', 'isPublic', 'clusterCount', 'clusterCodes',
-          'updatedAt'
+          'ownerName', 'name', 'researchDate', 'isPublic', 'clusterCount',
+          'clusterCodes', 'updatedAt'
         ])
         && request.resource.data.name is string
-        && request.resource.data.name.size() >= 3
-        && request.resource.data.name.size() <= 100
+        && request.resource.data.ownerName is string
         && request.resource.data.researchDate is timestamp
         && request.resource.data.isPublic is bool
         && request.resource.data.clusterCount is int

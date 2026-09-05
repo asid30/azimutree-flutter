@@ -121,7 +121,7 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
                 content: TextFormField(
                   initialValue: currentDisplayName,
                   autofocus: true,
-                  maxLength: 80,
+                  maxLength: 20,
                   style: TextStyle(color: foreground),
                   cursorColor: foreground,
                   textCapitalization: TextCapitalization.words,
@@ -168,8 +168,9 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
           ),
     );
     if (name == null) return;
-    if (name.length < 2) {
-      await _showMessage('Nama Tidak Valid', 'Nama minimal 2 karakter.');
+    final validationMessage = CloudUserProfileService.validateDisplayName(name);
+    if (validationMessage != null) {
+      await _showMessage('Nama Tidak Valid', validationMessage);
       return;
     }
 

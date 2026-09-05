@@ -1,8 +1,12 @@
+import 'package:azimutree/data/database/azimutree_db.dart';
 import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:azimutree/data/database/plot_dao.dart';
 import 'package:azimutree/data/database/titik_ikat_dao.dart';
 import 'package:azimutree/data/database/tree_dao.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/data/models/plot_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
+import 'package:azimutree/data/models/tree_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
 class CloudOwnedResearchLocation {
@@ -35,6 +39,20 @@ class LocalClusterSnapshot {
   final Map<String, dynamic> data;
   final int plotCount;
   final int treeCount;
+}
+
+class CloudOwnedCluster {
+  const CloudOwnedCluster({
+    required this.id,
+    required this.code,
+    required this.surveyorName,
+    required this.surveyDate,
+  });
+
+  final String id;
+  final String code;
+  final String surveyorName;
+  final DateTime? surveyDate;
 }
 
 class CloudOwnedDataService {
@@ -87,11 +105,22 @@ class CloudOwnedDataService {
     required DateTime researchDate,
     bool isPublic = true,
   }) async {
+    final normalizedName = name.trim();
+    final existingLocations =
+        await _locations.where('ownerId', isEqualTo: ownerId).get();
+    final duplicate = existingLocations.docs.any(
+      (document) =>
+          (document.data()['name'] as String?)?.trim().toLowerCase() ==
+          normalizedName.toLowerCase(),
+    );
+    if (duplicate) {
+      throw StateError('Nama lokasi penelitian sudah digunakan.');
+    }
     final now = FieldValue.serverTimestamp();
     await _locations.add({
       'ownerId': ownerId,
       'ownerName': ownerName.trim(),
-      'name': name.trim(),
+      'name': normalizedName,
       'researchDate': Timestamp.fromDate(researchDate),
       'isPublic': isPublic,
       'clusterCount': 0,
@@ -111,6 +140,143 @@ class CloudOwnedDataService {
 
   Future<void> deleteEmptyLocation(String locationId) =>
       _locations.doc(locationId).delete();
+
+  Stream<List<CloudOwnedCluster>> watchClusters(String locationId) {
+    return _locations.doc(locationId).collection('clusters').snapshots().map((
+      snapshot,
+    ) {
+      return snapshot.docs.map((document) {
+          final data = document.data();
+          return CloudOwnedCluster(
+            id: document.id,
+            code: (data['code'] as String?)?.trim() ?? '',
+            surveyorName: (data['surveyorName'] as String?)?.trim() ?? '-',
+            surveyDate: (data['surveyDate'] as Timestamp?)?.toDate(),
+          );
+        }).toList()
+        ..sort((a, b) => a.code.compareTo(b.code));
+    });
+  }
+
+  Future<void> deleteCluster({
+    required String locationId,
+    required CloudOwnedCluster cluster,
+  }) async {
+    final locationReference = _locations.doc(locationId);
+    final clusterReference = locationReference
+        .collection('clusters')
+        .doc(cluster.id);
+    await _firestore.runTransaction((transaction) async {
+      final location = await transaction.get(locationReference);
+      if (!location.exists) {
+        throw StateError('Lokasi penelitian tidak ditemukan');
+      }
+      final codes =
+          (location.data()?['clusterCodes'] as List?)
+              ?.whereType<String>()
+              .where((code) => code != cluster.code)
+              .toList() ??
+          <String>[];
+      transaction.delete(clusterReference);
+      transaction.update(locationReference, {
+        'clusterCodes': codes,
+        'clusterCount': codes.length,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+    });
+  }
+
+  Future<bool> localCodeExists(String code) async {
+    final normalized = code.trim().toLowerCase();
+    final clusters = await ClusterDao.getAllClusters();
+    return clusters.any(
+      (cluster) => cluster.kodeCluster.trim().toLowerCase() == normalized,
+    );
+  }
+
+  Future<void> downloadCluster({
+    required String locationId,
+    required String clusterId,
+    required String localCode,
+  }) async {
+    final document =
+        await _locations
+            .doc(locationId)
+            .collection('clusters')
+            .doc(clusterId)
+            .get();
+    final data = document.data();
+    if (!document.exists || data == null) {
+      throw StateError('Snapshot klaster tidak ditemukan');
+    }
+    if (await localCodeExists(localCode)) {
+      throw StateError('Kode klaster lokal sudah digunakan');
+    }
+    final anchor = data['anchor'];
+    if (anchor is! Map) {
+      throw const FormatException('Data Titik Ikat tidak valid');
+    }
+    final plotRows = data['plots'];
+    if (plotRows is! List) throw const FormatException('Data plot tidak valid');
+
+    final database = await AzimutreeDB.instance.database;
+    await database.transaction((transaction) async {
+      final clusterId = await transaction.insert(
+        ClusterDao.tableName,
+        ClusterModel(
+          kodeCluster: localCode.trim(),
+          namaPengukur: data['surveyorName'] as String?,
+          tanggalPengukuran: (data['surveyDate'] as Timestamp?)?.toDate(),
+        ).toMap(),
+      );
+      final anchorModel = TitikIkatModel(
+        idCluster: clusterId,
+        nama: 'Titik Ikat ${localCode.trim()}',
+        latitude: (anchor['latitude'] as num?)?.toDouble(),
+        longitude: (anchor['longitude'] as num?)?.toDouble(),
+        altitude: (anchor['altitude'] as num?)?.toDouble(),
+        keterangan: anchor['description'] as String?,
+        urlFoto: anchor['imageUrl'] as String?,
+      );
+      anchorModel.validate();
+      await transaction.insert(TitikIkatDao.tableName, anchorModel.toMap());
+
+      for (final rawPlot in plotRows.whereType<Map>()) {
+        final plot = PlotModel(
+          idCluster: clusterId,
+          kodePlot: (rawPlot['code'] as num).toInt(),
+          latitude: (rawPlot['latitude'] as num).toDouble(),
+          longitude: (rawPlot['longitude'] as num).toDouble(),
+          altitude: (rawPlot['altitude'] as num?)?.toDouble(),
+        );
+        final plotId = await transaction.insert(
+          PlotDao.tableName,
+          plot.toMap(),
+        );
+        final rawTrees = rawPlot['trees'];
+        if (rawTrees is! List) continue;
+        for (final rawTree in rawTrees.whereType<Map>()) {
+          await transaction.insert(
+            TreeDao.tableName,
+            TreeModel(
+              plotId: plotId,
+              kodePohon: (rawTree['code'] as num).toInt(),
+              namaPohon: rawTree['name'] as String?,
+              namaIlmiah: rawTree['scientificName'] as String?,
+              azimut: (rawTree['azimuth'] as num?)?.toDouble(),
+              jarakPusatM: (rawTree['distanceM'] as num?)?.toDouble(),
+              latitude: (rawTree['latitude'] as num?)?.toDouble(),
+              longitude: (rawTree['longitude'] as num?)?.toDouble(),
+              altitude: (rawTree['altitude'] as num?)?.toDouble(),
+              keterangan: rawTree['description'] as String?,
+              urlFoto: rawTree['imageUrl'] as String?,
+              inspected: rawTree['inspected'] as bool?,
+            ).toMap(),
+          );
+        }
+      }
+    });
+  }
 
   Future<List<LocalClusterSnapshot>> loadLocalSnapshots() async {
     final clusters = await ClusterDao.getAllClusters();

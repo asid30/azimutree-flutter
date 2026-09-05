@@ -1,5 +1,6 @@
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/services/cloud_owned_data_service.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -41,6 +42,24 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
         researchDate: result.date,
         isPublic: result.isPublic,
       );
+    } on StateError catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(error.message)));
+      }
+    } on FirebaseException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              error.code == 'permission-denied'
+                  ? 'Izin membuat lokasi ditolak. Keluar lalu masuk kembali ke akun.'
+                  : 'Lokasi gagal dibuat: ${error.message ?? error.code}',
+            ),
+          ),
+        );
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -66,19 +85,9 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder:
-          (context) => AlertDialog(
-            title: const Text('Hapus Lokasi Penelitian?'),
-            content: Text('Folder “${location.name}” akan dihapus permanen.'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('Batal'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                child: const Text('Hapus'),
-              ),
-            ],
+          (_) => AlertConfirmationWidget(
+            title: 'Hapus Lokasi Penelitian?',
+            message: 'Folder “${location.name}” akan dihapus permanen.',
           ),
     );
     if (confirmed != true) return;
@@ -119,22 +128,12 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
       final confirmed = await showDialog<bool>(
         context: context,
         builder:
-            (context) => AlertDialog(
-              title: const Text('Timpa Snapshot?'),
-              content: Text(
-                'Klaster ${overwritten.join(', ')} sudah ada di folder ini. '
-                'Snapshot lama akan diganti dengan data lokal terbaru.',
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(context, false),
-                  child: const Text('Batal'),
-                ),
-                TextButton(
-                  onPressed: () => Navigator.pop(context, true),
-                  child: const Text('Lanjutkan'),
-                ),
-              ],
+            (_) => AlertConfirmationWidget(
+              title: 'Timpa Snapshot?',
+              message:
+                  'Klaster ${overwritten.join(', ')} sudah ada di folder ini. '
+                  'Snapshot lama akan diganti dengan data lokal terbaru.',
+              confirmText: 'Lanjutkan',
             ),
       );
       if (confirmed != true || !mounted) return;
@@ -155,6 +154,16 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
           ),
         );
       }
+    } on FirebaseException catch (error) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Unggah gagal (${error.code}): ${error.message ?? 'kesalahan Firebase'}',
+            ),
+          ),
+        );
+      }
     } catch (_) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -162,6 +171,80 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
             content: Text('Snapshot klaster gagal diunggah. Periksa koneksi.'),
           ),
         );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
+  Future<void> _deleteCluster(
+    CloudOwnedResearchLocation location,
+    CloudOwnedCluster cluster,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (_) => AlertConfirmationWidget(
+            title: 'Hapus Snapshot Klaster?',
+            message:
+                'Snapshot ${cluster.code} akan dihapus dari “${location.name}”. '
+                'Data lokal tidak ikut terhapus.',
+          ),
+    );
+    if (confirmed != true) return;
+    try {
+      await _service.deleteCluster(locationId: location.id, cluster: cluster);
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Snapshot klaster gagal dihapus.')),
+        );
+      }
+    }
+  }
+
+  Future<void> _downloadCluster(
+    CloudOwnedResearchLocation location,
+    CloudOwnedCluster cluster,
+  ) async {
+    var localCode = cluster.code;
+    if (await _service.localCodeExists(localCode)) {
+      if (!mounted) return;
+      final replacement = await showDialog<String>(
+        context: context,
+        builder:
+            (_) => _RenameClusterDialog(initialCode: '${cluster.code} SALINAN'),
+      );
+      if (replacement == null) return;
+      localCode = replacement;
+      if (await _service.localCodeExists(localCode)) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Kode klaster tersebut sudah digunakan.'),
+            ),
+          );
+        }
+        return;
+      }
+    }
+    setState(() => _isProcessing = true);
+    try {
+      await _service.downloadCluster(
+        locationId: location.id,
+        clusterId: cluster.id,
+        localCode: localCode,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Klaster $localCode berhasil diunduh.')),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Klaster gagal diunduh.')));
       }
     } finally {
       if (mounted) setState(() => _isProcessing = false);
@@ -277,26 +360,110 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
                               14,
                             ),
                             children: [
-                              if (location.clusterCodes.isNotEmpty) ...[
-                                Align(
-                                  alignment: Alignment.centerLeft,
-                                  child: Wrap(
-                                    spacing: 6,
-                                    runSpacing: 4,
-                                    children:
-                                        location.clusterCodes
-                                            .map(
-                                              (code) => Chip(
-                                                label: Text(code),
-                                                visualDensity:
-                                                    VisualDensity.compact,
+                              StreamBuilder<List<CloudOwnedCluster>>(
+                                stream: _service.watchClusters(location.id),
+                                builder: (context, clusterSnapshot) {
+                                  final clusters =
+                                      clusterSnapshot.data ?? const [];
+                                  if (clusterSnapshot.connectionState ==
+                                          ConnectionState.waiting &&
+                                      clusters.isEmpty) {
+                                    return const Padding(
+                                      padding: EdgeInsets.all(8),
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  }
+                                  if (clusters.isEmpty) {
+                                    return Padding(
+                                      padding: const EdgeInsets.only(
+                                        bottom: 10,
+                                      ),
+                                      child: Text(
+                                        'Belum ada snapshot klaster.',
+                                        style: TextStyle(
+                                          color: foreground.withValues(
+                                            alpha: 0.75,
+                                          ),
+                                        ),
+                                      ),
+                                    );
+                                  }
+                                  return Column(
+                                    children: [
+                                      ...clusters.map(
+                                        (cluster) => ListTile(
+                                          contentPadding: EdgeInsets.zero,
+                                          leading: Icon(
+                                            Icons.data_object,
+                                            color: foreground,
+                                          ),
+                                          title: Text(
+                                            cluster.code,
+                                            style: TextStyle(
+                                              color: foreground,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            '${cluster.surveyorName} · ${_date(cluster.surveyDate)}',
+                                            style: TextStyle(
+                                              color: foreground.withValues(
+                                                alpha: 0.75,
                                               ),
-                                            )
-                                            .toList(),
-                                  ),
-                                ),
-                                const SizedBox(height: 10),
-                              ],
+                                            ),
+                                          ),
+                                          trailing: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                onPressed:
+                                                    _isProcessing
+                                                        ? null
+                                                        : () =>
+                                                            _downloadCluster(
+                                                              location,
+                                                              cluster,
+                                                            ),
+                                                tooltip: 'Unduh ke aplikasi',
+                                                color: foreground,
+                                                icon: const Icon(
+                                                  Icons.download_outlined,
+                                                ),
+                                              ),
+                                              IconButton(
+                                                onPressed:
+                                                    _isProcessing
+                                                        ? null
+                                                        : () => _deleteCluster(
+                                                          location,
+                                                          cluster,
+                                                        ),
+                                                tooltip: 'Hapus snapshot',
+                                                color:
+                                                    isLight
+                                                        ? const Color.fromARGB(
+                                                          255,
+                                                          98,
+                                                          32,
+                                                          32,
+                                                        )
+                                                        : const Color.fromARGB(
+                                                          255,
+                                                          215,
+                                                          83,
+                                                          83,
+                                                        ),
+                                                icon: const Icon(Icons.delete),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                    ],
+                                  );
+                                },
+                              ),
                               SizedBox(
                                 width: double.infinity,
                                 child: ElevatedButton.icon(
@@ -308,7 +475,10 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
                                   label: const Text('Unggah Klaster'),
                                   style: ElevatedButton.styleFrom(
                                     foregroundColor: Colors.white,
-                                    backgroundColor: const Color(0xFF1F4226),
+                                    backgroundColor:
+                                        isLight
+                                            ? const Color(0xFF1F4226)
+                                            : const Color(0xFF102C18),
                                   ),
                                 ),
                               ),
@@ -354,8 +524,21 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
                                   IconButton(
                                     onPressed: () => _deleteLocation(location),
                                     tooltip: 'Hapus folder',
-                                    color: foreground,
-                                    icon: const Icon(Icons.delete_outline),
+                                    color:
+                                        isLight
+                                            ? const Color.fromARGB(
+                                              255,
+                                              98,
+                                              32,
+                                              32,
+                                            )
+                                            : const Color.fromARGB(
+                                              255,
+                                              215,
+                                              83,
+                                              83,
+                                            ),
+                                    icon: const Icon(Icons.delete),
                                   ),
                                 ],
                               ),
@@ -397,6 +580,102 @@ class _SelectClustersDialog extends StatefulWidget {
 
   @override
   State<_SelectClustersDialog> createState() => _SelectClustersDialogState();
+}
+
+class _RenameClusterDialog extends StatefulWidget {
+  const _RenameClusterDialog({required this.initialCode});
+
+  final String initialCode;
+
+  @override
+  State<_RenameClusterDialog> createState() => _RenameClusterDialogState();
+}
+
+class _RenameClusterDialogState extends State<_RenameClusterDialog> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _controller;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = TextEditingController(text: widget.initialCode);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: isLightModeNotifier,
+      builder: (context, isLight, _) {
+        final isDark = !isLight;
+        final foreground = isDark ? Colors.white : Colors.black87;
+        final labelColor = isDark ? Colors.white70 : Colors.black54;
+        final background =
+            isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
+        return AlertDialog(
+          backgroundColor: background,
+          title: Text('Kode Klaster Baru', style: TextStyle(color: foreground)),
+          content: Form(
+            key: _formKey,
+            child: TextFormField(
+              controller: _controller,
+              autofocus: true,
+              maxLength: 30,
+              textCapitalization: TextCapitalization.characters,
+              style: TextStyle(color: foreground),
+              decoration: InputDecoration(
+                labelText: 'Kode klaster',
+                helperText: 'Kode asli sudah tersedia di penyimpanan lokal.',
+                labelStyle: TextStyle(color: labelColor),
+                helperStyle: TextStyle(color: labelColor),
+                counterStyle: TextStyle(color: labelColor),
+                border: const OutlineInputBorder(),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color: isDark ? Colors.white54 : Colors.grey,
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                    color:
+                        isDark
+                            ? Colors.white
+                            : Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  ),
+                ),
+              ),
+              validator:
+                  (value) =>
+                      (value?.trim().isEmpty ?? true)
+                          ? 'Kode wajib diisi'
+                          : null,
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(foregroundColor: foreground),
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed: () {
+                if (!_formKey.currentState!.validate()) return;
+                Navigator.pop(context, _controller.text.trim().toUpperCase());
+              },
+              style: TextButton.styleFrom(foregroundColor: foreground),
+              child: const Text('Unduh'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class _SelectClustersDialogState extends State<_SelectClustersDialog> {
@@ -498,7 +777,37 @@ class _CreateLocationDialogState extends State<_CreateLocationDialog> {
   bool _isPublic = true;
 
   @override
+  void initState() {
+    super.initState();
+    _nameController.addListener(_normalizeName);
+  }
+
+  void _normalizeName() {
+    final buffer = StringBuffer();
+    var capitalizeNext = true;
+    for (final rune in _nameController.text.runes) {
+      final character = String.fromCharCode(rune);
+      if (character.trim().isEmpty) {
+        buffer.write(character);
+        capitalizeNext = true;
+      } else {
+        buffer.write(
+          capitalizeNext ? character.toUpperCase() : character.toLowerCase(),
+        );
+        capitalizeNext = false;
+      }
+    }
+    final normalized = buffer.toString();
+    if (normalized == _nameController.text) return;
+    _nameController.value = TextEditingValue(
+      text: normalized,
+      selection: TextSelection.collapsed(offset: normalized.length),
+    );
+  }
+
+  @override
   void dispose() {
+    _nameController.removeListener(_normalizeName);
     _nameController.dispose();
     super.dispose();
   }
