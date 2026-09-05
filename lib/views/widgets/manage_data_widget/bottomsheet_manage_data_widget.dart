@@ -632,6 +632,8 @@ class _BottomsheetManageDataWidgetState
                                               (context) => DialogAddPlotWidget(
                                                 plotNotifier:
                                                     widget.plotNotifier,
+                                                treeNotifier:
+                                                    widget.treeNotifier,
                                                 clusters: clusterState,
                                                 titikIkat:
                                                     widget

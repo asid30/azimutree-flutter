@@ -3,6 +3,7 @@ import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
+import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/services/azimuth_latlong_service.dart';
 import 'package:azimutree/views/widgets/location_map_widget/coordinate_picker_page.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +48,7 @@ class _PlotReference {
 
 class DialogAddPlotWidget extends StatefulWidget {
   final PlotNotifier plotNotifier;
+  final TreeNotifier? treeNotifier;
   final List<ClusterModel> clusters;
   final List<TitikIkatModel> titikIkat;
   final PlotModel? plot;
@@ -54,6 +56,7 @@ class DialogAddPlotWidget extends StatefulWidget {
   const DialogAddPlotWidget({
     super.key,
     required this.plotNotifier,
+    this.treeNotifier,
     required this.clusters,
     required this.titikIkat,
     this.plot,
@@ -290,6 +293,7 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
       await widget.plotNotifier.addPlot(result);
     } else {
       await widget.plotNotifier.updatePlot(result);
+      await widget.treeNotifier?.loadTrees();
     }
     if (mounted) Navigator.of(context).pop(result);
   }

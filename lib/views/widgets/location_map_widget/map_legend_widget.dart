@@ -136,12 +136,13 @@ class MapLegendWidget extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            width: 16,
+                            width: 12,
                             height: 12,
                             decoration: BoxDecoration(
                               color: const Color(
                                 kPlotAreaColor,
                               ).withValues(alpha: kPlotAreaOpacity),
+                              shape: BoxShape.circle,
                               border: Border.all(
                                 color: const Color(kPlotAreaOutlineColor),
                               ),

@@ -433,6 +433,7 @@ class _PlotClusterManageDataWidgetState
             plot: plot,
             clusters: widget.clustersData,
             plotNotifier: widget.plotNotifier,
+            treeNotifier: widget.treeNotifier,
             titikIkat: widget.titikIkatData,
           ),
     );
