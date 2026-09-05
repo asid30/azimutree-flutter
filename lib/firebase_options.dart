@@ -3,6 +3,7 @@
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 /// Default [FirebaseOptions] for use with your Firebase apps.
 ///
@@ -15,6 +16,14 @@ import 'package:flutter/foundation.dart'
 /// );
 /// ```
 class DefaultFirebaseOptions {
+  static String _requiredEnv(String key) {
+    final value = dotenv.env[key]?.trim();
+    if (value == null || value.isEmpty) {
+      throw StateError('Konfigurasi Firebase $key belum tersedia di .env');
+    }
+    return value;
+  }
+
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
       return web;
@@ -40,8 +49,8 @@ class DefaultFirebaseOptions {
     }
   }
 
-  static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyD-MJcX3UxbgaGpPAyZNsv6ALYiINSc3cA',
+  static FirebaseOptions get web => FirebaseOptions(
+    apiKey: _requiredEnv('FIREBASE_API_KEY_WEB'),
     appId: '1:1038623759812:web:ccaf7d11cb9e08c3d99891',
     messagingSenderId: '1038623759812',
     projectId: 'azimutree-256c9',
@@ -50,36 +59,40 @@ class DefaultFirebaseOptions {
     measurementId: 'G-4KRJFYNYB0',
   );
 
-  static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyCORnK1TIkO9qr9g0AJ0hbm-kFsOiVsLtc',
+  static FirebaseOptions get android => FirebaseOptions(
+    apiKey: _requiredEnv('FIREBASE_API_KEY_ANDROID'),
     appId: '1:1038623759812:android:f2c4a049483fc58ed99891',
     messagingSenderId: '1038623759812',
     projectId: 'azimutree-256c9',
     storageBucket: 'azimutree-256c9.firebasestorage.app',
   );
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyCGd0J_VGupHPc_sJZW7tR6YNxmWC_iygg',
+  static FirebaseOptions get ios => FirebaseOptions(
+    apiKey: _requiredEnv('FIREBASE_API_KEY_APPLE'),
     appId: '1:1038623759812:ios:5e5ac1a6e55a6c48d99891',
     messagingSenderId: '1038623759812',
     projectId: 'azimutree-256c9',
     storageBucket: 'azimutree-256c9.firebasestorage.app',
-    androidClientId: '1038623759812-v6iosp7f39ps0n81d8vir4ncrfvvhf9u.apps.googleusercontent.com',
-    iosClientId: '1038623759812-bptuli2rveueibn56au9obo40srhn9qn.apps.googleusercontent.com',
+    androidClientId:
+        '1038623759812-v6iosp7f39ps0n81d8vir4ncrfvvhf9u.apps.googleusercontent.com',
+    iosClientId:
+        '1038623759812-bptuli2rveueibn56au9obo40srhn9qn.apps.googleusercontent.com',
     iosBundleId: 'com.example.azimutree',
   );
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCGd0J_VGupHPc_sJZW7tR6YNxmWC_iygg',
+  static FirebaseOptions get macos => FirebaseOptions(
+    apiKey: _requiredEnv('FIREBASE_API_KEY_APPLE'),
     appId: '1:1038623759812:ios:5e5ac1a6e55a6c48d99891',
     messagingSenderId: '1038623759812',
     projectId: 'azimutree-256c9',
     storageBucket: 'azimutree-256c9.firebasestorage.app',
-    androidClientId: '1038623759812-v6iosp7f39ps0n81d8vir4ncrfvvhf9u.apps.googleusercontent.com',
-    iosClientId: '1038623759812-bptuli2rveueibn56au9obo40srhn9qn.apps.googleusercontent.com',
+    androidClientId:
+        '1038623759812-v6iosp7f39ps0n81d8vir4ncrfvvhf9u.apps.googleusercontent.com',
+    iosClientId:
+        '1038623759812-bptuli2rveueibn56au9obo40srhn9qn.apps.googleusercontent.com',
     iosBundleId: 'com.example.azimutree',
   );
 
-  static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyD-MJcX3UxbgaGpPAyZNsv6ALYiINSc3cA',
+  static FirebaseOptions get windows => FirebaseOptions(
+    apiKey: _requiredEnv('FIREBASE_API_KEY_WEB'),
     appId: '1:1038623759812:web:3702c5b7ff718aa4d99891',
     messagingSenderId: '1038623759812',
     projectId: 'azimutree-256c9',
