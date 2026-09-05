@@ -7,6 +7,7 @@ import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
+import 'package:azimutree/views/widgets/cloud_storage_widget/owned_cloud_data_widget.dart';
 import 'package:azimutree/views/widgets/cloud_storage_widget/public_cloud_browser_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
@@ -24,6 +25,7 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
   final CloudUserProfileService _profileService = CloudUserProfileService();
   bool _isProcessing = false;
   bool _showPublicForAuthenticated = false;
+  bool _showOwnedData = false;
   String? _profileInitializedUid;
 
   @override
@@ -71,6 +73,7 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
       await _authService.signOut();
       _profileInitializedUid = null;
       _showPublicForAuthenticated = false;
+      _showOwnedData = false;
     } catch (_) {
       await _showMessage('Logout Gagal', 'Tidak dapat keluar dari akun.');
     } finally {
@@ -190,11 +193,6 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
     }
   }
 
-  Future<void> _showComingSoon(String feature) => _showMessage(
-    feature,
-    'Tampilan $feature sudah disiapkan. Data awan akan dihubungkan pada tahap berikutnya.',
-  );
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -218,10 +216,11 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
                         BackButton(
                           color: foreground,
                           onPressed: () {
-                            if (_showPublicForAuthenticated) {
-                              setState(
-                                () => _showPublicForAuthenticated = false,
-                              );
+                            if (_showPublicForAuthenticated || _showOwnedData) {
+                              setState(() {
+                                _showPublicForAuthenticated = false;
+                                _showOwnedData = false;
+                              });
                               return;
                             }
                             selectedPageNotifier.value = 'home';
@@ -229,7 +228,9 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
                           },
                         ),
                         Text(
-                          _showPublicForAuthenticated ? 'Menu akun' : 'Kembali',
+                          _showPublicForAuthenticated || _showOwnedData
+                              ? 'Menu akun'
+                              : 'Kembali',
                           style: TextStyle(fontSize: 18, color: foreground),
                         ),
                       ],
@@ -257,6 +258,26 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
                               showLogin: false,
                               onLogin: _signIn,
                               loginInProgress: _isProcessing,
+                            );
+                          }
+                          if (_showOwnedData) {
+                            return StreamBuilder<CloudUserProfile?>(
+                              stream: _profileService.watchProfile(user.uid),
+                              builder: (context, profileSnapshot) {
+                                final customName =
+                                    profileSnapshot.data?.displayName.trim();
+                                final googleName = user.displayName?.trim();
+                                final ownerName =
+                                    customName?.isNotEmpty == true
+                                        ? customName!
+                                        : (googleName?.isNotEmpty == true
+                                            ? googleName!
+                                            : 'Pengguna Azimutree');
+                                return OwnedCloudDataWidget(
+                                  user: user,
+                                  ownerName: ownerName,
+                                );
+                              },
                             );
                           }
                           return SingleChildScrollView(
@@ -321,7 +342,7 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
             _actionButton(
               label: 'Kelola Data Sendiri',
               icon: Icons.cloud_upload,
-              onPressed: () => _showComingSoon('Kelola Data Sendiri'),
+              onPressed: () => setState(() => _showOwnedData = true),
             ),
             const SizedBox(height: 12),
             _actionButton(
