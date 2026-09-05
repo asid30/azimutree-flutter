@@ -69,11 +69,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   // Whether a long-press was recognized for the current pointer sequence.
   bool _longPressRecognized = false;
 
-  double get _mapHeight =>
-      context.size?.height ?? MediaQuery.sizeOf(context).height;
-
   MbxEdgeInsets get _cameraPadding =>
-      MbxEdgeInsets(top: 0, left: 0, bottom: _mapHeight / 3, right: 0);
+      MbxEdgeInsets(top: 0, left: 0, bottom: 0, right: 0);
 
   @override
   void initState() {
@@ -357,7 +354,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         return Stack(
           children: [
             MapWidget(
-              onMapCreated: (map) {
+              onMapCreated: (map) async {
                 _mapboxMap = map;
                 final trackingTarget =
                     isMapTrackingRequestPendingNotifier.value
@@ -373,17 +370,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                   if (mounted) _applyPendingTrackingRequest();
                 });
                 _enableUserLocationPuck();
-                // Hide the native Mapbox compass so it won't overlap marker
-                // info on some devices (we keep a small right gap too).
-                try {
-                  final dyn = _mapboxMap as dynamic;
-                  try {
-                    dyn.uiSettings?.setCompassEnabled(false);
-                  } catch (_) {
-                    dyn.setCompassEnabled?.call(false);
-                  }
-                } catch (_) {}
-                // Keep the Mapbox built-in compass enabled (use default UI).
+                await map.compass.updateSettings(
+                  CompassSettings(enabled: false),
+                );
                 // Non-tracking selections can still use the regular centering
                 // path. Tracking waits until the style is ready above.
                 if (!isMapTrackingRequestPendingNotifier.value) {
@@ -408,11 +397,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                             selectedLocationNotifier.value != null
                         ? 17
                         : 10,
-                padding:
-                    isMapTrackingRequestPendingNotifier.value &&
-                            selectedLocationNotifier.value != null
-                        ? EdgeInsets.only(bottom: _mapHeight / 3)
-                        : EdgeInsets.zero,
+                padding: EdgeInsets.zero,
               ),
             ),
             // Fullscreen listener that captures pointer ups. We purposely do

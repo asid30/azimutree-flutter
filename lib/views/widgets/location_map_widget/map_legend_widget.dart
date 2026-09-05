@@ -19,7 +19,7 @@ class MapLegendWidget extends StatelessWidget {
     required Color fill,
     Color? stroke,
     required String label,
-    double size = 14,
+    double size = 11,
   }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -34,8 +34,8 @@ class MapLegendWidget extends StatelessWidget {
                 stroke != null ? Border.all(color: stroke, width: 1.2) : null,
           ),
         ),
-        const SizedBox(width: 8),
-        Text(label, style: const TextStyle(fontSize: 12)),
+        const SizedBox(width: 6),
+        Text(label, style: const TextStyle(fontSize: 10)),
       ],
     );
   }
@@ -57,8 +57,8 @@ class MapLegendWidget extends StatelessWidget {
           child: Stack(
             children: [
               Container(
-                constraints: const BoxConstraints(minWidth: 180),
-                padding: const EdgeInsets.all(8),
+                constraints: const BoxConstraints(minWidth: 148, maxWidth: 156),
+                padding: const EdgeInsets.all(6),
                 decoration: BoxDecoration(
                   color: bgColor,
                   borderRadius: BorderRadius.circular(8),
@@ -71,7 +71,7 @@ class MapLegendWidget extends StatelessWidget {
                   ],
                 ),
                 child: DefaultTextStyle(
-                  style: TextStyle(color: textColor, fontSize: 12),
+                  style: TextStyle(color: textColor, fontSize: 10),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -80,40 +80,40 @@ class MapLegendWidget extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           const SizedBox(
-                            width: 14,
+                            width: 11,
                             child: Icon(
                               Icons.location_pin,
-                              size: 18,
+                              size: 15,
                               color: Color(kTitikIkatColor),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           const Text(
                             'Titik Ikat',
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: 10),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       _legendItem(
                         fill: Color(kPlotColor),
                         stroke: Color(kPlotStrokeColor),
                         label: 'Plot',
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       // Centroid marker (generated for clusters without Plot 1)
                       _legendItem(
                         fill: Color(kCentroidColor),
                         stroke: Colors.white,
                         label: 'Centroid',
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       _legendItem(
                         fill: Color(kTreeColor),
                         stroke: Color(kTreeStrokeColor),
                         label: 'Pohon',
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       // Inspection workflow: show Done marker color when enabled
                       ValueListenableBuilder<bool>(
                         valueListenable: isInspectionWorkflowEnabledNotifier,
@@ -127,7 +127,7 @@ class MapLegendWidget extends StatelessWidget {
                                 stroke: Colors.white,
                                 label: 'Pohon selesai',
                               ),
-                              const SizedBox(height: 6),
+                              const SizedBox(height: 4),
                             ],
                           );
                         },
@@ -147,14 +147,14 @@ class MapLegendWidget extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: 6),
                           const Text(
                             'Area plot',
-                            style: TextStyle(fontSize: 12),
+                            style: TextStyle(fontSize: 10),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 4),
                       if (showConnections) ...[
                         Row(
                           mainAxisSize: MainAxisSize.min,
@@ -164,14 +164,14 @@ class MapLegendWidget extends StatelessWidget {
                               height: 3,
                               color: Color(kPlotConnectionColor),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Text(
                               'Koneksi Plot→Plot',
-                              style: TextStyle(color: textColor, fontSize: 12),
+                              style: TextStyle(color: textColor, fontSize: 10),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                         Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
@@ -180,21 +180,21 @@ class MapLegendWidget extends StatelessWidget {
                               height: 3,
                               color: Color(kConnectionColor),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 6),
                             Text(
                               'Koneksi Plot→Pohon',
-                              style: TextStyle(color: textColor, fontSize: 12),
+                              style: TextStyle(color: textColor, fontSize: 10),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 6),
+                        const SizedBox(height: 4),
                       ],
                       if (showSearchResult)
                         _legendItem(
                           fill: const Color(0xFFFF5252),
                           stroke: Colors.white,
                           label: 'Hasil Pencarian',
-                          size: 12,
+                          size: 10,
                         ),
                     ],
                   ),
@@ -206,9 +206,9 @@ class MapLegendWidget extends StatelessWidget {
                   top: 4,
                   right: 4,
                   child: IconButton(
-                    padding: const EdgeInsets.all(4),
+                    padding: const EdgeInsets.all(3),
                     constraints: const BoxConstraints(),
-                    iconSize: 18,
+                    iconSize: 16,
                     tooltip: 'Tutup legenda',
                     onPressed: () async {
                       isMapLegendVisibleNotifier.value = false;
