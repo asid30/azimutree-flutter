@@ -54,6 +54,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
       _syncCapitalizedWords(_namaPengukurController);
       _validateForm();
     });
+    _tanggalPengukuranController.addListener(_validateForm);
     _titikIkatLatitudeController.addListener(_validateForm);
     _titikIkatLongitudeController.addListener(_validateForm);
     _titikIkatAltitudeController.addListener(_validateForm);
@@ -87,6 +88,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
     );
     final altitudeText = _titikIkatAltitudeController.text.trim();
     final altitude = double.tryParse(altitudeText.replaceAll(',', '.'));
+    final tanggal = DateTime.tryParse(_tanggalPengukuranController.text.trim());
 
     final isDuplicate = widget.clusterNotifier.value.any(
       (cluster) => cluster.kodeCluster.toUpperCase() == kode,
@@ -114,6 +116,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
     final isValid =
         kode.isNotEmpty &&
         nama.isNotEmpty &&
+        tanggal != null &&
         coordinatesValid &&
         altitudeValid &&
         !isDuplicate;
@@ -358,7 +361,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                 ),
                 const SizedBox(height: 8),
 
-                // Tanggal opsional
+                // Tanggal wajib
                 GestureDetector(
                   onTap: _selectDate,
                   child: AbsorbPointer(
@@ -367,7 +370,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                       readOnly: true,
                       style: TextStyle(color: dialogText),
                       decoration: InputDecoration(
-                        labelText: "Tanggal Pengukuran (opsional)",
+                        labelText: "Tanggal Pengukuran",
                         labelStyle: TextStyle(color: labelColor),
                         border: const OutlineInputBorder(),
                         suffixIcon: Icon(

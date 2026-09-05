@@ -17,19 +17,36 @@ class DialogExportDataWidget extends StatefulWidget {
 }
 
 class _DialogExportDataWidgetState extends State<DialogExportDataWidget> {
-  String? _selectedKode;
+  final Set<int> _selectedClusterIds = {};
   String? _selectedDirectoryPath;
+  bool _isExporting = false;
 
   @override
   void initState() {
     super.initState();
-    final clusters = widget.clusterNotifier.value;
-    _selectedKode = clusters.isNotEmpty ? clusters.first.kodeCluster : null;
+    _selectedClusterIds.addAll(
+      widget.clusterNotifier.value
+          .map((cluster) => cluster.id)
+          .whereType<int>(),
+    );
+  }
+
+  void _toggleAll(bool selected, List<int> availableIds) {
+    setState(() {
+      _selectedClusterIds
+        ..clear()
+        ..addAll(selected ? availableIds : const <int>[]);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final clusters = widget.clusterNotifier.value;
+    final availableIds =
+        clusters.map((cluster) => cluster.id).whereType<int>().toList();
+    final allSelected =
+        availableIds.isNotEmpty &&
+        availableIds.every(_selectedClusterIds.contains);
     return ValueListenableBuilder<bool>(
       valueListenable: isLightModeNotifier,
       builder: (context, isLightMode, _) {
@@ -37,6 +54,24 @@ class _DialogExportDataWidgetState extends State<DialogExportDataWidget> {
         final dialogBgColor =
             isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
         final dialogText = isDark ? Colors.white : Colors.black;
+        final checkboxFillColor = WidgetStateProperty.resolveWith<Color?>((
+          states,
+        ) {
+          if (isDark) {
+            return states.contains(WidgetState.disabled)
+                ? Colors.grey.shade400
+                : Colors.white;
+          }
+          return states.contains(WidgetState.selected)
+              ? const Color(0xFF1F4226)
+              : null;
+        });
+        final checkboxCheckColor =
+            isDark ? const Color(0xFF1F4226) : Colors.white;
+        final checkboxSide = BorderSide(
+          color: isDark ? Colors.white : const Color(0xFF1F4226),
+          width: 1.5,
+        );
 
         return AlertDialog(
           backgroundColor: dialogBgColor,
@@ -58,29 +93,90 @@ class _DialogExportDataWidgetState extends State<DialogExportDataWidget> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Pilih klaster:',
+                      'Pilih klaster yang akan diekspor:',
                       style: TextStyle(color: dialogText),
                     ),
                   ),
                   const SizedBox(height: 8),
-                  DropdownButton<String>(
-                    value: _selectedKode,
-                    isExpanded: true,
-                    dropdownColor: dialogBgColor,
-                    style: TextStyle(color: dialogText),
-                    items:
-                        clusters
-                            .map<DropdownMenuItem<String>>(
-                              (c) => DropdownMenuItem(
-                                value: c.kodeCluster,
-                                child: Text(
-                                  c.kodeCluster + (c.namaPengukur ?? ''),
-                                  style: TextStyle(color: dialogText),
-                                ),
-                              ),
-                            )
-                            .toList(),
-                    onChanged: (v) => setState(() => _selectedKode = v),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                    value: allSelected,
+                    fillColor: checkboxFillColor,
+                    checkColor: checkboxCheckColor,
+                    side: checkboxSide,
+                    title: Text(
+                      'Pilih semua (${availableIds.length} klaster)',
+                      style: TextStyle(
+                        color: dialogText,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    onChanged:
+                        availableIds.isEmpty
+                            ? null
+                            : (value) =>
+                                _toggleAll(value ?? false, availableIds),
+                  ),
+                  Container(
+                    constraints: const BoxConstraints(maxHeight: 220),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: dialogText.withValues(alpha: 0.25),
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: clusters.length,
+                      itemBuilder: (context, index) {
+                        final cluster = clusters[index];
+                        final id = cluster.id;
+                        final selected =
+                            id != null && _selectedClusterIds.contains(id);
+                        final surveyor = cluster.namaPengukur?.trim();
+                        return CheckboxListTile(
+                          dense: true,
+                          value: selected,
+                          fillColor: checkboxFillColor,
+                          checkColor: checkboxCheckColor,
+                          side: checkboxSide,
+                          title: Text(
+                            'Klaster ${cluster.kodeCluster}',
+                            style: TextStyle(color: dialogText),
+                          ),
+                          subtitle:
+                              surveyor == null || surveyor.isEmpty
+                                  ? null
+                                  : Text(
+                                    surveyor,
+                                    style: TextStyle(
+                                      color: dialogText.withValues(alpha: 0.7),
+                                    ),
+                                  ),
+                          onChanged:
+                              id == null
+                                  ? null
+                                  : (value) {
+                                    setState(() {
+                                      if (value ?? false) {
+                                        _selectedClusterIds.add(id);
+                                      } else {
+                                        _selectedClusterIds.remove(id);
+                                      }
+                                    });
+                                  },
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      '${_selectedClusterIds.length} klaster dipilih',
+                      style: TextStyle(color: dialogText, fontSize: 12),
+                    ),
                   ),
                   const SizedBox(height: 8),
                   Align(
@@ -94,8 +190,17 @@ class _DialogExportDataWidgetState extends State<DialogExportDataWidget> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      _selectedDirectoryPath ?? 'Default: Download',
-                      style: TextStyle(color: dialogText, fontSize: 12),
+                      _selectedDirectoryPath ??
+                          'Folder tujuan wajib dipilih sebelum ekspor.',
+                      style: TextStyle(
+                        color:
+                            _selectedDirectoryPath == null
+                                ? (isDark
+                                    ? Colors.orange.shade200
+                                    : Colors.red.shade700)
+                                : dialogText,
+                        fontSize: 12,
+                      ),
                     ),
                   ),
                   const SizedBox(height: 8),
@@ -123,33 +228,50 @@ class _DialogExportDataWidgetState extends State<DialogExportDataWidget> {
             ),
             TextButton(
               onPressed:
-                  clusters.isEmpty
+                  clusters.isEmpty ||
+                          _selectedClusterIds.isEmpty ||
+                          _selectedDirectoryPath == null ||
+                          _isExporting
                       ? null
                       : () async {
-                        final cluster = clusters.firstWhere(
-                          (c) => c.kodeCluster == _selectedKode,
-                          orElse: () => clusters.first,
+                        final selectedClusters =
+                            clusters
+                                .where(
+                                  (cluster) =>
+                                      cluster.id != null &&
+                                      _selectedClusterIds.contains(cluster.id),
+                                )
+                                .toList();
+                        setState(() => _isExporting = true);
+                        final rootNavigator = Navigator.of(
+                          context,
+                          rootNavigator: true,
                         );
-                        Navigator.of(context).pop();
-                        showDialog(
+                        final loadingDialog = showDialog<void>(
                           context: context,
                           barrierDismissible: false,
                           builder:
-                              (_) => const Center(
-                                child: CircularProgressIndicator(),
+                              (_) => const PopScope(
+                                canPop: false,
+                                child: Center(
+                                  child: CircularProgressIndicator(),
+                                ),
                               ),
                         );
                         try {
                           final path =
-                              await ExcelExportService.exportClusterToExcel(
-                                cluster: cluster,
+                              await ExcelExportService.exportClustersToExcel(
+                                clusters: selectedClusters,
                                 directoryPath: _selectedDirectoryPath,
-                                preferDownloads: _selectedDirectoryPath == null,
+                                preferDownloads: false,
                               );
                           if (!mounted) return;
-                          Navigator.of(context, rootNavigator: true).pop();
+                          rootNavigator.pop();
+                          await loadingDialog;
+                          if (!mounted) return;
+                          Navigator.of(context).pop();
                           await showDialog(
-                            context: context,
+                            context: rootNavigator.context,
                             builder:
                                 (_) => AlertWarningWidget(
                                   title: 'Sukses',
@@ -160,7 +282,10 @@ class _DialogExportDataWidgetState extends State<DialogExportDataWidget> {
                           );
                         } catch (e) {
                           if (!mounted) return;
-                          Navigator.of(context, rootNavigator: true).pop();
+                          rootNavigator.pop();
+                          await loadingDialog;
+                          if (!mounted) return;
+                          setState(() => _isExporting = false);
                           await showDialog(
                             context: context,
                             builder:

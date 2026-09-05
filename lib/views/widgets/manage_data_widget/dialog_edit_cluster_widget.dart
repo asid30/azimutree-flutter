@@ -74,6 +74,7 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
       _syncCapitalizedWords(_namaController);
       _validateForm();
     });
+    _tanggalController.addListener(_validateForm);
     _latitudeController.addListener(_validateForm);
     _longitudeController.addListener(_validateForm);
     _altitudeController.addListener(_validateForm);
@@ -106,6 +107,7 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
     );
     final altitudeText = _altitudeController.text.trim();
     final altitude = double.tryParse(altitudeText.replaceAll(',', '.'));
+    final tanggal = DateTime.tryParse(_tanggalController.text.trim());
 
     final duplicate = widget.clusterNotifier.value.any(
       (c) => c.id != widget.cluster.id && c.kodeCluster.toUpperCase() == kode,
@@ -133,6 +135,7 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
     final isValid =
         kode.isNotEmpty &&
         nama.isNotEmpty &&
+        tanggal != null &&
         !duplicate &&
         coordinatesValid &&
         altitudeValid;
