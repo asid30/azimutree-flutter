@@ -63,6 +63,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1038623759812',
     projectId: 'azimutree-256c9',
     storageBucket: 'azimutree-256c9.firebasestorage.app',
+    androidClientId: '1038623759812-v6iosp7f39ps0n81d8vir4ncrfvvhf9u.apps.googleusercontent.com',
+    iosClientId: '1038623759812-bptuli2rveueibn56au9obo40srhn9qn.apps.googleusercontent.com',
     iosBundleId: 'com.example.azimutree',
   );
   static const FirebaseOptions macos = FirebaseOptions(
@@ -71,6 +73,8 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1038623759812',
     projectId: 'azimutree-256c9',
     storageBucket: 'azimutree-256c9.firebasestorage.app',
+    androidClientId: '1038623759812-v6iosp7f39ps0n81d8vir4ncrfvvhf9u.apps.googleusercontent.com',
+    iosClientId: '1038623759812-bptuli2rveueibn56au9obo40srhn9qn.apps.googleusercontent.com',
     iosBundleId: 'com.example.azimutree',
   );
 

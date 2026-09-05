@@ -94,6 +94,9 @@ class _BottomsheetManageDataWidgetState
           result.isConnected ? Colors.lightGreen.shade200 : Colors.red.shade200,
       textColor: isDark ? Colors.white : Colors.black,
     );
+    if (result.isConnected && mounted) {
+      Navigator.of(context).pushNamed('cloud_storage_page');
+    }
   }
 
   void _expandBottomSheet() {

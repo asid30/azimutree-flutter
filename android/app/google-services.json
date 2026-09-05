@@ -12,7 +12,20 @@
           "package_name": "com.heavysnack.azimutree"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "1038623759812-v6iosp7f39ps0n81d8vir4ncrfvvhf9u.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.heavysnack.azimutree",
+            "certificate_hash": "ec21f313777a176d409051d71c8472df0271fb5e"
+          }
+        },
+        {
+          "client_id": "1038623759812-th5d5kpqoq7qqhhnuuddt2ocb3mq9ebe.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyCORnK1TIkO9qr9g0AJ0hbm-kFsOiVsLtc"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1038623759812-th5d5kpqoq7qqhhnuuddt2ocb3mq9ebe.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1038623759812-bptuli2rveueibn56au9obo40srhn9qn.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.azimutree"
+              }
+            }
+          ]
         }
       }
     }
