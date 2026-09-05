@@ -95,8 +95,7 @@ class _LocationMapPageState extends State<LocationMapPage> {
               child: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  child: ListView(
                     children: [
                       Row(
                         children: [
@@ -190,6 +189,43 @@ class _LocationMapPageState extends State<LocationMapPage> {
                         onChanged:
                             (v) => isPlotToPlotLineVisibleNotifier.value = v,
                       ),
+                      const Divider(height: 28),
+                      Text(
+                        'Ukuran Marker',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color:
+                              isDark
+                                  ? const Color(0xFFC1FF72)
+                                  : const Color(0xFF1F4226),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      _MarkerSizeSlider(
+                        label: 'Titik Ikat',
+                        icon: Icons.location_pin,
+                        prefKey: 'map_marker_scale_titik_ikat',
+                        notifier: titikIkatMarkerScaleNotifier,
+                      ),
+                      _MarkerSizeSlider(
+                        label: 'Plot',
+                        icon: Icons.circle,
+                        prefKey: 'map_marker_scale_plot',
+                        notifier: plotMarkerScaleNotifier,
+                      ),
+                      _MarkerSizeSlider(
+                        label: 'Centroid',
+                        icon: Icons.adjust,
+                        prefKey: 'map_marker_scale_centroid',
+                        notifier: centroidMarkerScaleNotifier,
+                      ),
+                      _MarkerSizeSlider(
+                        label: 'Pohon',
+                        icon: Icons.park,
+                        prefKey: 'map_marker_scale_tree',
+                        notifier: treeMarkerScaleNotifier,
+                      ),
                     ],
                   ),
                 ),
@@ -266,6 +302,65 @@ class _LocationMapPageState extends State<LocationMapPage> {
       ),
     );
   }
+}
+
+class _MarkerSizeSlider extends StatelessWidget {
+  const _MarkerSizeSlider({
+    required this.label,
+    required this.icon,
+    required this.prefKey,
+    required this.notifier,
+  });
+
+  final String label;
+  final IconData icon;
+  final String prefKey;
+  final ValueNotifier<double> notifier;
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder<bool>(
+    valueListenable: isLightModeNotifier,
+    builder: (_, isLight, __) {
+      final color = isLight ? const Color(0xFF1F4226) : Colors.white;
+      return ValueListenableBuilder<double>(
+        valueListenable: notifier,
+        builder:
+            (_, value, __) => Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Icon(icon, color: color, size: 19),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(label, style: TextStyle(color: color)),
+                    ),
+                    Text(
+                      '${(value * 100).round()}%',
+                      style: TextStyle(color: color),
+                    ),
+                  ],
+                ),
+                Slider(
+                  min: 0.6,
+                  max: 1.8,
+                  divisions: 12,
+                  value: value.clamp(0.6, 1.8),
+                  activeColor:
+                      isLight
+                          ? const Color(0xFF1F4226)
+                          : const Color(0xFFC1FF72),
+                  onChanged: (newValue) async {
+                    notifier.value = newValue;
+                    final prefs = await SharedPreferences.getInstance();
+                    await prefs.setDouble(prefKey, newValue);
+                  },
+                ),
+              ],
+            ),
+      );
+    },
+  );
 }
 
 class _EndDrawerToggleRow extends StatefulWidget {

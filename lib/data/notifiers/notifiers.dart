@@ -3,6 +3,7 @@ import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
 
 /// Application-wide ValueNotifiers
 ///
@@ -61,6 +62,12 @@ ValueNotifier<TreeModel?> selectedTreeNotifier = ValueNotifier(null);
 /// The currently-selected `PlotModel` (set when a plot marker is tapped).
 ValueNotifier<PlotModel?> selectedPlotNotifier = ValueNotifier(null);
 
+/// Currently-selected Titik Ikat marker and its owning cluster.
+ValueNotifier<TitikIkatModel?> selectedTitikIkatNotifier = ValueNotifier(null);
+ValueNotifier<ClusterModel?> selectedTitikIkatClusterNotifier = ValueNotifier(
+  null,
+);
+
 /// When `true`, the next update to `selectedLocationNotifier` will preserve
 /// the current map zoom level instead of resetting to a default zoom. Used
 /// to avoid overriding the user's zoom when centering on a selected tree.
@@ -105,10 +112,16 @@ ValueNotifier<Set<int>> inspectedTreeIdsNotifier = ValueNotifier({});
 ValueNotifier<bool> isMarkerInfoOnSelectNotifier = ValueNotifier(true);
 
 /// Controls visibility of the line connecting a tree marker to its plot center.
-ValueNotifier<bool> isTreeToPlotLineVisibleNotifier = ValueNotifier(true);
+ValueNotifier<bool> isTreeToPlotLineVisibleNotifier = ValueNotifier(false);
 
 /// Controls visibility of connecting lines between different plots.
 ValueNotifier<bool> isPlotToPlotLineVisibleNotifier = ValueNotifier(true);
+
+/// Independent size multipliers for each map marker category.
+ValueNotifier<double> titikIkatMarkerScaleNotifier = ValueNotifier(1.0);
+ValueNotifier<double> plotMarkerScaleNotifier = ValueNotifier(1.0);
+ValueNotifier<double> centroidMarkerScaleNotifier = ValueNotifier(1.0);
+ValueNotifier<double> treeMarkerScaleNotifier = ValueNotifier(1.0);
 
 /// Increment to request the bottomsheet to minimize. Observers treat this
 /// as a one-shot signal when the integer value changes.

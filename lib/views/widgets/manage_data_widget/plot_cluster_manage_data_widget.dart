@@ -1,13 +1,15 @@
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
-import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_plot_widget.dart';
+import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/tree_plot_manage_data_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 class PlotClusterManageDataWidget extends StatefulWidget {
   final List<PlotModel> plotData;
@@ -15,6 +17,7 @@ class PlotClusterManageDataWidget extends StatefulWidget {
   final List<ClusterModel> clustersData;
   final PlotNotifier plotNotifier;
   final TreeNotifier treeNotifier;
+  final List<TitikIkatModel> titikIkatData;
   final bool isEmpty; // true = klaster ini tidak punya plot
 
   const PlotClusterManageDataWidget({
@@ -24,6 +27,7 @@ class PlotClusterManageDataWidget extends StatefulWidget {
     required this.clustersData,
     required this.plotNotifier,
     required this.treeNotifier,
+    required this.titikIkatData,
     this.isEmpty = false,
   });
 
@@ -251,13 +255,13 @@ class _PlotClusterManageDataWidgetState
                                       _row(
                                         context,
                                         isDark,
-                                        "Latitude",
+                                        "Lintang",
                                         plot.latitude.toStringAsFixed(6),
                                       ),
                                       _row(
                                         context,
                                         isDark,
-                                        "Longitude",
+                                        "Bujur",
                                         plot.longitude.toStringAsFixed(6),
                                       ),
                                       _row(
@@ -366,6 +370,27 @@ class _PlotClusterManageDataWidgetState
                                             ),
                                   ),
                                 ),
+                                const Spacer(),
+                                OutlinedButton.icon(
+                                  onPressed: () => _trackPlot(context, plot),
+                                  icon: Icon(
+                                    Icons.my_location,
+                                    color: isDark ? Colors.white : Colors.black,
+                                  ),
+                                  label: Text(
+                                    'Tracking Data',
+                                    style: TextStyle(
+                                      color:
+                                          isDark ? Colors.white : Colors.black,
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                      color:
+                                          isDark ? Colors.white54 : Colors.grey,
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -403,10 +428,11 @@ class _PlotClusterManageDataWidgetState
     final updated = await showDialog<PlotModel>(
       context: context,
       builder:
-          (_) => DialogEditPlotWidget(
+          (_) => DialogAddPlotWidget(
             plot: plot,
             clusters: widget.clustersData,
             plotNotifier: widget.plotNotifier,
+            titikIkat: widget.titikIkatData,
           ),
     );
 
@@ -415,6 +441,29 @@ class _PlotClusterManageDataWidgetState
         context,
       ).showSnackBar(const SnackBar(content: Text("Plot diperbarui")));
     }
+  }
+
+  void _trackPlot(BuildContext context, PlotModel plot) {
+    selectedPageNotifier.value = 'location_map_page';
+    selectedTreeNotifier.value = null;
+    selectedTreePlotNotifier.value = null;
+    selectedTreeClusterNotifier.value = null;
+    selectedCentroidNotifier.value = null;
+    selectedTitikIkatNotifier.value = null;
+    selectedTitikIkatClusterNotifier.value = null;
+    selectedMarkerScreenOffsetNotifier.value = null;
+    selectedLocationFromSearchNotifier.value = false;
+    isFollowingUserLocationNotifier.value = false;
+    preserveZoomOnNextCenterNotifier.value = true;
+    selectedPlotNotifier.value = plot;
+    for (final cluster in widget.clustersData) {
+      if (cluster.id == plot.idCluster) {
+        selectedPlotClusterNotifier.value = cluster;
+        break;
+      }
+    }
+    selectedLocationNotifier.value = Position(plot.longitude, plot.latitude);
+    Navigator.pushNamed(context, 'location_map_page');
   }
 
   Future<void> _deletePlot(BuildContext context, PlotModel plot) async {

@@ -49,3 +49,4 @@ app.*.map.json
 
 # Hidden assets
 /.hiddenassets/
+/PROJECT_AUDIT.md

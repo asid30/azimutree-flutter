@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
-import 'package:azimutree/views/widgets/location_map_widget/mapbox_widget.dart';
+import 'package:azimutree/views/widgets/location_map_widget/map_marker_style.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MapLegendWidget extends StatelessWidget {
-  const MapLegendWidget({super.key});
+  final bool showConnections;
+  final bool showSearchResult;
+  final bool showCloseButton;
+
+  const MapLegendWidget({
+    super.key,
+    this.showConnections = true,
+    this.showSearchResult = true,
+    this.showCloseButton = true,
+  });
 
   Widget _legendItem({
     required Color fill,
@@ -67,6 +76,25 @@ class MapLegendWidget extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(
+                            width: 14,
+                            child: Icon(
+                              Icons.location_pin,
+                              size: 18,
+                              color: Color(kTitikIkatColor),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Titik Ikat',
+                            style: TextStyle(fontSize: 12),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
                       _legendItem(
                         fill: Color(kPlotColor),
                         stroke: Color(kPlotStrokeColor),
@@ -83,7 +111,7 @@ class MapLegendWidget extends StatelessWidget {
                       _legendItem(
                         fill: Color(kTreeColor),
                         stroke: Color(kTreeStrokeColor),
-                        label: 'Tree',
+                        label: 'Pohon',
                       ),
                       const SizedBox(height: 6),
                       // Inspection workflow: show Done marker color when enabled
@@ -97,7 +125,7 @@ class MapLegendWidget extends StatelessWidget {
                               _legendItem(
                                 fill: Color(kTreeInspectedColor),
                                 stroke: Colors.white,
-                                label: 'Inspected (Done)',
+                                label: 'Pohon selesai',
                               ),
                               const SizedBox(height: 6),
                             ],
@@ -108,66 +136,93 @@ class MapLegendWidget extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Container(
-                            width: 18,
-                            height: 3,
-                            color: Color(kPlotConnectionColor),
+                            width: 16,
+                            height: 12,
+                            decoration: BoxDecoration(
+                              color: const Color(
+                                kPlotAreaColor,
+                              ).withValues(alpha: kPlotAreaOpacity),
+                              border: Border.all(
+                                color: const Color(kPlotAreaOutlineColor),
+                              ),
+                            ),
                           ),
                           const SizedBox(width: 8),
-                          Text(
-                            'Koneksi Plot→Plot',
-                            style: TextStyle(color: textColor, fontSize: 12),
+                          const Text(
+                            'Area plot',
+                            style: TextStyle(fontSize: 12),
                           ),
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Container(
-                            width: 18,
-                            height: 3,
-                            color: Color(kConnectionColor),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'Koneksi Plot→Pohon',
-                            style: TextStyle(color: textColor, fontSize: 12),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      _legendItem(
-                        fill: const Color(0xFFFF5252),
-                        stroke: Colors.white,
-                        label: 'Hasil Pencarian',
-                        size: 12,
-                      ),
+                      if (showConnections) ...[
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 18,
+                              height: 3,
+                              color: Color(kPlotConnectionColor),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Koneksi Plot→Plot',
+                              style: TextStyle(color: textColor, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              width: 18,
+                              height: 3,
+                              color: Color(kConnectionColor),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              'Koneksi Plot→Pohon',
+                              style: TextStyle(color: textColor, fontSize: 12),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                      ],
+                      if (showSearchResult)
+                        _legendItem(
+                          fill: const Color(0xFFFF5252),
+                          stroke: Colors.white,
+                          label: 'Hasil Pencarian',
+                          size: 12,
+                        ),
                     ],
                   ),
                 ),
               ),
               // Close button at top-right inside the legend
-              Positioned(
-                top: 4,
-                right: 4,
-                child: IconButton(
-                  padding: const EdgeInsets.all(4),
-                  constraints: const BoxConstraints(),
-                  iconSize: 18,
-                  tooltip: 'Tutup legenda',
-                  onPressed: () async {
-                    isMapLegendVisibleNotifier.value = false;
-                    try {
-                      final prefs = await SharedPreferences.getInstance();
-                      await prefs.setBool(
-                        'enddrawer_tooltip_legend_dismissed_value',
-                        false,
-                      );
-                    } catch (_) {}
-                  },
-                  icon: Icon(Icons.close, color: textColor),
+              if (showCloseButton)
+                Positioned(
+                  top: 4,
+                  right: 4,
+                  child: IconButton(
+                    padding: const EdgeInsets.all(4),
+                    constraints: const BoxConstraints(),
+                    iconSize: 18,
+                    tooltip: 'Tutup legenda',
+                    onPressed: () async {
+                      isMapLegendVisibleNotifier.value = false;
+                      try {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.setBool(
+                          'enddrawer_tooltip_legend_dismissed_value',
+                          false,
+                        );
+                      } catch (_) {}
+                    },
+                    icon: Icon(Icons.close, color: textColor),
+                  ),
                 ),
-              ),
             ],
           ),
         );

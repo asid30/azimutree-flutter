@@ -3,6 +3,7 @@ import 'package:azimutree/views/pages/home_page.dart';
 import 'package:azimutree/views/pages/location_map_page.dart';
 import 'package:azimutree/views/pages/manage_data_page.dart';
 import 'package:azimutree/views/pages/settings_page.dart';
+import 'package:azimutree/views/pages/survey_location_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
 import 'package:azimutree/services/debug_mode_service.dart';
 import 'package:azimutree/services/theme_preference_service.dart';
@@ -51,6 +52,14 @@ void main() async {
     if (plotPlotLines != null) {
       isPlotToPlotLineVisibleNotifier.value = plotPlotLines;
     }
+    titikIkatMarkerScaleNotifier.value =
+        prefs.getDouble('map_marker_scale_titik_ikat') ?? 1.0;
+    plotMarkerScaleNotifier.value =
+        prefs.getDouble('map_marker_scale_plot') ?? 1.0;
+    centroidMarkerScaleNotifier.value =
+        prefs.getDouble('map_marker_scale_centroid') ?? 1.0;
+    treeMarkerScaleNotifier.value =
+        prefs.getDouble('map_marker_scale_tree') ?? 1.0;
   } catch (_) {}
   // Load persisted inspected tree ids from DB so UI reflects saved state.
   try {
@@ -94,6 +103,11 @@ class _MainAppState extends State<MainApp> {
           case 'location_map_page':
             return _buildFadeTransitionPageRoute(
               const LocationMapPage(),
+              settings,
+            );
+          case 'survey_location_page':
+            return _buildFadeTransitionPageRoute(
+              const SurveyLocationPage(),
               settings,
             );
           case 'tutorial_page':
