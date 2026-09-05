@@ -126,3 +126,8 @@ ValueNotifier<double> treeMarkerScaleNotifier = ValueNotifier(1.0);
 /// Increment to request the bottomsheet to minimize. Observers treat this
 /// as a one-shot signal when the integer value changes.
 ValueNotifier<int> bottomsheetMinimizeRequestNotifier = ValueNotifier(0);
+
+/// Incremented whenever cloud data is downloaded into the local database.
+/// Pages that keep local DAO data in their own notifiers use this signal to
+/// refresh without requiring the user to leave and reopen the page.
+ValueNotifier<int> localDataRevisionNotifier = ValueNotifier(0);

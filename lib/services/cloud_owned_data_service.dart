@@ -255,7 +255,7 @@ class CloudOwnedDataService {
             .get();
     final data = document.data();
     if (!document.exists || data == null) {
-      throw StateError('Snapshot klaster tidak ditemukan');
+      throw StateError('Data klaster tidak ditemukan');
     }
     if (await localCodeExists(localCode)) {
       throw StateError('Kode klaster lokal sudah digunakan');

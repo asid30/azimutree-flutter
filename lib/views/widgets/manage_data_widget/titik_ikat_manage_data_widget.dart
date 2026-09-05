@@ -52,7 +52,8 @@ class TitikIkatManageDataWidget extends StatelessWidget {
     selectedMarkerScreenOffsetNotifier.value = null;
     selectedLocationFromSearchNotifier.value = false;
     isFollowingUserLocationNotifier.value = false;
-    preserveZoomOnNextCenterNotifier.value = true;
+    // Let the newly opened map apply its tracking zoom.
+    preserveZoomOnNextCenterNotifier.value = false;
     selectedTitikIkatNotifier.value = titikIkat;
     selectedTitikIkatClusterNotifier.value = cluster;
     selectedLocationNotifier.value = Position(
@@ -217,7 +218,7 @@ class TitikIkatManageDataWidget extends StatelessWidget {
                                   foreground,
                                 ),
                                 _row(
-                                  'Altitude',
+                                  'Ketinggian',
                                   titikIkat.altitude == null
                                       ? '-'
                                       : '${titikIkat.altitude} m',

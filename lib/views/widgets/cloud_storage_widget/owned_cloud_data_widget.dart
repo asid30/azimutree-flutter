@@ -24,6 +24,7 @@ class OwnedCloudDataWidget extends StatefulWidget {
 
 class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
   final CloudOwnedDataService _service = CloudOwnedDataService();
+  final Set<String> _expandedLocationIds = <String>{};
   bool _isProcessing = false;
 
   String _date(DateTime? value) =>
@@ -119,10 +120,10 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
         context: context,
         builder:
             (_) => AlertConfirmationWidget(
-              title: 'Timpa Snapshot?',
+              title: 'Timpa Data?',
               message:
                   'Klaster ${overwritten.join(', ')} sudah ada di folder ini. '
-                  'Snapshot lama akan diganti dengan data lokal terbaru.',
+                  'Data lama akan diganti dengan data lokal terbaru.',
               confirmText: 'Lanjutkan',
             ),
       );
@@ -138,7 +139,7 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
       if (mounted) {
         await showAppSuccess(
           context,
-          '${selected.length} snapshot klaster berhasil diunggah.',
+          '${selected.length} data klaster berhasil diunggah.',
         );
       }
     } on FirebaseException catch (error) {
@@ -152,7 +153,7 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
       if (mounted) {
         await showAppError(
           context,
-          'Snapshot klaster gagal diunggah. Periksa koneksi.',
+          'Data klaster gagal diunggah. Periksa koneksi.',
         );
       }
     } finally {
@@ -168,9 +169,9 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
       context: context,
       builder:
           (_) => AlertConfirmationWidget(
-            title: 'Hapus Snapshot Klaster?',
+            title: 'Hapus Data Klaster?',
             message:
-                'Snapshot ${cluster.code} akan dihapus dari “${location.name}”. '
+                'Data ${cluster.code} akan dihapus dari “${location.name}”. '
                 'Data lokal tidak ikut terhapus.',
           ),
     );
@@ -179,7 +180,7 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
       await _service.deleteCluster(locationId: location.id, cluster: cluster);
     } catch (_) {
       if (mounted) {
-        await showAppError(context, 'Snapshot klaster gagal dihapus.');
+        await showAppError(context, 'Data klaster gagal dihapus.');
       }
     }
   }
@@ -217,6 +218,7 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
         clusterId: cluster.id,
         localCode: localCode,
       );
+      localDataRevisionNotifier.value++;
       if (mounted) {
         await showAppSuccess(context, 'Klaster $localCode berhasil diunduh.');
       }
@@ -261,7 +263,7 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
                           ),
                         ),
                         Text(
-                          'Buat lokasi penelitian untuk menampung snapshot klaster.',
+                          'Buat lokasi penelitian untuk menampung data klaster.',
                           style: TextStyle(
                             color: foreground.withValues(alpha: 0.8),
                           ),
@@ -315,6 +317,21 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
                         return Card(
                           color: cardColor,
                           child: ExpansionTile(
+                            key: PageStorageKey<String>(
+                              'owned_location_${location.id}',
+                            ),
+                            initiallyExpanded: _expandedLocationIds.contains(
+                              location.id,
+                            ),
+                            onExpansionChanged: (expanded) {
+                              setState(() {
+                                if (expanded) {
+                                  _expandedLocationIds.add(location.id);
+                                } else {
+                                  _expandedLocationIds.remove(location.id);
+                                }
+                              });
+                            },
                             shape: const Border(),
                             collapsedShape: const Border(),
                             leading: Icon(Icons.folder, color: foreground),
@@ -359,7 +376,7 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
                                         bottom: 10,
                                       ),
                                       child: Text(
-                                        'Belum ada snapshot klaster.',
+                                        'Belum ada data klaster.',
                                         style: TextStyle(
                                           color: foreground.withValues(
                                             alpha: 0.75,
@@ -418,7 +435,7 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
                                                           location,
                                                           cluster,
                                                         ),
-                                                tooltip: 'Hapus snapshot',
+                                                tooltip: 'Hapus data',
                                                 color:
                                                     isLight
                                                         ? const Color.fromARGB(

@@ -434,7 +434,7 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
                       signed: true,
                     ),
                     decoration: _fieldDecoration(
-                      'Altitude Titik Ikat (opsional)',
+                      'Ketinggian Titik Ikat (m, opsional)',
                       isDark,
                       labelColor,
                     ),

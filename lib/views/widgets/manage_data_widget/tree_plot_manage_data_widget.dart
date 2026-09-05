@@ -132,7 +132,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
                         : "-",
                   ),
                   _row(
-                    "Altitude",
+                    "Ketinggian",
                     tree.altitude != null ? "${tree.altitude} m" : "-",
                   ),
                   if (tree.keterangan != null && tree.keterangan!.isNotEmpty)
@@ -351,8 +351,9 @@ class TreePlotManageDataWidget extends StatelessWidget {
     selectedLocationFromSearchNotifier.value = false;
     // Disable following the user's live location so the map centers on the tree.
     isFollowingUserLocationNotifier.value = false;
-    // Preserve the current zoom level when centering (same as tapping a marker).
-    preserveZoomOnNextCenterNotifier.value = true;
+    // Tracking opens a new map, so use the map's tracking zoom instead of
+    // preserving the new page's broad default zoom.
+    preserveZoomOnNextCenterNotifier.value = false;
     // Make the tree the selected tree so the map will render it as active
     // and trigger the dashed connection to the plot center.
     selectedTreeNotifier.value = tree;

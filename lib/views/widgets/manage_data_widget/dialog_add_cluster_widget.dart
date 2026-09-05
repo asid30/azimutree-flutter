@@ -482,7 +482,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                     signed: true,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Altitude Titik Ikat (opsional)',
+                    labelText: 'Ketinggian Titik Ikat (m, opsional)',
                     labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
                     enabledBorder: OutlineInputBorder(

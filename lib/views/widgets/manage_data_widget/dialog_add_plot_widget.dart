@@ -594,7 +594,7 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
                 const SizedBox(height: 10),
                 _numberField(
                   _altitudeController,
-                  'Altitude (opsional)',
+                  'Ketinggian (m, opsional)',
                   isDark,
                   signed: true,
                 ),

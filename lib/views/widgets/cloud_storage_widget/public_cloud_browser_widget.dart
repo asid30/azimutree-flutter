@@ -24,6 +24,7 @@ class PublicCloudBrowserWidget extends StatefulWidget {
 
 class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
   final CloudPublicDataService _service = CloudPublicDataService();
+  final Set<String> _expandedLocationIds = <String>{};
   String _query = '';
   String? _downloadingClusterId;
 
@@ -64,6 +65,7 @@ class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
         clusterId: cluster.id,
         localCode: localCode,
       );
+      localDataRevisionNotifier.value++;
       if (mounted) {
         await showAppSuccess(context, 'Klaster $localCode berhasil diunduh.');
       }
@@ -237,6 +239,17 @@ class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
     return Card(
       color: cardColor,
       child: ExpansionTile(
+        key: PageStorageKey<String>('public_location_${location.id}'),
+        initiallyExpanded: _expandedLocationIds.contains(location.id),
+        onExpansionChanged: (expanded) {
+          setState(() {
+            if (expanded) {
+              _expandedLocationIds.add(location.id);
+            } else {
+              _expandedLocationIds.remove(location.id);
+            }
+          });
+        },
         shape: const Border(),
         collapsedShape: const Border(),
         leading: Icon(Icons.folder, color: foreground),

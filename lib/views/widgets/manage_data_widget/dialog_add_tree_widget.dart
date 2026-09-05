@@ -760,7 +760,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                   controller: _altitudeController,
                   style: TextStyle(color: dialogText),
                   decoration: InputDecoration(
-                    labelText: "Altitude (opsional)",
+                    labelText: "Ketinggian (m, opsional)",
                     labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
                     enabledBorder: OutlineInputBorder(

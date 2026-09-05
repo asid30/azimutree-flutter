@@ -140,7 +140,7 @@ class ExcelExportService {
     guideSheet.appendValues([]);
     guideSheet.appendValues([
       '1.',
-      'Pastikan tidak ada baris atau field yang kosong pada kolom bertanda *. Kolom * wajib diisi.',
+      'Pastikan tidak ada baris atau field yang kosong pada kolom dengan tanda * di depan nama. Kolom tersebut wajib diisi.',
     ]);
     guideSheet.appendValues([
       '2.',
@@ -168,9 +168,9 @@ class ExcelExportService {
     // human-readable relationship key.
     final Sheet clustersSheet = excel['klaster'];
     clustersSheet.appendValues([
-      'kode klaster *',
-      'nama pengukur *',
-      'tanggal pengukuran *',
+      '* kode klaster',
+      '* nama pengukur',
+      '* tanggal pengukuran',
     ]);
     for (final cluster in clusters) {
       clustersSheet.appendValues([
@@ -185,10 +185,10 @@ class ExcelExportService {
     // One Titik Ikat belongs to one cluster.
     final Sheet anchorsSheet = excel['titik_ikat'];
     anchorsSheet.appendValues([
-      'kode klaster *',
-      'lintang *',
-      'bujur *',
-      'altitude',
+      '* kode klaster',
+      '* lintang',
+      '* bujur',
+      'ketinggian (meter)',
       'keterangan',
       'url gambar',
     ]);
@@ -208,11 +208,11 @@ class ExcelExportService {
     // Plots sheet
     final Sheet plotsSheet = excel['plot'];
     plotsSheet.appendValues([
-      'kode klaster *',
-      'kode plot *',
-      'lintang *',
-      'bujur *',
-      'altitude',
+      '* kode klaster',
+      '* kode plot',
+      '* lintang',
+      '* bujur',
+      'ketinggian (meter)',
     ]);
     for (final PlotModel plot in plots) {
       final cluster = clusterById[plot.idCluster];
@@ -229,14 +229,14 @@ class ExcelExportService {
     // Trees sheet
     final Sheet treesSheet = excel['pohon'];
     treesSheet.appendValues([
-      'kode klaster *',
-      'kode plot *',
-      'kode pohon *',
-      'nama pohon *',
-      'nama ilmiah *',
-      'azimuth *',
-      'jarak *',
-      'altitude',
+      '* kode klaster',
+      '* kode plot',
+      '* kode pohon',
+      '* nama pohon',
+      '* nama ilmiah',
+      '* azimuth (derajat)',
+      '* jarak (meter)',
+      'ketinggian (meter)',
       'keterangan',
       'url gambar',
     ]);

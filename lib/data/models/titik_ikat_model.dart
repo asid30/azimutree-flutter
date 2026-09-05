@@ -40,7 +40,7 @@ class TitikIkatModel {
       throw ArgumentError.value(longitude, 'longitude', 'Bujur tidak valid');
     }
     if (altitude != null && !altitude!.isFinite) {
-      throw ArgumentError.value(altitude, 'altitude', 'Altitude tidak valid');
+      throw ArgumentError.value(altitude, 'altitude', 'Ketinggian tidak valid');
     }
   }
 

@@ -268,7 +268,7 @@ class _PlotClusterManageDataWidgetState
                                       _row(
                                         context,
                                         isDark,
-                                        "Altitude",
+                                        "Ketinggian",
                                         plot.altitude != null
                                             ? "${plot.altitude} m"
                                             : "-",
@@ -453,7 +453,9 @@ class _PlotClusterManageDataWidgetState
     selectedMarkerScreenOffsetNotifier.value = null;
     selectedLocationFromSearchNotifier.value = false;
     isFollowingUserLocationNotifier.value = false;
-    preserveZoomOnNextCenterNotifier.value = true;
+    // Tracking opens a new map; keeping its default zoom makes the movement
+    // appear to have failed.
+    preserveZoomOnNextCenterNotifier.value = false;
     selectedPlotNotifier.value = plot;
     for (final cluster in widget.clustersData) {
       if (cluster.id == plot.idCluster) {
