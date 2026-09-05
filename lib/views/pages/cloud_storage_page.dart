@@ -7,6 +7,7 @@ import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
+import 'package:azimutree/views/widgets/cloud_storage_widget/public_cloud_browser_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -22,6 +23,7 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
   final CloudAuthService _authService = CloudAuthService();
   final CloudUserProfileService _profileService = CloudUserProfileService();
   bool _isProcessing = false;
+  bool _showPublicForAuthenticated = false;
   String? _profileInitializedUid;
 
   @override
@@ -68,6 +70,7 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
     try {
       await _authService.signOut();
       _profileInitializedUid = null;
+      _showPublicForAuthenticated = false;
     } catch (_) {
       await _showMessage('Logout Gagal', 'Tidak dapat keluar dari akun.');
     } finally {
@@ -215,12 +218,18 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
                         BackButton(
                           color: foreground,
                           onPressed: () {
+                            if (_showPublicForAuthenticated) {
+                              setState(
+                                () => _showPublicForAuthenticated = false,
+                              );
+                              return;
+                            }
                             selectedPageNotifier.value = 'home';
                             Navigator.popAndPushNamed(context, 'home');
                           },
                         ),
                         Text(
-                          'Kembali',
+                          _showPublicForAuthenticated ? 'Menu akun' : 'Kembali',
                           style: TextStyle(fontSize: 18, color: foreground),
                         ),
                       ],
@@ -235,15 +244,24 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
                               child: CircularProgressIndicator(),
                             );
                           }
+                          final user = snapshot.data;
+                          if (user == null) {
+                            return PublicCloudBrowserWidget(
+                              showLogin: true,
+                              onLogin: _signIn,
+                              loginInProgress: _isProcessing,
+                            );
+                          }
+                          if (_showPublicForAuthenticated) {
+                            return PublicCloudBrowserWidget(
+                              showLogin: false,
+                              onLogin: _signIn,
+                              loginInProgress: _isProcessing,
+                            );
+                          }
                           return SingleChildScrollView(
                             padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-                            child:
-                                snapshot.data == null
-                                    ? _buildGuestContent(isLight)
-                                    : _buildAuthenticatedContent(
-                                      snapshot.data!,
-                                      isLight,
-                                    ),
+                            child: _buildAuthenticatedContent(user, isLight),
                           );
                         },
                       ),
@@ -255,37 +273,6 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildGuestContent(bool isLight) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        if (_isProcessing) ...[
-          const LinearProgressIndicator(),
-          const SizedBox(height: 12),
-        ],
-        _informationCard(
-          isLight: isLight,
-          icon: Icons.cloud_done,
-          title: 'Terhubung ke Azimutree Cloud',
-          message:
-              'Anda dapat melihat dan mengunduh data publik tanpa login. Login diperlukan untuk mengunggah dan mengelola data sendiri.',
-        ),
-        const SizedBox(height: 20),
-        _actionButton(
-          label: 'Tampilkan Data Publik',
-          icon: Icons.public,
-          onPressed: () => _showComingSoon('Data Publik'),
-        ),
-        const SizedBox(height: 12),
-        _actionButton(
-          label: 'Masuk dengan Google',
-          icon: Icons.login,
-          onPressed: _isProcessing ? null : _signIn,
-        ),
-      ],
     );
   }
 
@@ -327,7 +314,8 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
             _actionButton(
               label: 'Tampilkan Data Publik',
               icon: Icons.public,
-              onPressed: () => _showComingSoon('Data Publik'),
+              onPressed:
+                  () => setState(() => _showPublicForAuthenticated = true),
             ),
             const SizedBox(height: 12),
             _actionButton(

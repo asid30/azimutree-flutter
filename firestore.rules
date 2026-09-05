@@ -33,6 +33,22 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    match /researchLocations/{locationId} {
+      allow read: if resource.data.isPublic == true
+        || (request.auth != null && resource.data.ownerId == request.auth.uid);
+      allow write: if false;
+
+      match /clusters/{clusterId} {
+        allow read: if get(
+          /databases/$(database)/documents/researchLocations/$(locationId)
+        ).data.isPublic == true
+          || (request.auth != null && get(
+            /databases/$(database)/documents/researchLocations/$(locationId)
+          ).data.ownerId == request.auth.uid);
+        allow write: if false;
+      }
+    }
+
     match /{document=**} {
       allow read, write: if false;
     }
