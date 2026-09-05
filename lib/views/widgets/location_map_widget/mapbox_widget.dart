@@ -69,6 +69,12 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   // Whether a long-press was recognized for the current pointer sequence.
   bool _longPressRecognized = false;
 
+  double get _mapHeight =>
+      context.size?.height ?? MediaQuery.sizeOf(context).height;
+
+  MbxEdgeInsets get _cameraPadding =>
+      MbxEdgeInsets(top: 0, left: 0, bottom: _mapHeight / 3, right: 0);
+
   @override
   void initState() {
     super.initState();
@@ -104,7 +110,11 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           _mapboxMap != null &&
           isFollowingUserLocationNotifier.value) {
         _mapboxMap!.easeTo(
-          CameraOptions(center: Point(coordinates: pos), zoom: 14),
+          CameraOptions(
+            center: Point(coordinates: pos),
+            padding: _cameraPadding,
+            zoom: 14,
+          ),
           MapAnimationOptions(duration: 800),
         );
         _currentZoom = 14.0;
@@ -261,14 +271,21 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       // don't supply a zoom value so the map keeps its current zoom level.
       if (preserveZoomOnNextCenterNotifier.value) {
         _mapboxMap!.easeTo(
-          CameraOptions(center: Point(coordinates: pos)),
+          CameraOptions(
+            center: Point(coordinates: pos),
+            padding: _cameraPadding,
+          ),
           MapAnimationOptions(duration: follow ? 800 : 1500),
         );
         // Reset the flag after applying
         preserveZoomOnNextCenterNotifier.value = false;
       } else {
         _mapboxMap!.easeTo(
-          CameraOptions(center: Point(coordinates: pos), zoom: 14),
+          CameraOptions(
+            center: Point(coordinates: pos),
+            padding: _cameraPadding,
+            zoom: 14,
+          ),
           MapAnimationOptions(duration: follow ? 800 : 1500),
         );
         _currentZoom = 14.0;
@@ -300,7 +317,11 @@ class _MapboxWidgetState extends State<MapboxWidget> {
 
     try {
       await _mapboxMap!.easeTo(
-        CameraOptions(center: Point(coordinates: target), zoom: 17),
+        CameraOptions(
+          center: Point(coordinates: target),
+          padding: _cameraPadding,
+          zoom: 17,
+        ),
         MapAnimationOptions(duration: 700),
       );
       _currentZoom = 17;
@@ -387,6 +408,11 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                             selectedLocationNotifier.value != null
                         ? 17
                         : 10,
+                padding:
+                    isMapTrackingRequestPendingNotifier.value &&
+                            selectedLocationNotifier.value != null
+                        ? EdgeInsets.only(bottom: _mapHeight / 3)
+                        : EdgeInsets.zero,
               ),
             ),
             // Fullscreen listener that captures pointer ups. We purposely do
