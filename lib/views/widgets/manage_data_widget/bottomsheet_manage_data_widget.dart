@@ -14,7 +14,6 @@ import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widge
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_import_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_export_data_widget.dart';
-import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/services/excel_import_service.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -403,50 +402,52 @@ class _BottomsheetManageDataWidgetState
                               barrierDismissible: false,
                               context: context,
                               builder:
-                                  (context) => DialogImportDataWidget(
-                                    clusterNotifier: widget.clusterNotifier,
-                                  ),
+                                  (context) => const DialogImportDataWidget(),
                             );
+                            if (!context.mounted) return;
 
                             if (result != null) {
+                              final rootNavigator = Navigator.of(
+                                context,
+                                rootNavigator: true,
+                              );
+                              final loadingDialog = showDialog<void>(
+                                context: context,
+                                barrierDismissible: false,
+                                builder:
+                                    (_) => const PopScope(
+                                      canPop: false,
+                                      child: Center(
+                                        child: CircularProgressIndicator(),
+                                      ),
+                                    ),
+                              );
                               try {
-                                final cluster = ClusterModel(
-                                  kodeCluster: result['kodeCluster'] as String,
-                                  namaPengukur:
-                                      result['namaPengukur'] as String?,
-                                  tanggalPengukuran:
-                                      (result['tanggalPengukuran'] as String?)
-                                                  ?.isNotEmpty ==
-                                              true
-                                          ? DateTime.tryParse(
-                                            result['tanggalPengukuran']
-                                                as String,
-                                          )
-                                          : null,
-                                );
-
-                                // Use file uploaded by user (picked in dialog)
-                                final uploadedPath =
-                                    result['filePath'] as String;
                                 final importResult =
                                     await ExcelImportService.importFile(
-                                      filePath: uploadedPath,
-                                      cluster: cluster,
+                                      filePath: result as String,
                                     );
 
                                 // reload notifiers
                                 await widget.clusterNotifier.loadClusters();
+                                await widget.titikIkatNotifier.loadTitikIkat();
                                 await widget.plotNotifier.loadPlots();
                                 await widget.treeNotifier.loadTrees();
 
                                 if (!mounted) return;
+                                rootNavigator.pop();
+                                await loadingDialog;
+                                if (!mounted) return;
                                 await _showAlert(
                                   title: 'Sukses',
                                   message:
-                                      'Impor selesai. Plots: ${importResult['plots']}, Trees: ${importResult['trees']}',
+                                      'Impor selesai. Klaster: ${importResult['clusters']}, Titik Ikat: ${importResult['anchors']}, Plot: ${importResult['plots']}, Pohon: ${importResult['trees']}',
                                   backgroundColor: Colors.lightGreen.shade200,
                                 );
                               } catch (e) {
+                                if (!context.mounted) return;
+                                rootNavigator.pop();
+                                await loadingDialog;
                                 if (!context.mounted) return;
                                 await _showAlert(
                                   title: 'Gagal',

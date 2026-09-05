@@ -44,6 +44,21 @@ class ExcelExportService {
     if (validClusters.length != clusters.length) {
       throw StateError('Terdapat klaster yang belum tersimpan');
     }
+    final incompleteClusters =
+        validClusters
+            .where(
+              (cluster) =>
+                  cluster.namaPengukur?.trim().isEmpty != false ||
+                  cluster.tanggalPengukuran == null,
+            )
+            .map((cluster) => cluster.kodeCluster)
+            .toList();
+    if (incompleteClusters.isNotEmpty) {
+      throw StateError(
+        'Nama pengukur dan tanggal pengukuran wajib dilengkapi pada klaster: '
+        '${incompleteClusters.join(', ')}.',
+      );
+    }
 
     logger.i(
       '[ExcelExport] Exporting ${validClusters.length} cluster(s): '

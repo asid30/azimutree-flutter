@@ -3,6 +3,7 @@ import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/services/excel_export_service.dart';
+import 'package:azimutree/services/excel_import_service.dart';
 import 'package:excel/excel.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -15,7 +16,12 @@ void main() {
         namaPengukur: 'Andi',
         tanggalPengukuran: DateTime(2026, 9, 5),
       ),
-      ClusterModel(id: 2, kodeCluster: 'CL02', namaPengukur: 'Budi'),
+      ClusterModel(
+        id: 2,
+        kodeCluster: 'CL02',
+        namaPengukur: 'Budi',
+        tanggalPengukuran: DateTime(2026, 9, 6),
+      ),
     ];
     final anchors = [
       TitikIkatModel(
@@ -122,6 +128,30 @@ void main() {
     expect(_values(guideRows[5])[1], contains('Nama sheet tidak boleh diubah'));
     expect(_values(guideRows[6])[1], contains('YYYY-MM-DD'));
     expect(_values(guideRows[7])[1], contains('kode klaster CL1'));
+
+    final imported = ExcelImportService.parseWorkbook(decoded);
+    expect(imported.clusters.map((item) => item.kodeCluster), ['CL01', 'CL02']);
+    expect(imported.anchors, hasLength(2));
+    expect(imported.plots, hasLength(2));
+    expect(imported.trees, hasLength(2));
+    expect(imported.trees.first.azimuth, 30);
+    expect(imported.trees.first.distanceM, 12);
+  });
+
+  test('import rejects workbook when a required sheet is renamed', () {
+    final workbook = Excel.createExcel();
+    workbook.rename('Sheet1', 'klaster');
+
+    expect(
+      () => ExcelImportService.parseWorkbook(workbook),
+      throwsA(
+        isA<FormatException>().having(
+          (error) => error.message,
+          'message',
+          contains('Nama sheet tidak boleh diubah'),
+        ),
+      ),
+    );
   });
 }
 

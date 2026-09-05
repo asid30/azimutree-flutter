@@ -1,367 +1,489 @@
 import 'dart:io';
 
-import 'package:excel/excel.dart';
+import 'package:azimutree/data/database/azimutree_db.dart';
 import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:azimutree/data/database/plot_dao.dart';
+import 'package:azimutree/data/database/titik_ikat_dao.dart';
 import 'package:azimutree/data/database/tree_dao.dart';
+import 'package:azimutree/data/global_variables/logger_global.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
-import 'package:azimutree/data/global_variables/logger_global.dart';
 import 'package:azimutree/services/azimuth_latlong_service.dart';
+import 'package:excel/excel.dart';
 
 class ExcelImportService {
-  /// Parse the given Excel file and insert cluster, plots and trees.
-  ///
-  /// - [filePath]: full path to the uploaded xlsx/xls file
-  /// - [cluster]: ClusterModel to create first (must contain kodeCluster, nama, tanggal)
-  /// Returns a Map with counts: {'clusterId': id, 'plots': n, 'trees': m}
-  static Future<Map<String, int>> importFile({
-    required String filePath,
-    required ClusterModel cluster,
-  }) async {
+  static const requiredSheetNames = <String>{
+    'panduan',
+    'klaster',
+    'titik_ikat',
+    'plot',
+    'pohon',
+  };
+
+  static Future<Map<String, int>> importFile({required String filePath}) async {
     logger.i('[ExcelImport] Importing file: $filePath');
-    final f = File(filePath);
-    logger.i(
-      '[ExcelImport] file exists: ${f.existsSync()}, size: ${f.existsSync() ? f.lengthSync() : 0}',
-    );
-
-    final bytes = f.readAsBytesSync();
-    final excel = Excel.decodeBytes(bytes);
-
-    // insert cluster and get id
-    final clusterId = await ClusterDao.insertCluster(cluster);
-    var plotsInserted = 0;
-    var treesInserted = 0;
-
-    logger.i('[ExcelImport] Available sheets: ${excel.tables.keys.toList()}');
-
-    // --- PLOTS (titik_pusat_plot)
-    String? usedTitikSheet = _findSheetName(excel, [
-      'titik_pusat_plot',
-      'titik pusat',
-      'titik_pusat',
-      'titik',
-    ]);
-    if (usedTitikSheet == null) {
-      for (final n in excel.tables.keys) {
-        final s = excel[n];
-        if (_findHeaderRow(s, [
-              'plot',
-              'latitude',
-              'longitude',
-              'altitude',
-              'ketinggian',
-            ]) !=
-            null) {
-          usedTitikSheet = n;
-          break;
-        }
-      }
+    final file = File(filePath);
+    if (!await file.exists()) {
+      throw const FormatException('File Excel tidak ditemukan.');
     }
-
-    if (usedTitikSheet != null) {
-      final sheet = excel[usedTitikSheet];
-      final headerIndex = _findHeaderRow(sheet, [
-        'plot',
-        'latitude',
-        'longitude',
-        'altitude',
-        'ketinggian',
-      ]);
-      final dataStart = (headerIndex != null) ? headerIndex + 1 : 3;
-      logger.i(
-        '[ExcelImport] Using plot sheet: $usedTitikSheet, headerIndex: $headerIndex, dataStart: $dataStart, maxRows: ${sheet.maxRows}',
+    final parsed = parseWorkbook(Excel.decodeBytes(await file.readAsBytes()));
+    final existingCodes =
+        (await ClusterDao.getAllClusters())
+            .map((cluster) => cluster.kodeCluster.trim().toUpperCase())
+            .toSet();
+    final duplicateCodes =
+        parsed.clusters
+            .map((cluster) => cluster.kodeCluster)
+            .where(existingCodes.contains)
+            .toList();
+    if (duplicateCodes.isNotEmpty) {
+      throw FormatException(
+        'Kode klaster sudah tersedia: ${duplicateCodes.join(', ')}.',
       );
+    }
 
-      const maxPlotsPerCluster = 4;
-      for (
-        var r = dataStart;
-        r < sheet.maxRows && plotsInserted < maxPlotsPerCluster;
-        r++
-      ) {
-        final row = sheet.row(r);
-        if (_isRowEmpty(row)) continue;
-
-        final cell0 = row.isNotEmpty ? row[0] : null; // kodePlot
-        final cell1 = row.length > 1 ? row[1] : null; // latitude
-        final cell2 = row.length > 2 ? row[2] : null; // longitude
-        final cell3 = row.length > 3 ? row[3] : null; // altitude (optional)
-
-        final v0 = (cell0 is Data) ? cell0.value : cell0;
-        final v1 = (cell1 is Data) ? cell1.value : cell1;
-        final v2 = (cell2 is Data) ? cell2.value : cell2;
-        final v3 = (cell3 is Data) ? cell3.value : cell3;
-
-        final kodePlot = _toInt(v0);
-        final latitude = _toDouble(v1);
-        final longitude = _toDouble(v2);
-        final altitude = _toDouble(v3); // may be null
-
-        if (kodePlot == null || latitude == null || longitude == null) {
-          logger.w(
-            '[ExcelImport] Plot parse fail at row $r: kode=$kodePlot, lat=$latitude, lon=$longitude -- raw: [$v0, $v1, $v2]',
-          );
-          continue;
-        }
-
-        final plot = PlotModel(
-          idCluster: clusterId,
-          kodePlot: kodePlot,
-          latitude: latitude,
-          longitude: longitude,
-          altitude: altitude,
+    final database = await AzimutreeDB.instance.database;
+    await database.transaction((transaction) async {
+      final clusterIdByCode = <String, int>{};
+      for (final cluster in parsed.clusters) {
+        final id = await transaction.insert(
+          ClusterDao.tableName,
+          cluster.toMap(),
         );
-
-        await PlotDao.insertPlot(plot);
-        plotsInserted++;
+        clusterIdByCode[cluster.kodeCluster] = id;
       }
-      logger.i('[ExcelImport] Plots inserted: $plotsInserted');
-    } else {
-      logger.w('[ExcelImport] No plot sheet found');
-    }
-
-    // Load all plots for this cluster to map.kodePlot -> id
-    final allPlots = await PlotDao.getAllPlots();
-    final plotsForCluster =
-        allPlots.where((p) => p.idCluster == clusterId).toList();
-
-    // --- TREES (jenis_dan_lokasi_pohon)
-    String? usedPohonSheet = _findSheetName(excel, [
-      'jenis_dan_lokasi_pohon',
-      'jenis dan lokasi pohon',
-      'jenis_dan_lokasi',
-      'pohon',
-    ]);
-    if (usedPohonSheet == null) {
-      for (final n in excel.tables.keys) {
-        final s = excel[n];
-        if (_findHeaderRow(s, ['kode plot', 'kode pohon']) != null) {
-          usedPohonSheet = n;
-          break;
-        }
-      }
-    }
-
-    if (usedPohonSheet != null) {
-      final sheet = excel[usedPohonSheet];
-      final headerIndex = _findHeaderRow(sheet, ['kode plot', 'kode pohon']);
-      final dataStart = (headerIndex != null) ? headerIndex + 1 : 6;
-      logger.i(
-        '[ExcelImport] Using tree sheet: $usedPohonSheet, headerIndex: $headerIndex, dataStart: $dataStart, maxRows: ${sheet.maxRows}',
-      );
-
-      for (var r = dataStart; r < sheet.maxRows; r++) {
-        final row = sheet.row(r);
-        if (_isRowEmpty(row)) continue;
-
-        final cell0 = row.isNotEmpty ? row[0] : null; // kode plot
-        final cell1 = row.length > 1 ? row[1] : null; // kode pohon
-        final cell2 = row.length > 2 ? row[2] : null; // nama pohon
-        final cell3 = row.length > 3 ? row[3] : null; // nama ilmiah
-        final cell4 = row.length > 4 ? row[4] : null; // azimut
-        final cell5 = row.length > 5 ? row[5] : null; // jarak
-        final cell6 = row.length > 6 ? row[6] : null; // altitude (optional)
-        final cell7 = row.length > 7 ? row[7] : null; // urlFoto (optional)
-        final cell8 = row.length > 8 ? row[8] : null; // keterangan (optional)
-
-        final v0 = (cell0 is Data) ? cell0.value : cell0;
-        final v1 = (cell1 is Data) ? cell1.value : cell1;
-        final v2 = (cell2 is Data) ? cell2.value : cell2;
-        final v3 = (cell3 is Data) ? cell3.value : cell3;
-        final v4 = (cell4 is Data) ? cell4.value : cell4;
-        final v5 = (cell5 is Data) ? cell5.value : cell5;
-        final v6 = (cell6 is Data) ? cell6.value : cell6;
-        final v7 = (cell7 is Data) ? cell7.value : cell7;
-        final v8 = (cell8 is Data) ? cell8.value : cell8;
-
-        final kodePlot = _toInt(v0);
-        final kodePohon = _toInt(v1);
-        if (kodePlot == null || kodePohon == null) {
-          logger.w(
-            '[ExcelImport] Tree parse fail at row $r: kodePlot=$kodePlot, kodePohon=$kodePohon -- raw: [$v0, $v1]',
-          );
-          continue;
-        }
-
-        final matchedPlots =
-            plotsForCluster.where((p) => p.kodePlot == kodePlot).toList();
-        if (matchedPlots.isEmpty) {
-          logger.w(
-            '[ExcelImport] No matching plot for kodePlot=$kodePlot at row $r',
-          );
-          continue;
-        }
-        final plot = matchedPlots.first;
-
-        final azimutVal = _toDouble(v4);
-        final jarakVal = _toDouble(v5);
-        double? treeLat;
-        double? treeLon;
-        if (azimutVal != null && jarakVal != null) {
-          try {
-            final pt = AzimuthLatLongService.fromAzimuthDistance(
-              centerLatDeg: plot.latitude,
-              centerLonDeg: plot.longitude,
-              azimuthDeg: azimutVal,
-              distanceM: jarakVal,
-            );
-            treeLat = pt.latitude;
-            treeLon = pt.longitude;
-          } catch (e) {
-            logger.w(
-              '[ExcelImport] Azimuth->LatLon conversion failed at row $r: $e',
-            );
-          }
-        }
-
-        final tree = TreeModel(
-          plotId: plot.id!,
-          kodePohon: kodePohon,
-          namaPohon: v2?.toString(),
-          namaIlmiah: v3?.toString(),
-          azimut: azimutVal,
-          jarakPusatM: jarakVal,
-          latitude: treeLat,
-          longitude: treeLon,
-          altitude: _toDouble(v6), // optional
-          urlFoto: v7?.toString(), // optional
-          keterangan: v8?.toString(), // optional
+      for (final anchor in parsed.anchors) {
+        final model = TitikIkatModel(
+          idCluster: clusterIdByCode[anchor.clusterCode]!,
+          nama: 'Titik Ikat ${anchor.clusterCode}',
+          latitude: anchor.latitude,
+          longitude: anchor.longitude,
+          altitude: anchor.altitude,
+          keterangan: anchor.description,
+          urlFoto: anchor.imageUrl,
         );
-
-        await TreeDao.insertTree(tree);
-        treesInserted++;
+        model.validate();
+        await transaction.insert(TitikIkatDao.tableName, model.toMap());
       }
-      logger.i('[ExcelImport] Trees inserted: $treesInserted');
-    } else {
-      logger.w('[ExcelImport] No tree sheet found');
-    }
+
+      final plotIdByKey = <String, int>{};
+      final plotByKey = <String, PlotModel>{};
+      for (final plot in parsed.plots) {
+        final model = PlotModel(
+          idCluster: clusterIdByCode[plot.clusterCode]!,
+          kodePlot: plot.plotCode,
+          latitude: plot.latitude,
+          longitude: plot.longitude,
+          altitude: plot.altitude,
+        );
+        final id = await transaction.insert(PlotDao.tableName, model.toMap());
+        final key = _plotKey(plot.clusterCode, plot.plotCode);
+        plotIdByKey[key] = id;
+        plotByKey[key] = model;
+      }
+      for (final tree in parsed.trees) {
+        final key = _plotKey(tree.clusterCode, tree.plotCode);
+        final plot = plotByKey[key]!;
+        final coordinate = AzimuthLatLongService.fromAzimuthDistance(
+          centerLatDeg: plot.latitude,
+          centerLonDeg: plot.longitude,
+          azimuthDeg: tree.azimuth,
+          distanceM: tree.distanceM,
+        );
+        await transaction.insert(
+          TreeDao.tableName,
+          TreeModel(
+            plotId: plotIdByKey[key]!,
+            kodePohon: tree.treeCode,
+            namaPohon: tree.commonName,
+            namaIlmiah: tree.scientificName,
+            azimut: tree.azimuth,
+            jarakPusatM: tree.distanceM,
+            latitude: coordinate.latitude,
+            longitude: coordinate.longitude,
+            altitude: tree.altitude,
+            keterangan: tree.description,
+            urlFoto: tree.imageUrl,
+          ).toMap(),
+        );
+      }
+    });
 
     return {
-      'clusterId': clusterId,
-      'plots': plotsInserted,
-      'trees': treesInserted,
+      'clusters': parsed.clusters.length,
+      'anchors': parsed.anchors.length,
+      'plots': parsed.plots.length,
+      'trees': parsed.trees.length,
     };
   }
 
-  static int? _toInt(dynamic v) {
-    if (v == null) return null;
-    if (v is int) return v;
-    if (v is double) return v.toInt();
-    var s = v.toString().trim();
-    s = s.replaceAll(',', '.');
-    if (s.contains('.')) {
-      s = s.split('.').first;
+  static ParsedImportWorkbook parseWorkbook(Excel excel) {
+    final missing = requiredSheetNames.difference(excel.tables.keys.toSet());
+    if (missing.isNotEmpty) {
+      throw FormatException(
+        'Sheet wajib tidak ditemukan: ${missing.join(', ')}. Nama sheet tidak boleh diubah.',
+      );
     }
-    s = s.replaceAll(RegExp(r'[^0-9\-+]'), '');
-    final parsed = int.tryParse(s);
-    if (parsed != null) return parsed;
+    final clusterRows = _rows(excel.tables['klaster']!, const [
+      'kode klaster',
+      'nama pengukur',
+      'tanggal pengukuran',
+    ]);
+    final anchorRows = _rows(excel.tables['titik_ikat']!, const [
+      'kode klaster',
+      'lintang',
+      'bujur',
+    ]);
+    final plotRows = _rows(excel.tables['plot']!, const [
+      'kode klaster',
+      'kode plot',
+      'lintang',
+      'bujur',
+    ]);
+    final treeRows = _rows(excel.tables['pohon']!, const [
+      'kode klaster',
+      'kode plot',
+      'kode pohon',
+      'nama pohon',
+      'nama ilmiah',
+      'azimuth',
+      'jarak',
+    ]);
 
-    // Fallback: if the value is a date-like string, convert to excel serial then to int
-    try {
-      final dt = DateTime.tryParse(v.toString());
-      if (dt != null) {
-        final serial = _excelSerialFromDate(dt);
-        logger.d(
-          '[ExcelImport] Converted DateTime to numeric serial (int): $dt -> $serial',
-        );
-        return serial.toInt();
+    final clusters = <ClusterModel>[];
+    final clusterCodes = <String>{};
+    for (final row in clusterRows) {
+      final code = _requiredText(row, 'kode klaster').toUpperCase();
+      if (!clusterCodes.add(code)) _fail(row, 'Kode klaster $code duplikat.');
+      clusters.add(
+        ClusterModel(
+          kodeCluster: code,
+          namaPengukur: _requiredText(row, 'nama pengukur'),
+          tanggalPengukuran: _parseDate(
+            _requiredText(row, 'tanggal pengukuran'),
+            row,
+          ),
+        ),
+      );
+    }
+    if (clusters.isEmpty) {
+      throw const FormatException('Sheet klaster tidak memiliki data.');
+    }
+
+    final anchors = <ParsedAnchor>[];
+    final anchorCodes = <String>{};
+    for (final row in anchorRows) {
+      final code = _requiredClusterCode(row, clusterCodes);
+      if (!anchorCodes.add(code)) {
+        _fail(row, 'Klaster $code hanya boleh memiliki satu Titik Ikat.');
       }
-    } catch (_) {}
+      anchors.add(
+        ParsedAnchor(
+          clusterCode: code,
+          latitude: _coordinate(row, 'lintang', -90, 90),
+          longitude: _coordinate(row, 'bujur', -180, 180),
+          altitude: _optionalNumber(row, 'altitude'),
+          description: _optionalText(row, 'keterangan'),
+          imageUrl: _optionalText(row, 'url gambar'),
+        ),
+      );
+    }
+    final withoutAnchor = clusterCodes.difference(anchorCodes);
+    if (withoutAnchor.isNotEmpty) {
+      throw FormatException(
+        'Titik Ikat belum tersedia untuk klaster: ${withoutAnchor.join(', ')}.',
+      );
+    }
 
-    return null;
-  }
-
-  static double? _toDouble(dynamic v) {
-    if (v == null) return null;
-    if (v is double) return v;
-    if (v is int) return v.toDouble();
-    var s = v.toString().trim();
-    s = s.replaceAll(',', '.');
-    s = s.replaceAll(RegExp(r'[^0-9\.\-+]'), '');
-    final parsed = double.tryParse(s);
-    if (parsed != null) return parsed;
-
-    // Fallback: if value looks like ISO datetime or is DateTime, convert to excel serial
-    try {
-      DateTime? dt;
-      if (v is DateTime) {
-        dt = v;
-      } else {
-        dt = DateTime.tryParse(v.toString());
+    final plots = <ParsedPlot>[];
+    final plotKeys = <String>{};
+    final plotCount = <String, int>{};
+    for (final row in plotRows) {
+      final code = _requiredClusterCode(row, clusterCodes);
+      final plotCode = _requiredInt(row, 'kode plot');
+      if (plotCode < 1 || plotCode > 4) {
+        _fail(row, 'Kode plot harus berada dalam rentang 1 sampai 4.');
       }
-
-      if (dt != null) {
-        final serial = _excelSerialFromDate(dt);
-        logger.d(
-          '[ExcelImport] Converted DateTime to numeric serial (double): $dt -> $serial',
-        );
-        // clamp tiny values to 0
-        if (serial.abs() < 1e-9) return 0.0;
-        return serial;
+      final key = _plotKey(code, plotCode);
+      if (!plotKeys.add(key)) {
+        _fail(row, 'Plot $plotCode pada klaster $code duplikat.');
       }
-    } catch (_) {}
+      plotCount[code] = (plotCount[code] ?? 0) + 1;
+      if (plotCount[code]! > 4) {
+        _fail(row, 'Jumlah plot pada klaster $code melebihi 4.');
+      }
+      plots.add(
+        ParsedPlot(
+          clusterCode: code,
+          plotCode: plotCode,
+          latitude: _coordinate(row, 'lintang', -90, 90),
+          longitude: _coordinate(row, 'bujur', -180, 180),
+          altitude: _optionalNumber(row, 'altitude'),
+        ),
+      );
+    }
 
-    return null;
-  }
-
-  static double _excelSerialFromDate(DateTime dt) {
-    // Excel's serial date uses 1899-12-30 as day 0 for compatibility.
-    // Treat the parsed DateTime as a naive/local date (don't convert to UTC)
-    final base = DateTime(1899, 12, 30);
-    final localDt = DateTime(
-      dt.year,
-      dt.month,
-      dt.day,
-      dt.hour,
-      dt.minute,
-      dt.second,
-      dt.millisecond,
+    final trees = <ParsedTree>[];
+    final treeKeys = <String>{};
+    for (final row in treeRows) {
+      final code = _requiredClusterCode(row, clusterCodes);
+      final plotCode = _requiredInt(row, 'kode plot');
+      final plotKey = _plotKey(code, plotCode);
+      if (!plotKeys.contains(plotKey)) {
+        _fail(row, 'Plot $plotCode pada klaster $code tidak ditemukan.');
+      }
+      final treeCode = _requiredInt(row, 'kode pohon');
+      if (!treeKeys.add('$plotKey::$treeCode')) {
+        _fail(row, 'Kode pohon $treeCode pada plot $plotCode duplikat.');
+      }
+      final azimuth = _requiredNumber(row, 'azimuth');
+      if (azimuth < 0 || azimuth >= 360) {
+        _fail(row, 'Azimuth harus antara 0 dan kurang dari 360.');
+      }
+      final distance = _requiredNumber(row, 'jarak');
+      if (distance < 0) _fail(row, 'Jarak tidak boleh negatif.');
+      trees.add(
+        ParsedTree(
+          clusterCode: code,
+          plotCode: plotCode,
+          treeCode: treeCode,
+          commonName: _requiredText(row, 'nama pohon'),
+          scientificName: _requiredText(row, 'nama ilmiah'),
+          azimuth: azimuth,
+          distanceM: distance,
+          altitude: _optionalNumber(row, 'altitude'),
+          description: _optionalText(row, 'keterangan'),
+          imageUrl: _optionalText(row, 'url gambar'),
+        ),
+      );
+    }
+    return ParsedImportWorkbook(
+      clusters: clusters,
+      anchors: anchors,
+      plots: plots,
+      trees: trees,
     );
-    final diff = localDt.difference(base).inMilliseconds;
-    final serial = diff / (24 * 60 * 60 * 1000);
-    if (serial.abs() < 1e-9) return 0.0;
-    return serial;
   }
 
-  static String? _cellString(dynamic cell) {
-    if (cell == null) return null;
-    final val = (cell is Data) ? cell.value : cell;
-    return val?.toString();
-  }
-
-  static String? _findSheetName(Excel excel, List<String> candidates) {
-    final names = excel.tables.keys.toList();
-    for (final c in candidates) {
-      for (final n in names) {
-        if (n.toLowerCase().contains(c.toLowerCase())) return n;
-      }
+  static List<_ImportRow> _rows(Sheet sheet, List<String> requiredHeaders) {
+    if (sheet.rows.isEmpty) {
+      throw FormatException('Sheet ${sheet.sheetName} kosong.');
     }
-    return null;
+    final headers = <String, int>{};
+    for (var index = 0; index < sheet.rows.first.length; index++) {
+      final header = _normalizeHeader(_cellValue(sheet.rows.first[index]));
+      if (header.isNotEmpty) headers[header] = index;
+    }
+    final missing = requiredHeaders.where(
+      (header) => !headers.containsKey(header),
+    );
+    if (missing.isNotEmpty) {
+      throw FormatException(
+        'Kolom wajib pada sheet ${sheet.sheetName} tidak ditemukan: ${missing.join(', ')}.',
+      );
+    }
+    final rows = <_ImportRow>[];
+    for (var index = 1; index < sheet.rows.length; index++) {
+      final cells = sheet.rows[index];
+      if (cells.every((cell) => _cellValue(cell).isEmpty)) continue;
+      rows.add(
+        _ImportRow(
+          sheetName: sheet.sheetName,
+          excelRow: index + 1,
+          headers: headers,
+          cells: cells,
+        ),
+      );
+    }
+    return rows;
   }
 
-  static int? _findHeaderRow(Sheet sheet, List<String> requiredKeywords) {
-    for (var r = 0; r < sheet.maxRows; r++) {
-      final row = sheet.row(r);
-      final lower =
-          row.map((c) => _cellString(c)?.toLowerCase() ?? '').toList();
-      var matchCount = 0;
-      for (final kw in requiredKeywords) {
-        if (lower.any((cell) => cell.contains(kw))) matchCount++;
-      }
-      // Require at least two keyword matches (or 1 if only one keyword provided)
-      final threshold = requiredKeywords.length >= 2 ? 2 : 1;
-      if (matchCount >= threshold) return r; // found a header-like row
-    }
-    return null;
+  static String _normalizeHeader(String value) =>
+      value.replaceAll('*', '').trim().toLowerCase();
+
+  static String _cellValue(Data? cell) => switch (cell?.value) {
+    null => '',
+    TextCellValue value => value.toString().trim(),
+    IntCellValue value => value.value.toString(),
+    DoubleCellValue value => value.value.toString(),
+    DateCellValue value =>
+      '${value.year.toString().padLeft(4, '0')}-${value.month.toString().padLeft(2, '0')}-${value.day.toString().padLeft(2, '0')}',
+    DateTimeCellValue value => value.asDateTimeLocal().toIso8601String(),
+    BoolCellValue value => value.value.toString(),
+    final value => value.toString().trim(),
+  };
+
+  static String _value(_ImportRow row, String header) {
+    final index = row.headers[header];
+    return index == null || index >= row.cells.length
+        ? ''
+        : _cellValue(row.cells[index]);
   }
 
-  static bool _isRowEmpty(List<Data?> row) {
-    if (row.isEmpty) return true;
-    for (final c in row) {
-      final s = _cellString(c);
-      if (s != null && s.trim().isNotEmpty) return false;
-    }
-    return true;
+  static String _requiredText(_ImportRow row, String header) {
+    final value = _value(row, header).trim();
+    if (value.isEmpty) _fail(row, 'Kolom "$header" wajib diisi.');
+    return value;
   }
+
+  static String? _optionalText(_ImportRow row, String header) {
+    final value = _value(row, header).trim();
+    return value.isEmpty ? null : value;
+  }
+
+  static double _requiredNumber(_ImportRow row, String header) {
+    final value = double.tryParse(
+      _requiredText(row, header).replaceAll(',', '.'),
+    );
+    if (value == null || !value.isFinite) {
+      _fail(row, 'Kolom "$header" harus berupa angka yang valid.');
+    }
+    return value;
+  }
+
+  static double? _optionalNumber(_ImportRow row, String header) {
+    final text = _value(row, header).trim();
+    if (text.isEmpty) return null;
+    final value = double.tryParse(text.replaceAll(',', '.'));
+    if (value == null || !value.isFinite) {
+      _fail(row, 'Kolom "$header" harus berupa angka yang valid.');
+    }
+    return value;
+  }
+
+  static int _requiredInt(_ImportRow row, String header) {
+    final value = _requiredNumber(row, header);
+    if (value != value.roundToDouble()) {
+      _fail(row, 'Kolom "$header" harus bilangan bulat.');
+    }
+    return value.toInt();
+  }
+
+  static double _coordinate(
+    _ImportRow row,
+    String header,
+    double minimum,
+    double maximum,
+  ) {
+    final value = _requiredNumber(row, header);
+    if (value < minimum || value > maximum) {
+      _fail(row, 'Nilai "$header" harus antara $minimum dan $maximum.');
+    }
+    return value;
+  }
+
+  static DateTime _parseDate(String value, _ImportRow row) {
+    if (!RegExp(r'^\d{4}-\d{2}-\d{2}$').hasMatch(value)) {
+      _fail(row, 'Tanggal harus menggunakan format YYYY-MM-DD.');
+    }
+    final parsed = DateTime.tryParse(value);
+    final normalized =
+        parsed == null
+            ? ''
+            : '${parsed.year.toString().padLeft(4, '0')}-${parsed.month.toString().padLeft(2, '0')}-${parsed.day.toString().padLeft(2, '0')}';
+    if (parsed == null || normalized != value) {
+      _fail(row, 'Tanggal "$value" tidak valid.');
+    }
+    return parsed;
+  }
+
+  static String _requiredClusterCode(_ImportRow row, Set<String> codes) {
+    final code = _requiredText(row, 'kode klaster').toUpperCase();
+    if (!codes.contains(code)) {
+      _fail(row, 'Kode klaster $code tidak ditemukan pada sheet klaster.');
+    }
+    return code;
+  }
+
+  static Never _fail(_ImportRow row, String message) =>
+      throw FormatException(
+        '${row.sheetName}, baris ${row.excelRow}: $message',
+      );
+  static String _plotKey(String clusterCode, int plotCode) =>
+      '$clusterCode::$plotCode';
+}
+
+class ParsedImportWorkbook {
+  const ParsedImportWorkbook({
+    required this.clusters,
+    required this.anchors,
+    required this.plots,
+    required this.trees,
+  });
+  final List<ClusterModel> clusters;
+  final List<ParsedAnchor> anchors;
+  final List<ParsedPlot> plots;
+  final List<ParsedTree> trees;
+}
+
+class ParsedAnchor {
+  const ParsedAnchor({
+    required this.clusterCode,
+    required this.latitude,
+    required this.longitude,
+    this.altitude,
+    this.description,
+    this.imageUrl,
+  });
+  final String clusterCode;
+  final double latitude;
+  final double longitude;
+  final double? altitude;
+  final String? description;
+  final String? imageUrl;
+}
+
+class ParsedPlot {
+  const ParsedPlot({
+    required this.clusterCode,
+    required this.plotCode,
+    required this.latitude,
+    required this.longitude,
+    this.altitude,
+  });
+  final String clusterCode;
+  final int plotCode;
+  final double latitude;
+  final double longitude;
+  final double? altitude;
+}
+
+class ParsedTree {
+  const ParsedTree({
+    required this.clusterCode,
+    required this.plotCode,
+    required this.treeCode,
+    required this.commonName,
+    required this.scientificName,
+    required this.azimuth,
+    required this.distanceM,
+    this.altitude,
+    this.description,
+    this.imageUrl,
+  });
+  final String clusterCode;
+  final int plotCode;
+  final int treeCode;
+  final String commonName;
+  final String scientificName;
+  final double azimuth;
+  final double distanceM;
+  final double? altitude;
+  final String? description;
+  final String? imageUrl;
+}
+
+class _ImportRow {
+  const _ImportRow({
+    required this.sheetName,
+    required this.excelRow,
+    required this.headers,
+    required this.cells,
+  });
+  final String sheetName;
+  final int excelRow;
+  final Map<String, int> headers;
+  final List<Data?> cells;
 }
