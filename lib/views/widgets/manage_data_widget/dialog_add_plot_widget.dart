@@ -6,6 +6,7 @@ import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/services/azimuth_latlong_service.dart';
 import 'package:azimutree/views/widgets/location_map_widget/coordinate_picker_page.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'package:flutter/services.dart';
 
 class _CommaToDotNoSpaceFormatter extends TextInputFormatter {
@@ -272,9 +273,7 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
     );
     if (duplicate) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kode plot sudah digunakan.')),
-      );
+      await showAppWarning(context, 'Kode plot sudah digunakan.');
       return;
     }
 

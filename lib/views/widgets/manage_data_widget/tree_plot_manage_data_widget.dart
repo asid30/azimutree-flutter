@@ -7,6 +7,7 @@ import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widge
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:azimutree/services/gdrive_thumbnail_service.dart';
@@ -372,9 +373,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
     );
 
     if (updated != null && context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Data pohon diperbarui")));
+      await showAppSuccess(context, 'Data pohon berhasil diperbarui.');
     }
   }
 
@@ -394,9 +393,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
     await treeNotifier.deleteTree(tree.id!);
 
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Pohon dihapus")));
+      await showAppSuccess(context, 'Pohon berhasil dihapus.');
     }
   }
 }

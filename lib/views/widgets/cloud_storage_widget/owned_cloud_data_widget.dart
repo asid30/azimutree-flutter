@@ -1,6 +1,8 @@
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/services/cloud_owned_data_service.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_form_dialog.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
@@ -44,27 +46,20 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
       );
     } on StateError catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        await showAppWarning(context, error.message);
       }
     } on FirebaseException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              error.code == 'permission-denied'
-                  ? 'Izin membuat lokasi ditolak. Keluar lalu masuk kembali ke akun.'
-                  : 'Lokasi gagal dibuat: ${error.message ?? error.code}',
-            ),
-          ),
+        await showAppError(
+          context,
+          error.code == 'permission-denied'
+              ? 'Izin membuat lokasi ditolak. Keluar lalu masuk kembali ke akun.'
+              : 'Lokasi gagal dibuat: ${error.message ?? error.code}',
         );
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lokasi penelitian gagal dibuat.')),
-        );
+        await showAppError(context, 'Lokasi penelitian gagal dibuat.');
       }
     } finally {
       if (mounted) setState(() => _isProcessing = false);
@@ -73,12 +68,9 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
 
   Future<void> _deleteLocation(CloudOwnedResearchLocation location) async {
     if (location.clusterCount > 0) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Hapus seluruh klaster di dalam folder terlebih dahulu.',
-          ),
-        ),
+      await showAppWarning(
+        context,
+        'Hapus seluruh klaster di dalam folder terlebih dahulu.',
       );
       return;
     }
@@ -95,9 +87,7 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
       await _service.deleteEmptyLocation(location.id);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Lokasi penelitian gagal dihapus.')),
-        );
+        await showAppError(context, 'Lokasi penelitian gagal dihapus.');
       }
     }
   }
@@ -106,10 +96,9 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
     final snapshots = await _service.loadLocalSnapshots();
     if (!mounted) return;
     if (snapshots.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Belum ada klaster pada penyimpanan lokal.'),
-        ),
+      await showAppWarning(
+        context,
+        'Belum ada klaster pada penyimpanan lokal.',
       );
       return;
     }
@@ -146,30 +135,23 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
         snapshots: selected,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              '${selected.length} snapshot klaster berhasil diunggah.',
-            ),
-          ),
+        await showAppSuccess(
+          context,
+          '${selected.length} snapshot klaster berhasil diunggah.',
         );
       }
     } on FirebaseException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Unggah gagal (${error.code}): ${error.message ?? 'kesalahan Firebase'}',
-            ),
-          ),
+        await showAppError(
+          context,
+          'Unggah gagal (${error.code}): ${error.message ?? 'kesalahan Firebase'}',
         );
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Snapshot klaster gagal diunggah. Periksa koneksi.'),
-          ),
+        await showAppError(
+          context,
+          'Snapshot klaster gagal diunggah. Periksa koneksi.',
         );
       }
     } finally {
@@ -196,9 +178,7 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
       await _service.deleteCluster(locationId: location.id, cluster: cluster);
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Snapshot klaster gagal dihapus.')),
-        );
+        await showAppError(context, 'Snapshot klaster gagal dihapus.');
       }
     }
   }
@@ -219,10 +199,9 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
       localCode = replacement;
       if (await _service.localCodeExists(localCode)) {
         if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Kode klaster tersebut sudah digunakan.'),
-            ),
+          await showAppWarning(
+            context,
+            'Kode klaster tersebut sudah digunakan.',
           );
         }
         return;
@@ -236,15 +215,11 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
         localCode: localCode,
       );
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Klaster $localCode berhasil diunduh.')),
-        );
+        await showAppSuccess(context, 'Klaster $localCode berhasil diunduh.');
       }
     } catch (_) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Klaster gagal diunduh.')));
+        await showAppError(context, 'Klaster gagal diunduh.');
       }
     } finally {
       if (mounted) setState(() => _isProcessing = false);
@@ -494,14 +469,9 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
                                           );
                                         } catch (_) {
                                           if (context.mounted) {
-                                            ScaffoldMessenger.of(
+                                            await showAppError(
                                               context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Status publik gagal diubah.',
-                                                ),
-                                              ),
+                                              'Status publik gagal diubah.',
                                             );
                                           }
                                         }
@@ -617,7 +587,7 @@ class _RenameClusterDialogState extends State<_RenameClusterDialog> {
         final labelColor = isDark ? Colors.white70 : Colors.black54;
         final background =
             isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
-        return AlertDialog(
+        return AppFormDialog(
           backgroundColor: background,
           title: Text('Kode Klaster Baru', style: TextStyle(color: foreground)),
           content: Form(
@@ -690,7 +660,7 @@ class _SelectClustersDialogState extends State<_SelectClustersDialog> {
         final foreground = isDark ? Colors.white : Colors.black87;
         final background =
             isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
-        return AlertDialog(
+        return AppFormDialog(
           backgroundColor: background,
           title: Text('Pilih Klaster', style: TextStyle(color: foreground)),
           content: SizedBox(
@@ -840,7 +810,7 @@ class _CreateLocationDialogState extends State<_CreateLocationDialog> {
         final labelColor = isDark ? Colors.white70 : Colors.black54;
         final background =
             isLight ? Colors.white : const Color.fromARGB(255, 32, 72, 43);
-        return AlertDialog(
+        return AppFormDialog(
           backgroundColor: background,
           insetPadding: const EdgeInsets.symmetric(
             horizontal: 24,

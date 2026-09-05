@@ -2,6 +2,8 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/services/cloud_connection_service.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_loading_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SidebarWidget extends StatelessWidget {
@@ -23,10 +25,7 @@ class SidebarWidget extends StatelessWidget {
       context: navigator.context,
       barrierDismissible: false,
       builder:
-          (_) => const PopScope(
-            canPop: false,
-            child: Center(child: CircularProgressIndicator()),
-          ),
+          (_) => const AlertLoadingWidget(message: 'Memeriksa layanan awan...'),
     );
     final result = await CloudConnectionService().checkConnection();
     if (!navigator.mounted) return;
@@ -261,7 +260,6 @@ class SidebarWidget extends StatelessWidget {
                         onTap: () async {
                           const urlString = 'https://azimutree.my.id/';
                           final uri = Uri.parse(urlString);
-                          final messenger = ScaffoldMessenger.of(context);
                           try {
                             if (await canLaunchUrl(uri)) {
                               await launchUrl(
@@ -269,27 +267,17 @@ class SidebarWidget extends StatelessWidget {
                                 mode: LaunchMode.externalApplication,
                               );
                             } else {
-                              final bg =
-                                  isDark
-                                      ? const Color.fromARGB(255, 131, 30, 23)
-                                      : Colors.red.shade200;
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  content: const Text('Cannot open link'),
-                                  backgroundColor: bg,
-                                ),
+                              if (!context.mounted) return;
+                              await showAppError(
+                                context,
+                                'Tautan tidak dapat dibuka.',
                               );
                             }
                           } catch (e) {
-                            final bg =
-                                isDark
-                                    ? const Color.fromARGB(255, 131, 30, 23)
-                                    : Colors.red.shade200;
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text('Error opening link: $e'),
-                                backgroundColor: bg,
-                              ),
+                            if (!context.mounted) return;
+                            await showAppError(
+                              context,
+                              'Terjadi kesalahan saat membuka tautan: $e',
                             );
                           }
                         },

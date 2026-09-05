@@ -8,6 +8,7 @@ import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widge
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/tree_plot_manage_data_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
@@ -437,9 +438,7 @@ class _PlotClusterManageDataWidgetState
     );
 
     if (updated != null && context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Plot diperbarui")));
+      await showAppSuccess(context, 'Plot berhasil diperbarui.');
     }
   }
 
@@ -484,9 +483,7 @@ class _PlotClusterManageDataWidgetState
     await widget.treeNotifier.loadTrees();
 
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Plot dihapus")));
+      await showAppSuccess(context, 'Plot berhasil dihapus.');
     }
   }
 }

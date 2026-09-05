@@ -11,6 +11,7 @@ import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_dat
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_loading_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_import_data_widget.dart';
@@ -76,10 +77,7 @@ class _BottomsheetManageDataWidgetState
       context: context,
       barrierDismissible: false,
       builder:
-          (_) => const PopScope(
-            canPop: false,
-            child: Center(child: CircularProgressIndicator()),
-          ),
+          (_) => const AlertLoadingWidget(message: 'Memeriksa layanan awan...'),
     );
 
     final result = await _cloudConnectionService.checkConnection();
@@ -450,11 +448,8 @@ class _BottomsheetManageDataWidgetState
                                 context: context,
                                 barrierDismissible: false,
                                 builder:
-                                    (_) => const PopScope(
-                                      canPop: false,
-                                      child: Center(
-                                        child: CircularProgressIndicator(),
-                                      ),
+                                    (_) => const AlertLoadingWidget(
+                                      message: 'Mengimpor data...',
                                     ),
                               );
                               try {

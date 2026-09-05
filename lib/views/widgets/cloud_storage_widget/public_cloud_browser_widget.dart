@@ -2,6 +2,7 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/services/cloud_public_data_service.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 
 class PublicCloudBrowserWidget extends StatefulWidget {
   const PublicCloudBrowserWidget({
@@ -243,12 +244,9 @@ class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
                               color: foreground,
                             ),
                             onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Unduh klaster akan tersedia pada tahap berikutnya.',
-                                  ),
-                                ),
+                              showAppInfo(
+                                context,
+                                'Unduh klaster akan tersedia pada tahap berikutnya.',
                               );
                             },
                           ),

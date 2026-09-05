@@ -4,6 +4,7 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/services/cloud_auth_service.dart';
 import 'package:azimutree/services/cloud_user_profile_service.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_form_dialog.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
@@ -112,7 +113,7 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
                   isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
               final foreground = isDark ? Colors.white : Colors.black;
               final labelColor = isDark ? Colors.white70 : Colors.black54;
-              return AlertDialog(
+              return AppFormDialog(
                 backgroundColor: dialogBackground,
                 title: Text(
                   'Ubah Nama Tampilan',
