@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/services/cloud_auth_service.dart';
+import 'package:azimutree/services/cloud_user_profile_service.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
+import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
@@ -16,13 +20,26 @@ class CloudStoragePage extends StatefulWidget {
 
 class _CloudStoragePageState extends State<CloudStoragePage> {
   final CloudAuthService _authService = CloudAuthService();
+  final CloudUserProfileService _profileService = CloudUserProfileService();
   bool _isProcessing = false;
+  String? _profileInitializedUid;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedPageNotifier.value = 'cloud_storage_page';
+  }
 
   Future<void> _signIn() async {
     if (_isProcessing) return;
     setState(() => _isProcessing = true);
     try {
-      await _authService.signInWithGoogle();
+      final credential = await _authService.signInWithGoogle();
+      final user = credential.user;
+      if (user != null) {
+        await _profileService.ensureProfile(user);
+        _profileInitializedUid = user.uid;
+      }
     } on GoogleSignInException catch (error) {
       if (error.code != GoogleSignInExceptionCode.canceled) {
         await _showMessage(
@@ -50,6 +67,7 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
     setState(() => _isProcessing = true);
     try {
       await _authService.signOut();
+      _profileInitializedUid = null;
     } catch (_) {
       await _showMessage('Logout Gagal', 'Tidak dapat keluar dari akun.');
     } finally {
@@ -65,6 +83,110 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
     );
   }
 
+  void _ensureProfile(User user) {
+    if (_profileInitializedUid == user.uid) return;
+    _profileInitializedUid = user.uid;
+    _profileService.ensureProfile(user).catchError((_) {
+      if (_profileInitializedUid == user.uid) {
+        _profileInitializedUid = null;
+      }
+    });
+  }
+
+  Future<void> _editDisplayName(User user, String currentDisplayName) async {
+    var draftName = currentDisplayName;
+    final name = await showDialog<String>(
+      context: context,
+      builder:
+          (dialogContext) => ValueListenableBuilder<bool>(
+            valueListenable: isLightModeNotifier,
+            builder: (context, isLightMode, _) {
+              final isDark = !isLightMode;
+              final dialogBackground =
+                  isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
+              final foreground = isDark ? Colors.white : Colors.black;
+              final labelColor = isDark ? Colors.white70 : Colors.black54;
+              return AlertDialog(
+                backgroundColor: dialogBackground,
+                title: Text(
+                  'Ubah Nama Tampilan',
+                  style: TextStyle(color: foreground),
+                ),
+                content: TextFormField(
+                  initialValue: currentDisplayName,
+                  autofocus: true,
+                  maxLength: 80,
+                  style: TextStyle(color: foreground),
+                  cursorColor: foreground,
+                  textCapitalization: TextCapitalization.words,
+                  onChanged: (value) => draftName = value,
+                  onFieldSubmitted:
+                      (value) => Navigator.pop(dialogContext, value.trim()),
+                  decoration: InputDecoration(
+                    labelText: 'Nama tampilan',
+                    hintText: 'Masukkan nama yang akan ditampilkan',
+                    labelStyle: TextStyle(color: labelColor),
+                    hintStyle: TextStyle(color: labelColor),
+                    counterStyle: TextStyle(color: labelColor),
+                    border: const OutlineInputBorder(),
+                    enabledBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color: isDark ? Colors.white54 : Colors.grey,
+                      ),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderSide: BorderSide(
+                        color:
+                            isDark
+                                ? Colors.white
+                                : Theme.of(context).colorScheme.primary,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(dialogContext),
+                    child: Text('Batal', style: TextStyle(color: foreground)),
+                  ),
+                  TextButton(
+                    onPressed:
+                        () => Navigator.pop(dialogContext, draftName.trim()),
+                    style: TextButton.styleFrom(foregroundColor: foreground),
+                    child: const Text('Simpan'),
+                  ),
+                ],
+              );
+            },
+          ),
+    );
+    if (name == null) return;
+    if (name.length < 2) {
+      await _showMessage('Nama Tidak Valid', 'Nama minimal 2 karakter.');
+      return;
+    }
+
+    setState(() => _isProcessing = true);
+    try {
+      await _profileService.updateDisplayName(uid: user.uid, displayName: name);
+    } on TimeoutException {
+      await _showMessage(
+        'Koneksi Lambat',
+        'Server belum memberi konfirmasi. Perubahan mungkin sudah tersinkronisasi; periksa nama yang tampil lalu coba kembali jika belum berubah.',
+      );
+    } on FirebaseException catch (error) {
+      await _showMessage(
+        'Gagal Mengubah Nama',
+        error.message ?? 'Profil tidak dapat diperbarui.',
+      );
+    } catch (error) {
+      await _showMessage('Gagal Mengubah Nama', error.toString());
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
   Future<void> _showComingSoon(String feature) => _showMessage(
     feature,
     'Tampilan $feature sudah disiapkan. Data awan akan dihubungkan pada tahap berikutnya.',
@@ -74,6 +196,7 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const AppbarWidget(title: 'Penyimpanan Awan'),
+      drawer: const SidebarWidget(),
       body: Stack(
         children: [
           BackgroundAppWidget(
@@ -89,7 +212,13 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
                   children: [
                     Row(
                       children: [
-                        BackButton(color: foreground),
+                        BackButton(
+                          color: foreground,
+                          onPressed: () {
+                            selectedPageNotifier.value = 'home';
+                            Navigator.popAndPushNamed(context, 'home');
+                          },
+                        ),
                         Text(
                           'Kembali',
                           style: TextStyle(fontSize: 18, color: foreground),
@@ -133,6 +262,10 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (_isProcessing) ...[
+          const LinearProgressIndicator(),
+          const SizedBox(height: 12),
+        ],
         _informationCard(
           isLight: isLight,
           icon: Icons.cloud_done,
@@ -147,62 +280,71 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
           onPressed: () => _showComingSoon('Data Publik'),
         ),
         const SizedBox(height: 12),
-        OutlinedButton.icon(
+        _actionButton(
+          label: 'Masuk dengan Google',
+          icon: Icons.login,
           onPressed: _isProcessing ? null : _signIn,
-          icon:
-              _isProcessing
-                  ? const SizedBox.square(
-                    dimension: 20,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                  : const Icon(Icons.login),
-          label: const Text('Masuk dengan Google'),
-          style: OutlinedButton.styleFrom(
-            foregroundColor: isLight ? const Color(0xFF1F4226) : Colors.white,
-            side: BorderSide(
-              color: isLight ? const Color(0xFF1F4226) : Colors.white70,
-            ),
-            padding: const EdgeInsets.symmetric(vertical: 14),
-          ),
         ),
       ],
     );
   }
 
   Widget _buildAuthenticatedContent(User user, bool isLight) {
-    final displayName = user.displayName?.trim();
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        _informationCard(
-          isLight: isLight,
-          icon: Icons.account_circle,
-          title:
-              displayName == null || displayName.isEmpty
-                  ? 'Pengguna Azimutree'
-                  : displayName,
-          message: user.email ?? 'Akun Google telah terhubung',
-        ),
-        const SizedBox(height: 20),
-        _actionButton(
-          label: 'Tampilkan Data Publik',
-          icon: Icons.public,
-          onPressed: () => _showComingSoon('Data Publik'),
-        ),
-        const SizedBox(height: 12),
-        _actionButton(
-          label: 'Kelola Data Sendiri',
-          icon: Icons.cloud_upload,
-          onPressed: () => _showComingSoon('Kelola Data Sendiri'),
-        ),
-        const SizedBox(height: 12),
-        _actionButton(
-          label: 'Keluar dari akun',
-          icon: Icons.logout,
-          onPressed: _isProcessing ? null : _signOut,
-          backgroundColor: const Color.fromARGB(255, 131, 30, 23),
-        ),
-      ],
+    _ensureProfile(user);
+    return StreamBuilder<CloudUserProfile?>(
+      stream: _profileService.watchProfile(user.uid),
+      builder: (context, profileSnapshot) {
+        final profile = profileSnapshot.data;
+        final googleName = user.displayName?.trim();
+        final displayName =
+            profile?.displayName.isNotEmpty == true
+                ? profile!.displayName
+                : (googleName == null || googleName.isEmpty
+                    ? 'Pengguna Azimutree'
+                    : googleName);
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            if (_isProcessing) ...[
+              const LinearProgressIndicator(),
+              const SizedBox(height: 12),
+            ],
+            _informationCard(
+              isLight: isLight,
+              icon: Icons.account_circle,
+              title: displayName,
+              message:
+                  profile?.email.isNotEmpty == true
+                      ? profile!.email
+                      : (user.email ?? 'Akun Google telah terhubung'),
+              actionTooltip: 'Ubah nama tampilan',
+              onActionPressed:
+                  _isProcessing
+                      ? null
+                      : () => _editDisplayName(user, displayName),
+            ),
+            const SizedBox(height: 12),
+            _actionButton(
+              label: 'Tampilkan Data Publik',
+              icon: Icons.public,
+              onPressed: () => _showComingSoon('Data Publik'),
+            ),
+            const SizedBox(height: 12),
+            _actionButton(
+              label: 'Kelola Data Sendiri',
+              icon: Icons.cloud_upload,
+              onPressed: () => _showComingSoon('Kelola Data Sendiri'),
+            ),
+            const SizedBox(height: 12),
+            _actionButton(
+              label: 'Keluar dari akun',
+              icon: Icons.logout,
+              onPressed: _isProcessing ? null : _signOut,
+              backgroundColor: const Color.fromARGB(255, 131, 30, 23),
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -211,6 +353,8 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
     required IconData icon,
     required String title,
     required String message,
+    String? actionTooltip,
+    VoidCallback? onActionPressed,
   }) {
     final foreground = isLight ? Colors.black87 : Colors.white;
     return Card(
@@ -218,29 +362,65 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
           isLight
               ? const Color.fromARGB(240, 205, 237, 211)
               : const Color.fromARGB(255, 36, 67, 42),
-      child: Padding(
-        padding: const EdgeInsets.all(18),
-        child: Column(
-          children: [
-            Icon(icon, size: 48, color: foreground),
-            const SizedBox(height: 10),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: foreground,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+      child: Stack(
+        children: [
+          SizedBox(
+            width: double.infinity,
+            child: Padding(
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(icon, size: 48, color: foreground),
+                  const SizedBox(height: 10),
+                  Text(
+                    title,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: foreground,
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    message,
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: foreground),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: TextStyle(color: foreground),
+          ),
+          if (actionTooltip != null)
+            Positioned(
+              top: 12,
+              right: 12,
+              child: Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  color:
+                      isLight
+                          ? Colors.white.withValues(alpha: 0.85)
+                          : const Color.fromARGB(255, 18, 43, 25),
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  onPressed: onActionPressed,
+                  tooltip: actionTooltip,
+                  color: foreground,
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints.tightFor(
+                    width: 36,
+                    height: 36,
+                  ),
+                  iconSize: 19,
+                  icon: const Icon(Icons.edit),
+                ),
+              ),
             ),
-          ],
-        ),
+        ],
       ),
     );
   }

@@ -30,6 +30,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
   @override
   void initState() {
     super.initState();
+    selectedPageNotifier.value = 'manage_data_page';
     clusterNotifier = ClusterNotifier();
     plotNotifier = PlotNotifier();
     treeNotifier = TreeNotifier();
