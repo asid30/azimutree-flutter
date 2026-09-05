@@ -59,13 +59,18 @@ service cloud.firestore {
         && resource.data.ownerId == request.auth.uid
         && request.resource.data.ownerId == resource.data.ownerId
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-          'name', 'researchDate', 'isPublic', 'updatedAt'
+          'name', 'researchDate', 'isPublic', 'clusterCount', 'clusterCodes',
+          'updatedAt'
         ])
         && request.resource.data.name is string
         && request.resource.data.name.size() >= 3
         && request.resource.data.name.size() <= 100
         && request.resource.data.researchDate is timestamp
-        && request.resource.data.isPublic is bool;
+        && request.resource.data.isPublic is bool
+        && request.resource.data.clusterCount is int
+        && request.resource.data.clusterCount >= 0
+        && request.resource.data.clusterCodes is list
+        && request.resource.data.clusterCount == request.resource.data.clusterCodes.size();
 
       allow delete: if request.auth != null
         && resource.data.ownerId == request.auth.uid
@@ -78,7 +83,22 @@ service cloud.firestore {
           || (request.auth != null && get(
             /databases/$(database)/documents/researchLocations/$(locationId)
           ).data.ownerId == request.auth.uid);
-        allow write: if false;
+        allow create, update: if request.auth != null
+          && get(
+            /databases/$(database)/documents/researchLocations/$(locationId)
+          ).data.ownerId == request.auth.uid
+          && request.resource.data.keys().hasOnly([
+            'code', 'surveyorName', 'surveyDate', 'anchor', 'plots', 'uploadedAt'
+          ])
+          && request.resource.data.code is string
+          && request.resource.data.code.size() >= 1
+          && request.resource.data.code.size() <= 30
+          && request.resource.data.plots is list;
+
+        allow delete: if request.auth != null
+          && get(
+            /databases/$(database)/documents/researchLocations/$(locationId)
+          ).data.ownerId == request.auth.uid;
       }
     }
 

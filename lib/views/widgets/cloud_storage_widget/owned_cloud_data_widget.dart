@@ -93,6 +93,81 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
     }
   }
 
+  Future<void> _uploadClusters(CloudOwnedResearchLocation location) async {
+    final snapshots = await _service.loadLocalSnapshots();
+    if (!mounted) return;
+    if (snapshots.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Belum ada klaster pada penyimpanan lokal.'),
+        ),
+      );
+      return;
+    }
+    final selected = await showDialog<List<LocalClusterSnapshot>>(
+      context: context,
+      builder: (context) => _SelectClustersDialog(snapshots: snapshots),
+    );
+    if (selected == null || selected.isEmpty || !mounted) return;
+
+    final overwritten =
+        selected
+            .map((item) => item.cluster.kodeCluster)
+            .where(location.clusterCodes.contains)
+            .toList();
+    if (overwritten.isNotEmpty) {
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder:
+            (context) => AlertDialog(
+              title: const Text('Timpa Snapshot?'),
+              content: Text(
+                'Klaster ${overwritten.join(', ')} sudah ada di folder ini. '
+                'Snapshot lama akan diganti dengan data lokal terbaru.',
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context, false),
+                  child: const Text('Batal'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.pop(context, true),
+                  child: const Text('Lanjutkan'),
+                ),
+              ],
+            ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
+
+    setState(() => _isProcessing = true);
+    try {
+      await _service.uploadSnapshots(
+        locationId: location.id,
+        snapshots: selected,
+      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '${selected.length} snapshot klaster berhasil diunggah.',
+            ),
+          ),
+        );
+      }
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Snapshot klaster gagal diunggah. Periksa koneksi.'),
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isProcessing = false);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder<bool>(
@@ -178,8 +253,10 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
                         final location = locations[index];
                         return Card(
                           color: cardColor,
-                          child: ListTile(
+                          child: ExpansionTile(
                             leading: Icon(Icons.folder, color: foreground),
+                            iconColor: foreground,
+                            collapsedIconColor: foreground,
                             title: Text(
                               location.name,
                               style: TextStyle(
@@ -193,63 +270,96 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
                                 color: foreground.withValues(alpha: 0.8),
                               ),
                             ),
-                            isThreeLine: true,
-                            trailing: PopupMenuButton<String>(
-                              color: cardColor,
-                              iconColor: foreground,
-                              onSelected: (value) async {
-                                if (value == 'visibility') {
-                                  try {
-                                    await _service.updateVisibility(
-                                      locationId: location.id,
-                                      isPublic: !location.isPublic,
-                                    );
-                                  } catch (_) {
-                                    if (context.mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        const SnackBar(
-                                          content: Text(
-                                            'Status publik gagal diubah.',
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                } else if (value == 'delete') {
-                                  await _deleteLocation(location);
-                                }
-                              },
-                              itemBuilder:
-                                  (context) => [
-                                    PopupMenuItem(
-                                      value: 'visibility',
-                                      child: Text(
+                            childrenPadding: const EdgeInsets.fromLTRB(
+                              16,
+                              0,
+                              16,
+                              14,
+                            ),
+                            children: [
+                              if (location.clusterCodes.isNotEmpty) ...[
+                                Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: Wrap(
+                                    spacing: 6,
+                                    runSpacing: 4,
+                                    children:
+                                        location.clusterCodes
+                                            .map(
+                                              (code) => Chip(
+                                                label: Text(code),
+                                                visualDensity:
+                                                    VisualDensity.compact,
+                                              ),
+                                            )
+                                            .toList(),
+                                  ),
+                                ),
+                                const SizedBox(height: 10),
+                              ],
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton.icon(
+                                  onPressed:
+                                      _isProcessing
+                                          ? null
+                                          : () => _uploadClusters(location),
+                                  icon: const Icon(Icons.cloud_upload),
+                                  label: const Text('Unggah Klaster'),
+                                  style: ElevatedButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    backgroundColor: const Color(0xFF1F4226),
+                                  ),
+                                ),
+                              ),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: TextButton.icon(
+                                      onPressed: () async {
+                                        try {
+                                          await _service.updateVisibility(
+                                            locationId: location.id,
+                                            isPublic: !location.isPublic,
+                                          );
+                                        } catch (_) {
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Status publik gagal diubah.',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        }
+                                      },
+                                      icon: Icon(
+                                        location.isPublic
+                                            ? Icons.lock_outline
+                                            : Icons.public,
+                                      ),
+                                      label: Text(
                                         location.isPublic
                                             ? 'Jadikan privat'
                                             : 'Jadikan publik',
-                                        style: TextStyle(color: foreground),
+                                      ),
+                                      style: TextButton.styleFrom(
+                                        foregroundColor: foreground,
                                       ),
                                     ),
-                                    PopupMenuItem(
-                                      value: 'delete',
-                                      child: Text(
-                                        'Hapus folder',
-                                        style: TextStyle(color: foreground),
-                                      ),
-                                    ),
-                                  ],
-                            ),
-                            onTap: () {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text(
-                                    'Unggah klaster tersedia pada tahap berikutnya.',
                                   ),
-                                ),
-                              );
-                            },
+                                  IconButton(
+                                    onPressed: () => _deleteLocation(location),
+                                    tooltip: 'Hapus folder',
+                                    color: foreground,
+                                    icon: const Icon(Icons.delete_outline),
+                                  ),
+                                ],
+                              ),
+                            ],
                           ),
                         );
                       },
@@ -278,6 +388,100 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
       ),
     ),
   );
+}
+
+class _SelectClustersDialog extends StatefulWidget {
+  const _SelectClustersDialog({required this.snapshots});
+
+  final List<LocalClusterSnapshot> snapshots;
+
+  @override
+  State<_SelectClustersDialog> createState() => _SelectClustersDialogState();
+}
+
+class _SelectClustersDialogState extends State<_SelectClustersDialog> {
+  final Set<int> _selectedIds = {};
+
+  @override
+  Widget build(BuildContext context) {
+    return ValueListenableBuilder<bool>(
+      valueListenable: isLightModeNotifier,
+      builder: (context, isLight, _) {
+        final isDark = !isLight;
+        final foreground = isDark ? Colors.white : Colors.black87;
+        final background =
+            isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
+        return AlertDialog(
+          backgroundColor: background,
+          title: Text('Pilih Klaster', style: TextStyle(color: foreground)),
+          content: SizedBox(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: widget.snapshots.length,
+              itemBuilder: (context, index) {
+                final snapshot = widget.snapshots[index];
+                final id = snapshot.cluster.id;
+                if (id == null) return const SizedBox.shrink();
+                return CheckboxListTile(
+                  value: _selectedIds.contains(id),
+                  contentPadding: EdgeInsets.zero,
+                  activeColor: isDark ? Colors.white : const Color(0xFF1F4226),
+                  checkColor: isDark ? const Color(0xFF1F4226) : Colors.white,
+                  title: Text(
+                    snapshot.cluster.kodeCluster,
+                    style: TextStyle(
+                      color: foreground,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Text(
+                    '${snapshot.plotCount} plot · ${snapshot.treeCount} pohon',
+                    style: TextStyle(color: foreground.withValues(alpha: 0.75)),
+                  ),
+                  onChanged: (selected) {
+                    setState(() {
+                      if (selected == true) {
+                        _selectedIds.add(id);
+                      } else {
+                        _selectedIds.remove(id);
+                      }
+                    });
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              style: TextButton.styleFrom(foregroundColor: foreground),
+              child: const Text('Batal'),
+            ),
+            TextButton(
+              onPressed:
+                  _selectedIds.isEmpty
+                      ? null
+                      : () => Navigator.pop(
+                        context,
+                        widget.snapshots
+                            .where(
+                              (snapshot) =>
+                                  _selectedIds.contains(snapshot.cluster.id),
+                            )
+                            .toList(),
+                      ),
+              style: TextButton.styleFrom(
+                foregroundColor: foreground,
+                disabledForegroundColor: Colors.grey,
+              ),
+              child: const Text('Unggah'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
 
 class _CreateLocationDialog extends StatefulWidget {
