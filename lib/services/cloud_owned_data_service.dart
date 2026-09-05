@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:azimutree/data/database/azimutree_db.dart';
 import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:azimutree/data/database/plot_dao.dart';
@@ -64,6 +66,16 @@ class CloudOwnedDataService {
   CollectionReference<Map<String, dynamic>> get _locations =>
       _firestore.collection('researchLocations');
 
+  CollectionReference<Map<String, dynamic>> get _locationNames =>
+      _firestore.collection('researchLocationNames');
+
+  String _normalizedLocationName(String name) =>
+      name.trim().replaceAll(RegExp(r'\s+'), ' ').toLowerCase();
+
+  String _locationNameKey(String name) => base64Url
+      .encode(utf8.encode(_normalizedLocationName(name)))
+      .replaceAll('=', '');
+
   Stream<List<CloudOwnedResearchLocation>> watchLocations(String ownerId) {
     return _locations.where('ownerId', isEqualTo: ownerId).snapshots().map((
       snapshot,
@@ -106,27 +118,37 @@ class CloudOwnedDataService {
     bool isPublic = true,
   }) async {
     final normalizedName = name.trim();
-    final existingLocations =
-        await _locations.where('ownerId', isEqualTo: ownerId).get();
-    final duplicate = existingLocations.docs.any(
-      (document) =>
-          (document.data()['name'] as String?)?.trim().toLowerCase() ==
-          normalizedName.toLowerCase(),
-    );
-    if (duplicate) {
-      throw StateError('Nama lokasi penelitian sudah digunakan.');
-    }
-    final now = FieldValue.serverTimestamp();
-    await _locations.add({
-      'ownerId': ownerId,
-      'ownerName': ownerName.trim(),
-      'name': normalizedName,
-      'researchDate': Timestamp.fromDate(researchDate),
-      'isPublic': isPublic,
-      'clusterCount': 0,
-      'clusterCodes': <String>[],
-      'createdAt': now,
-      'updatedAt': now,
+    final nameKey = _locationNameKey(normalizedName);
+    final locationReference = _locations.doc();
+    final nameReference = _locationNames.doc(nameKey);
+
+    await _firestore.runTransaction((transaction) async {
+      final existingName = await transaction.get(nameReference);
+      if (existingName.exists) {
+        throw StateError(
+          'Nama lokasi penelitian sudah digunakan oleh pengguna lain.',
+        );
+      }
+
+      final now = FieldValue.serverTimestamp();
+      transaction.set(locationReference, {
+        'ownerId': ownerId,
+        'ownerName': ownerName.trim(),
+        'name': normalizedName,
+        'nameKey': nameKey,
+        'researchDate': Timestamp.fromDate(researchDate),
+        'isPublic': isPublic,
+        'clusterCount': 0,
+        'clusterCodes': <String>[],
+        'createdAt': now,
+        'updatedAt': now,
+      });
+      transaction.set(nameReference, {
+        'locationId': locationReference.id,
+        'ownerId': ownerId,
+        'name': normalizedName,
+        'createdAt': now,
+      });
     });
   }
 
@@ -138,8 +160,34 @@ class CloudOwnedDataService {
     'updatedAt': FieldValue.serverTimestamp(),
   });
 
-  Future<void> deleteEmptyLocation(String locationId) =>
-      _locations.doc(locationId).delete();
+  Future<void> deleteEmptyLocation(String locationId) async {
+    final locationReference = _locations.doc(locationId);
+    await _firestore.runTransaction((transaction) async {
+      final location = await transaction.get(locationReference);
+      if (!location.exists) return;
+
+      final data = location.data();
+      final name = (data?['name'] as String?)?.trim() ?? '';
+      final storedNameKey = (data?['nameKey'] as String?)?.trim();
+      final nameKey =
+          storedNameKey?.isNotEmpty == true
+              ? storedNameKey!
+              : (name.isEmpty ? null : _locationNameKey(name));
+
+      DocumentSnapshot<Map<String, dynamic>>? nameReservation;
+      DocumentReference<Map<String, dynamic>>? nameReference;
+      if (nameKey != null) {
+        nameReference = _locationNames.doc(nameKey);
+        nameReservation = await transaction.get(nameReference);
+      }
+
+      transaction.delete(locationReference);
+      if (nameReference != null &&
+          nameReservation?.data()?['locationId'] == locationId) {
+        transaction.delete(nameReference);
+      }
+    });
+  }
 
   Stream<List<CloudOwnedCluster>> watchClusters(String locationId) {
     return _locations.doc(locationId).collection('clusters').snapshots().map((

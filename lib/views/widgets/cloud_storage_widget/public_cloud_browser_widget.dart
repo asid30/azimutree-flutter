@@ -1,5 +1,6 @@
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/services/cloud_public_data_service.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/rename_downloaded_cluster_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
@@ -24,6 +25,59 @@ class PublicCloudBrowserWidget extends StatefulWidget {
 class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
   final CloudPublicDataService _service = CloudPublicDataService();
   String _query = '';
+  String? _downloadingClusterId;
+
+  Future<void> _downloadCluster(
+    CloudResearchLocation location,
+    CloudClusterSummary cluster,
+  ) async {
+    if (_downloadingClusterId != null) return;
+
+    var localCode = cluster.code;
+    try {
+      if (await _service.localCodeExists(localCode)) {
+        if (!mounted) return;
+        final replacement = await showDialog<String>(
+          context: context,
+          builder:
+              (_) => RenameDownloadedClusterDialog(
+                initialCode: '${cluster.code} SALINAN',
+              ),
+        );
+        if (replacement == null || !mounted) return;
+        localCode = replacement;
+        if (await _service.localCodeExists(localCode)) {
+          if (mounted) {
+            await showAppWarning(
+              context,
+              'Kode klaster tersebut sudah digunakan.',
+            );
+          }
+          return;
+        }
+      }
+
+      if (!mounted) return;
+      setState(() => _downloadingClusterId = cluster.id);
+      await _service.downloadCluster(
+        locationId: location.id,
+        clusterId: cluster.id,
+        localCode: localCode,
+      );
+      if (mounted) {
+        await showAppSuccess(context, 'Klaster $localCode berhasil diunduh.');
+      }
+    } catch (_) {
+      if (mounted) {
+        await showAppError(
+          context,
+          'Klaster gagal diunduh. Periksa koneksi dan kelengkapan datanya.',
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _downloadingClusterId = null);
+    }
+  }
 
   bool _matchesLocation(CloudResearchLocation location) {
     final query = _query.trim().toLowerCase();
@@ -183,6 +237,8 @@ class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
     return Card(
       color: cardColor,
       child: ExpansionTile(
+        shape: const Border(),
+        collapsedShape: const Border(),
         leading: Icon(Icons.folder, color: foreground),
         iconColor: foreground,
         collapsedIconColor: foreground,
@@ -239,16 +295,24 @@ class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
                                 color: foreground.withValues(alpha: 0.75),
                               ),
                             ),
-                            trailing: Icon(
-                              Icons.download_outlined,
-                              color: foreground,
-                            ),
-                            onTap: () {
-                              showAppInfo(
-                                context,
-                                'Unduh klaster akan tersedia pada tahap berikutnya.',
-                              );
-                            },
+                            trailing:
+                                _downloadingClusterId == cluster.id
+                                    ? SizedBox(
+                                      width: 22,
+                                      height: 22,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        color: foreground,
+                                      ),
+                                    )
+                                    : Icon(
+                                      Icons.download_outlined,
+                                      color: foreground,
+                                    ),
+                            onTap:
+                                _downloadingClusterId == null
+                                    ? () => _downloadCluster(location, cluster)
+                                    : null,
                           ),
                         )
                         .toList(),

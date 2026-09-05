@@ -29,9 +29,6 @@ class CloudUserProfileService {
     if (normalized.length < 2 || normalized.length > 20) {
       return 'Nama harus terdiri dari 2 sampai 20 karakter.';
     }
-    if (normalized.toLowerCase().contains('admin')) {
-      return 'Nama tidak boleh mengandung kata “admin”.';
-    }
     return null;
   }
 

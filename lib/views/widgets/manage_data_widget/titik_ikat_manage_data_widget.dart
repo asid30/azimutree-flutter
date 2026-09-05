@@ -142,6 +142,8 @@ class TitikIkatManageDataWidget extends StatelessWidget {
                         margin: EdgeInsets.zero,
                         color: cardColor,
                         child: ExpansionTile(
+                          shape: const Border(),
+                          collapsedShape: const Border(),
                           iconColor: foreground,
                           collapsedIconColor: foreground,
                           leading: Icon(Icons.flag, color: foreground),

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:azimutree/services/cloud_owned_data_service.dart';
 
 class CloudResearchLocation {
   const CloudResearchLocation({
@@ -34,9 +35,26 @@ class CloudClusterSummary {
 
 class CloudPublicDataService {
   CloudPublicDataService({FirebaseFirestore? firestore})
-    : _firestore = firestore ?? FirebaseFirestore.instance;
+    : _firestore = firestore ?? FirebaseFirestore.instance,
+      _clusterStorage = CloudOwnedDataService(
+        firestore: firestore ?? FirebaseFirestore.instance,
+      );
 
   final FirebaseFirestore _firestore;
+  final CloudOwnedDataService _clusterStorage;
+
+  Future<bool> localCodeExists(String code) =>
+      _clusterStorage.localCodeExists(code);
+
+  Future<void> downloadCluster({
+    required String locationId,
+    required String clusterId,
+    required String localCode,
+  }) => _clusterStorage.downloadCluster(
+    locationId: locationId,
+    clusterId: clusterId,
+    localCode: localCode,
+  );
 
   Stream<List<CloudResearchLocation>> watchPublicLocations() {
     return _firestore
