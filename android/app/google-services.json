@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "1038623759812",
+    "project_id": "azimutree-256c9",
+    "storage_bucket": "azimutree-256c9.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1038623759812:android:f2c4a049483fc58ed99891",
+        "android_client_info": {
+          "package_name": "com.heavysnack.azimutree"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCORnK1TIkO9qr9g0AJ0hbm-kFsOiVsLtc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

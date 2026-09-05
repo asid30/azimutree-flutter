@@ -6,6 +6,7 @@ import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
 import 'package:azimutree/services/debug_data_service.dart';
 import 'package:azimutree/services/debug_mode_service.dart';
+import 'package:azimutree/services/cloud_connection_service.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
@@ -47,6 +48,7 @@ class _BottomsheetManageDataWidgetState
   final double _maxChildSize = 0.9;
   final double _minChildSize = 0.03;
   late final DebugDataService _debugDataService;
+  late final CloudConnectionService _cloudConnectionService;
   @override
   void initState() {
     super.initState();
@@ -64,6 +66,33 @@ class _BottomsheetManageDataWidgetState
       plotNotifier: widget.plotNotifier,
       treeNotifier: widget.treeNotifier,
       titikIkatNotifier: widget.titikIkatNotifier,
+    );
+    _cloudConnectionService = CloudConnectionService();
+  }
+
+  Future<void> _checkCloudConnection() async {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (_) => const PopScope(
+            canPop: false,
+            child: Center(child: CircularProgressIndicator()),
+          ),
+    );
+
+    final result = await _cloudConnectionService.checkConnection();
+    if (!mounted) return;
+    navigator.pop();
+
+    final isDark = !isLightModeNotifier.value;
+    await _showAlert(
+      title: result.isConnected ? 'Berhasil Terhubung' : 'Koneksi Gagal',
+      message: result.message,
+      backgroundColor:
+          result.isConnected ? Colors.lightGreen.shade200 : Colors.red.shade200,
+      textColor: isDark ? Colors.white : Colors.black,
     );
   }
 
@@ -480,16 +509,7 @@ class _BottomsheetManageDataWidgetState
                                   ? const Color.fromARGB(255, 18, 43, 25)
                                   : const Color.fromARGB(255, 32, 72, 43),
                           onPressed: () {
-                            _showAlert(
-                              title: 'Penyimpanan Awan',
-                              message:
-                                  'Integrasi penyimpanan awan akan tersedia pada tahap berikutnya.',
-                              backgroundColor:
-                                  isDark
-                                      ? const Color.fromARGB(255, 32, 72, 43)
-                                      : Colors.lightGreen.shade200,
-                              textColor: isDark ? Colors.white : Colors.black,
-                            );
+                            _checkCloudConnection();
                           },
                         ),
                       ],
