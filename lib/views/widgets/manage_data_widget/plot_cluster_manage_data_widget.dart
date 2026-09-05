@@ -456,6 +456,7 @@ class _PlotClusterManageDataWidgetState
     // Tracking opens a new map; keeping its default zoom makes the movement
     // appear to have failed.
     preserveZoomOnNextCenterNotifier.value = false;
+    isMapTrackingRequestPendingNotifier.value = true;
     selectedPlotNotifier.value = plot;
     for (final cluster in widget.clustersData) {
       if (cluster.id == plot.idCluster) {

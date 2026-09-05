@@ -354,6 +354,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
     // Tracking opens a new map, so use the map's tracking zoom instead of
     // preserving the new page's broad default zoom.
     preserveZoomOnNextCenterNotifier.value = false;
+    isMapTrackingRequestPendingNotifier.value = true;
     // Make the tree the selected tree so the map will render it as active
     // and trigger the dashed connection to the plot center.
     selectedTreeNotifier.value = tree;

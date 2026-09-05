@@ -288,6 +288,32 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     }
   }
 
+  Future<void> _applyPendingTrackingRequest() async {
+    if (!isMapTrackingRequestPendingNotifier.value || _mapboxMap == null) {
+      return;
+    }
+    final target = selectedLocationNotifier.value;
+    if (target == null) {
+      isMapTrackingRequestPendingNotifier.value = false;
+      return;
+    }
+
+    try {
+      await _mapboxMap!.easeTo(
+        CameraOptions(center: Point(coordinates: target), zoom: 17),
+        MapAnimationOptions(duration: 700),
+      );
+      _currentZoom = 17;
+      bottomsheetMinimizeRequestNotifier.value++;
+    } catch (_) {
+      // The target remains selected even if Mapbox rejects the animation.
+      // The initial viewport above already points to the same coordinate.
+    } finally {
+      isMapTrackingRequestPendingNotifier.value = false;
+      preserveZoomOnNextCenterNotifier.value = false;
+    }
+  }
+
   void _resetBearingToNorth() {
     if (!mounted) return;
     if (_mapboxMap == null) return;
@@ -312,14 +338,19 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             MapWidget(
               onMapCreated: (map) {
                 _mapboxMap = map;
-                // Initial zoom matches the MapWidget viewport below.
-                _currentZoom = 10.0;
+                final trackingTarget =
+                    isMapTrackingRequestPendingNotifier.value
+                        ? selectedLocationNotifier.value
+                        : null;
+                _currentZoom = trackingTarget == null ? 10.0 : 17.0;
                 final style =
                     // Use satellite as the default for menu index 0
                     selectedMenuBottomSheetNotifier.value == 0
                         ? _sateliteStyleUri
                         : _standardStyleUri;
-                _applyStyleAndMarkers(style);
+                _applyStyleAndMarkers(style).then((_) {
+                  if (mounted) _applyPendingTrackingRequest();
+                });
                 _enableUserLocationPuck();
                 // Hide the native Mapbox compass so it won't overlap marker
                 // info on some devices (we keep a small right gap too).
@@ -332,9 +363,11 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                   }
                 } catch (_) {}
                 // Keep the Mapbox built-in compass enabled (use default UI).
-                // If a target location was set before the map was created
-                // (e.g., via "Tracking Data"), center the camera immediately.
-                _onLocationChanged();
+                // Non-tracking selections can still use the regular centering
+                // path. Tracking waits until the style is ready above.
+                if (!isMapTrackingRequestPendingNotifier.value) {
+                  _onLocationChanged();
+                }
               },
               styleUri:
                   // Show satellite by default when bottom sheet menu index is 0
@@ -342,12 +375,18 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                       ? _sateliteStyleUri
                       : _standardStyleUri,
               viewport: CameraViewportState(
-                // Center the initial camera on Bandar Lampung (Lampung province)
                 center: Point(
-                  // Longitude, Latitude for Bandar Lampung
-                  coordinates: Position(105.2626, -5.4297),
+                  coordinates:
+                      isMapTrackingRequestPendingNotifier.value &&
+                              selectedLocationNotifier.value != null
+                          ? selectedLocationNotifier.value!
+                          : Position(105.2626, -5.4297),
                 ),
-                zoom: 10,
+                zoom:
+                    isMapTrackingRequestPendingNotifier.value &&
+                            selectedLocationNotifier.value != null
+                        ? 17
+                        : 10,
               ),
             ),
             // Fullscreen listener that captures pointer ups. We purposely do

@@ -54,6 +54,7 @@ class TitikIkatManageDataWidget extends StatelessWidget {
     isFollowingUserLocationNotifier.value = false;
     // Let the newly opened map apply its tracking zoom.
     preserveZoomOnNextCenterNotifier.value = false;
+    isMapTrackingRequestPendingNotifier.value = true;
     selectedTitikIkatNotifier.value = titikIkat;
     selectedTitikIkatClusterNotifier.value = cluster;
     selectedLocationNotifier.value = Position(
