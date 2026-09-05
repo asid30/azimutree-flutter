@@ -42,6 +42,13 @@ class SuggestionBodyWidget extends StatelessWidget {
               title: Text(place["name"] ?? ""),
               subtitle: Text("${place["longitude"]} ${place["latitude"]}"),
               onTap: () async {
+                // A selected result ends the search interaction. Release the
+                // real FocusNode as well as the shared focus state so the
+                // keyboard cannot reappear when Map Tools is opened later.
+                FocusScope.of(context).unfocus();
+                isSearchFieldFocusedNotifier.value = false;
+                bottomsheetMinimizeRequestNotifier.value =
+                    bottomsheetMinimizeRequestNotifier.value + 1;
                 logger.i(
                   "Selected place: $place\n${place["longitude"]} ${place["latitude"]}",
                 );

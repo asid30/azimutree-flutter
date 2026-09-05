@@ -48,6 +48,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   late final VoidCallback _styleListener;
   late final VoidCallback _northResetListener;
   late final VoidCallback _selectedTreeListener;
+  late final VoidCallback _selectedPlotListener;
   late final VoidCallback _inspectedListener;
   late final VoidCallback _inspectionToggleListener;
   late final VoidCallback _userLocationListener;
@@ -213,11 +214,12 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     isInspectionWorkflowEnabledNotifier.addListener(_inspectionToggleListener);
 
     // React to plot selection (marker taps).
-    selectedPlotNotifier.addListener(() {
+    _selectedPlotListener = () {
       if (!mounted) return;
       if (_mapboxMap != null) _loadMarkers();
       _updateConnectionForSelectedPlot();
-    });
+    };
+    selectedPlotNotifier.addListener(_selectedPlotListener);
 
     _northResetListener = () {
       _resetBearingToNorth();
@@ -227,12 +229,14 @@ class _MapboxWidgetState extends State<MapboxWidget> {
 
   @override
   void dispose() {
+    _holdTimer?.cancel();
     _markerSizeDebounce?.cancel();
     selectedMenuBottomSheetNotifier.removeListener(_styleListener);
     selectedLocationNotifier.removeListener(_onLocationChanged);
     northResetRequestNotifier.removeListener(_northResetListener);
     userLocationNotifier.removeListener(_userLocationListener);
     selectedTreeNotifier.removeListener(_selectedTreeListener);
+    selectedPlotNotifier.removeListener(_selectedPlotListener);
     inspectedTreeIdsNotifier.removeListener(_inspectedListener);
     isInspectionWorkflowEnabledNotifier.removeListener(
       _inspectionToggleListener,

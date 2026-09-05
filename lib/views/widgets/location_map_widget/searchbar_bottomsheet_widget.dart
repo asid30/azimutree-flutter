@@ -17,6 +17,8 @@ class _SearchbarBottomsheetWidgetState
   late final TextEditingController _searchController;
   late final DebouncerService _debouncer;
   late final FocusNode _focusNode;
+  late final VoidCallback _focusListener;
+  late final VoidCallback _externalFocusListener;
 
   @override
   void initState() {
@@ -24,16 +26,24 @@ class _SearchbarBottomsheetWidgetState
     _searchController = TextEditingController();
     _debouncer = DebouncerService(delay: Duration(seconds: 1));
     _focusNode = FocusNode();
-    _focusNode.addListener(() {
+    _focusListener = () {
       isSearchFieldFocusedNotifier.value = _focusNode.hasFocus;
-    });
+    };
+    _externalFocusListener = () {
+      if (!isSearchFieldFocusedNotifier.value && _focusNode.hasFocus) {
+        _focusNode.unfocus();
+      }
+    };
+    _focusNode.addListener(_focusListener);
+    isSearchFieldFocusedNotifier.addListener(_externalFocusListener);
   }
 
   @override
   void dispose() {
     _searchController.dispose();
     _debouncer.dispose();
-    _focusNode.removeListener(() {});
+    isSearchFieldFocusedNotifier.removeListener(_externalFocusListener);
+    _focusNode.removeListener(_focusListener);
     _focusNode.dispose();
     super.dispose();
   }
