@@ -7,6 +7,11 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    match /appVersions/{versionId} {
+      allow read: if resource.data.isPublished == true;
+      allow write: if false;
+    }
+
     match /users/{userId} {
       allow read: if request.auth != null && request.auth.uid == userId;
 

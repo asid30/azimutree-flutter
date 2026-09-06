@@ -16,6 +16,26 @@ class SidebarWidget extends StatelessWidget {
   }
 
   Future<void> _selectCloudStorage(BuildContext context) async {
+    await _selectFirebasePage(
+      context,
+      page: 'cloud_storage_page',
+      loadingMessage: 'Memeriksa layanan awan...',
+    );
+  }
+
+  Future<void> _selectAppVersions(BuildContext context) async {
+    await _selectFirebasePage(
+      context,
+      page: 'app_version_page',
+      loadingMessage: 'Memeriksa layanan versi...',
+    );
+  }
+
+  Future<void> _selectFirebasePage(
+    BuildContext context, {
+    required String page,
+    required String loadingMessage,
+  }) async {
     final navigator = Navigator.of(context);
     navigator.pop();
     await Future<void>.delayed(Duration.zero);
@@ -24,8 +44,7 @@ class SidebarWidget extends StatelessWidget {
     final loadingDialog = showDialog<void>(
       context: navigator.context,
       barrierDismissible: false,
-      builder:
-          (_) => const AlertLoadingWidget(message: 'Memeriksa layanan awan...'),
+      builder: (_) => AlertLoadingWidget(message: loadingMessage),
     );
     final result = await CloudConnectionService().checkConnection();
     if (!navigator.mounted) return;
@@ -50,8 +69,8 @@ class SidebarWidget extends StatelessWidget {
     );
     if (!result.isConnected || !navigator.mounted) return;
 
-    selectedPageNotifier.value = 'cloud_storage_page';
-    navigator.pushReplacementNamed('cloud_storage_page');
+    selectedPageNotifier.value = page;
+    navigator.pushReplacementNamed(page);
   }
 
   @override
@@ -139,7 +158,7 @@ class SidebarWidget extends StatelessWidget {
                               color: isDark ? Colors.white70 : null,
                             ),
                             title: Text(
-                              'Data Klaster',
+                              'Data Klaster Plot',
                               style: TextStyle(
                                 color: isDark ? Colors.white : null,
                               ),
@@ -226,6 +245,18 @@ class SidebarWidget extends StatelessWidget {
                         style: TextStyle(color: isDark ? Colors.white : null),
                       ),
                       onTap: () => _selectPage(context, 'about_page'),
+                    ),
+
+                    ListTile(
+                      leading: Icon(
+                        Icons.new_releases,
+                        color: isDark ? Colors.white : null,
+                      ),
+                      title: Text(
+                        'Versi Aplikasi',
+                        style: TextStyle(color: isDark ? Colors.white : null),
+                      ),
+                      onTap: () => _selectAppVersions(context),
                     ),
 
                     Divider(

@@ -1,4 +1,5 @@
 import 'package:azimutree/views/pages/about_page.dart';
+import 'package:azimutree/views/pages/app_version_page.dart';
 import 'package:azimutree/views/pages/cloud_storage_page.dart';
 import 'package:azimutree/views/pages/home_page.dart';
 import 'package:azimutree/views/pages/location_map_page.dart';
@@ -131,6 +132,11 @@ class _MainAppState extends State<MainApp> {
             );
           case 'about_page':
             return _buildFadeTransitionPageRoute(const AboutPage(), settings);
+          case 'app_version_page':
+            return _buildFadeTransitionPageRoute(
+              const AppVersionPage(),
+              settings,
+            );
           default:
             return _buildPageRoute(const HomePage(), settings);
         }
