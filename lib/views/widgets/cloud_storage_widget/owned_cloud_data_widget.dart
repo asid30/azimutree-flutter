@@ -26,9 +26,15 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
   final CloudOwnedDataService _service = CloudOwnedDataService();
   final Set<String> _expandedLocationIds = <String>{};
   bool _isProcessing = false;
+  String _query = '';
 
   String _date(DateTime? value) =>
       value == null ? '-' : DateFormat('dd-MM-yyyy').format(value);
+
+  bool _matchesLocation(CloudOwnedResearchLocation location) {
+    final query = _query.trim().toLowerCase();
+    return query.isEmpty || location.name.toLowerCase().contains(query);
+  }
 
   Future<void> _createLocation() async {
     final result =
@@ -288,6 +294,26 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
                 const LinearProgressIndicator(),
               ],
               const SizedBox(height: 12),
+              TextField(
+                onChanged: (value) => setState(() => _query = value),
+                onTapOutside: (_) => FocusScope.of(context).unfocus(),
+                textInputAction: TextInputAction.search,
+                style: TextStyle(color: foreground),
+                decoration: InputDecoration(
+                  hintText: 'Cari nama lokasi penelitian',
+                  hintStyle: TextStyle(
+                    color: foreground.withValues(alpha: 0.65),
+                  ),
+                  prefixIcon: Icon(Icons.search, color: foreground),
+                  filled: true,
+                  fillColor: cardColor,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
               Expanded(
                 child: StreamBuilder<List<CloudOwnedResearchLocation>>(
                   stream: _service.watchLocations(widget.user.uid),
@@ -302,15 +328,20 @@ class _OwnedCloudDataWidgetState extends State<OwnedCloudDataWidget> {
                     if (!snapshot.hasData) {
                       return const Center(child: CircularProgressIndicator());
                     }
-                    final locations = snapshot.data!;
+                    final locations =
+                        snapshot.data!.where(_matchesLocation).toList();
                     if (locations.isEmpty) {
                       return _message(
-                        'Belum ada lokasi penelitian. Buat folder pertama Anda.',
+                        _query.trim().isEmpty
+                            ? 'Belum ada lokasi penelitian. Buat folder pertama Anda.'
+                            : 'Tidak ada lokasi yang cocok dengan pencarian.',
                         cardColor,
                         foreground,
                       );
                     }
                     return ListView.builder(
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
                       itemCount: locations.length,
                       itemBuilder: (context, index) {
                         final location = locations[index];

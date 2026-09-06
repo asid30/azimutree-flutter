@@ -4,6 +4,7 @@ import 'package:azimutree/views/widgets/alert_dialog_widget/rename_downloaded_cl
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PublicCloudBrowserWidget extends StatefulWidget {
   const PublicCloudBrowserWidget({
@@ -23,10 +24,32 @@ class PublicCloudBrowserWidget extends StatefulWidget {
 }
 
 class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
+  static const _hideEmptyLocationsKey =
+      'cloud_public_hide_empty_research_locations';
+
   final CloudPublicDataService _service = CloudPublicDataService();
   final Set<String> _expandedLocationIds = <String>{};
   String _query = '';
+  bool _hideEmptyLocations = true;
   String? _downloadingClusterId;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHideEmptyPreference();
+  }
+
+  Future<void> _loadHideEmptyPreference() async {
+    final preferences = await SharedPreferences.getInstance();
+    final value = preferences.getBool(_hideEmptyLocationsKey) ?? true;
+    if (mounted) setState(() => _hideEmptyLocations = value);
+  }
+
+  Future<void> _setHideEmptyLocations(bool value) async {
+    setState(() => _hideEmptyLocations = value);
+    final preferences = await SharedPreferences.getInstance();
+    await preferences.setBool(_hideEmptyLocationsKey, value);
+  }
 
   Future<void> _downloadCluster(
     CloudResearchLocation location,
@@ -84,16 +107,7 @@ class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
   bool _matchesLocation(CloudResearchLocation location) {
     final query = _query.trim().toLowerCase();
     if (query.isEmpty) return true;
-    return location.name.toLowerCase().contains(query) ||
-        location.ownerName.toLowerCase().contains(query) ||
-        location.clusterCodes.any((code) => code.toLowerCase().contains(query));
-  }
-
-  bool _matchesCluster(CloudClusterSummary cluster) {
-    final query = _query.trim().toLowerCase();
-    if (query.isEmpty) return true;
-    return cluster.code.toLowerCase().contains(query) ||
-        cluster.surveyorName.toLowerCase().contains(query);
+    return location.name.toLowerCase().contains(query);
   }
 
   String _date(DateTime? value) =>
@@ -132,7 +146,7 @@ class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
                         ),
                         const SizedBox(height: 3),
                         Text(
-                          'Cari lokasi penelitian, pemilik, atau klaster.',
+                          'Cari berdasarkan nama lokasi penelitian.',
                           style: TextStyle(
                             color: foreground.withValues(alpha: 0.8),
                           ),
@@ -161,7 +175,7 @@ class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
                 textInputAction: TextInputAction.search,
                 style: TextStyle(color: foreground),
                 decoration: InputDecoration(
-                  hintText: 'Cari lokasi, pemilik, atau klaster',
+                  hintText: 'Cari nama lokasi penelitian',
                   hintStyle: TextStyle(
                     color: foreground.withValues(alpha: 0.65),
                   ),
@@ -174,6 +188,25 @@ class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
                   ),
                 ),
               ),
+              Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Sembunyikan folder kosong',
+                      style: TextStyle(color: foreground, fontSize: 13),
+                    ),
+                  ),
+                  Transform.scale(
+                    scale: 0.8,
+                    child: Switch(
+                      value: _hideEmptyLocations,
+                      onChanged: _setHideEmptyLocations,
+                      activeTrackColor: const Color(0xFF1F4226),
+                      activeThumbColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
               const SizedBox(height: 12),
               Expanded(
                 child: StreamBuilder<List<CloudResearchLocation>>(
@@ -181,7 +214,12 @@ class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
                   builder: (context, snapshot) {
                     final locations =
                         (snapshot.data ?? const <CloudResearchLocation>[])
-                            .where(_matchesLocation)
+                            .where(
+                              (location) =>
+                                  _matchesLocation(location) &&
+                                  (!_hideEmptyLocations ||
+                                      location.clusterCount > 0),
+                            )
                             .toList();
                     if (snapshot.hasError) {
                       return ListView(
@@ -282,12 +320,12 @@ class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
                   child: CircularProgressIndicator(),
                 );
               }
-              final clusters = snapshot.data!.where(_matchesCluster).toList();
+              final clusters = snapshot.data!;
               if (clusters.isEmpty) {
                 return Padding(
                   padding: const EdgeInsets.all(12),
                   child: Text(
-                    'Tidak ada klaster yang cocok.',
+                    'Belum ada klaster pada lokasi ini.',
                     style: TextStyle(color: foreground),
                   ),
                 );
