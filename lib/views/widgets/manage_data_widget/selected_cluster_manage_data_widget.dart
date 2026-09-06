@@ -10,6 +10,7 @@ import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_cluster_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 
 class SelectedClusterManageDataWidget extends StatelessWidget {
   final List<ClusterModel> clustersData;
@@ -365,9 +366,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
         clusters.isNotEmpty ? clusters.first.kodeCluster : null;
 
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Klaster dihapus")));
+      await showAppSuccess(context, 'Klaster berhasil dihapus.');
     }
   }
 }

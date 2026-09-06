@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 
 class AlertConfirmationWidget extends StatelessWidget {
   final String title;
@@ -54,11 +55,7 @@ class AlertConfirmationWidget extends StatelessWidget {
                       tooltip: 'Salin tautan',
                       onPressed: () {
                         Clipboard.setData(ClipboardData(text: copyableLink!));
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Tautan disalin ke clipboard'),
-                          ),
-                        );
+                        showAppSuccess(context, 'Tautan disalin ke clipboard.');
                       },
                       icon: Icon(Icons.copy, color: textColor),
                     ),

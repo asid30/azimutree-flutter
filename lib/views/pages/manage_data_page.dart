@@ -26,23 +26,34 @@ class _ManageDataPageState extends State<ManageDataPage> {
   late final TreeNotifier treeNotifier;
   late final TitikIkatNotifier titikIkatNotifier;
   late final DraggableScrollableController _draggableController;
+  late final VoidCallback _localDataRevisionListener;
 
   @override
   void initState() {
     super.initState();
+    selectedPageNotifier.value = 'manage_data_page';
     clusterNotifier = ClusterNotifier();
     plotNotifier = PlotNotifier();
     treeNotifier = TreeNotifier();
     titikIkatNotifier = TitikIkatNotifier();
     _draggableController = DraggableScrollableController();
-    clusterNotifier.loadClusters();
-    plotNotifier.loadPlots();
-    treeNotifier.loadTrees();
-    titikIkatNotifier.loadTitikIkat();
+    _localDataRevisionListener = _reloadLocalData;
+    localDataRevisionNotifier.addListener(_localDataRevisionListener);
+    _reloadLocalData();
+  }
+
+  Future<void> _reloadLocalData() async {
+    await Future.wait([
+      clusterNotifier.loadClusters(),
+      plotNotifier.loadPlots(),
+      treeNotifier.loadTrees(),
+      titikIkatNotifier.loadTitikIkat(),
+    ]);
   }
 
   @override
   void dispose() {
+    localDataRevisionNotifier.removeListener(_localDataRevisionListener);
     clusterNotifier.dispose();
     plotNotifier.dispose();
     treeNotifier.dispose();

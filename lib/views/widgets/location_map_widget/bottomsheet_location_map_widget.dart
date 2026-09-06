@@ -10,6 +10,7 @@ import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'dart:math' as math;
 import 'dart:async';
 import 'package:geolocator/geolocator.dart' as geo;
@@ -530,13 +531,10 @@ class _BottomsheetLocationMapWidgetState
     final enabled = await geo.Geolocator.isLocationServiceEnabled();
     if (!enabled) {
       if (!context.mounted) return false;
-      await showDialog(
-        context: context,
-        builder:
-            (_) => const AlertDialog(
-              title: Text('Lokasi tidak aktif'),
-              content: Text('Aktifkan layanan lokasi (GPS) untuk melanjutkan.'),
-            ),
+      await showAppWarning(
+        context,
+        'Aktifkan layanan lokasi (GPS) untuk melanjutkan.',
+        title: 'Lokasi tidak aktif',
       );
       return false;
     }
@@ -549,15 +547,10 @@ class _BottomsheetLocationMapWidgetState
 
     if (permission == geo.LocationPermission.deniedForever) {
       if (!context.mounted) return false;
-      await showDialog(
-        context: context,
-        builder:
-            (_) => const AlertDialog(
-              title: Text('Izin lokasi ditolak'),
-              content: Text(
-                'Perbolehkan akses lokasi pada pengaturan aplikasi.',
-              ),
-            ),
+      await showAppWarning(
+        context,
+        'Perbolehkan akses lokasi pada pengaturan aplikasi.',
+        title: 'Izin lokasi ditolak',
       );
       return false;
     }

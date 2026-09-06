@@ -48,6 +48,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   late final VoidCallback _styleListener;
   late final VoidCallback _northResetListener;
   late final VoidCallback _selectedTreeListener;
+  late final VoidCallback _selectedPlotListener;
   late final VoidCallback _inspectedListener;
   late final VoidCallback _inspectionToggleListener;
   late final VoidCallback _userLocationListener;
@@ -67,6 +68,9 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   Timer? _markerSizeDebounce;
   // Whether a long-press was recognized for the current pointer sequence.
   bool _longPressRecognized = false;
+
+  MbxEdgeInsets get _cameraPadding =>
+      MbxEdgeInsets(top: 0, left: 0, bottom: 0, right: 0);
 
   @override
   void initState() {
@@ -103,7 +107,11 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           _mapboxMap != null &&
           isFollowingUserLocationNotifier.value) {
         _mapboxMap!.easeTo(
-          CameraOptions(center: Point(coordinates: pos), zoom: 14),
+          CameraOptions(
+            center: Point(coordinates: pos),
+            padding: _cameraPadding,
+            zoom: 14,
+          ),
           MapAnimationOptions(duration: 800),
         );
         _currentZoom = 14.0;
@@ -213,11 +221,12 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     isInspectionWorkflowEnabledNotifier.addListener(_inspectionToggleListener);
 
     // React to plot selection (marker taps).
-    selectedPlotNotifier.addListener(() {
+    _selectedPlotListener = () {
       if (!mounted) return;
       if (_mapboxMap != null) _loadMarkers();
       _updateConnectionForSelectedPlot();
-    });
+    };
+    selectedPlotNotifier.addListener(_selectedPlotListener);
 
     _northResetListener = () {
       _resetBearingToNorth();
@@ -227,12 +236,14 @@ class _MapboxWidgetState extends State<MapboxWidget> {
 
   @override
   void dispose() {
+    _holdTimer?.cancel();
     _markerSizeDebounce?.cancel();
     selectedMenuBottomSheetNotifier.removeListener(_styleListener);
     selectedLocationNotifier.removeListener(_onLocationChanged);
     northResetRequestNotifier.removeListener(_northResetListener);
     userLocationNotifier.removeListener(_userLocationListener);
     selectedTreeNotifier.removeListener(_selectedTreeListener);
+    selectedPlotNotifier.removeListener(_selectedPlotListener);
     inspectedTreeIdsNotifier.removeListener(_inspectedListener);
     isInspectionWorkflowEnabledNotifier.removeListener(
       _inspectionToggleListener,
@@ -257,14 +268,21 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       // don't supply a zoom value so the map keeps its current zoom level.
       if (preserveZoomOnNextCenterNotifier.value) {
         _mapboxMap!.easeTo(
-          CameraOptions(center: Point(coordinates: pos)),
+          CameraOptions(
+            center: Point(coordinates: pos),
+            padding: _cameraPadding,
+          ),
           MapAnimationOptions(duration: follow ? 800 : 1500),
         );
         // Reset the flag after applying
         preserveZoomOnNextCenterNotifier.value = false;
       } else {
         _mapboxMap!.easeTo(
-          CameraOptions(center: Point(coordinates: pos), zoom: 14),
+          CameraOptions(
+            center: Point(coordinates: pos),
+            padding: _cameraPadding,
+            zoom: 14,
+          ),
           MapAnimationOptions(duration: follow ? 800 : 1500),
         );
         _currentZoom = 14.0;
@@ -281,6 +299,36 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         // Ensure any previous search result marker is removed.
         _removeSearchResultMarker();
       }
+    }
+  }
+
+  Future<void> _applyPendingTrackingRequest() async {
+    if (!isMapTrackingRequestPendingNotifier.value || _mapboxMap == null) {
+      return;
+    }
+    final target = selectedLocationNotifier.value;
+    if (target == null) {
+      isMapTrackingRequestPendingNotifier.value = false;
+      return;
+    }
+
+    try {
+      await _mapboxMap!.easeTo(
+        CameraOptions(
+          center: Point(coordinates: target),
+          padding: _cameraPadding,
+          zoom: 17,
+        ),
+        MapAnimationOptions(duration: 700),
+      );
+      _currentZoom = 17;
+      bottomsheetMinimizeRequestNotifier.value++;
+    } catch (_) {
+      // The target remains selected even if Mapbox rejects the animation.
+      // The initial viewport above already points to the same coordinate.
+    } finally {
+      isMapTrackingRequestPendingNotifier.value = false;
+      preserveZoomOnNextCenterNotifier.value = false;
     }
   }
 
@@ -306,31 +354,30 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         return Stack(
           children: [
             MapWidget(
-              onMapCreated: (map) {
+              onMapCreated: (map) async {
                 _mapboxMap = map;
-                // Initial zoom matches the MapWidget viewport below.
-                _currentZoom = 10.0;
+                final trackingTarget =
+                    isMapTrackingRequestPendingNotifier.value
+                        ? selectedLocationNotifier.value
+                        : null;
+                _currentZoom = trackingTarget == null ? 10.0 : 17.0;
                 final style =
                     // Use satellite as the default for menu index 0
                     selectedMenuBottomSheetNotifier.value == 0
                         ? _sateliteStyleUri
                         : _standardStyleUri;
-                _applyStyleAndMarkers(style);
+                _applyStyleAndMarkers(style).then((_) {
+                  if (mounted) _applyPendingTrackingRequest();
+                });
                 _enableUserLocationPuck();
-                // Hide the native Mapbox compass so it won't overlap marker
-                // info on some devices (we keep a small right gap too).
-                try {
-                  final dyn = _mapboxMap as dynamic;
-                  try {
-                    dyn.uiSettings?.setCompassEnabled(false);
-                  } catch (_) {
-                    dyn.setCompassEnabled?.call(false);
-                  }
-                } catch (_) {}
-                // Keep the Mapbox built-in compass enabled (use default UI).
-                // If a target location was set before the map was created
-                // (e.g., via "Tracking Data"), center the camera immediately.
-                _onLocationChanged();
+                await map.compass.updateSettings(
+                  CompassSettings(enabled: false),
+                );
+                // Non-tracking selections can still use the regular centering
+                // path. Tracking waits until the style is ready above.
+                if (!isMapTrackingRequestPendingNotifier.value) {
+                  _onLocationChanged();
+                }
               },
               styleUri:
                   // Show satellite by default when bottom sheet menu index is 0
@@ -338,12 +385,19 @@ class _MapboxWidgetState extends State<MapboxWidget> {
                       ? _sateliteStyleUri
                       : _standardStyleUri,
               viewport: CameraViewportState(
-                // Center the initial camera on Bandar Lampung (Lampung province)
                 center: Point(
-                  // Longitude, Latitude for Bandar Lampung
-                  coordinates: Position(105.2626, -5.4297),
+                  coordinates:
+                      isMapTrackingRequestPendingNotifier.value &&
+                              selectedLocationNotifier.value != null
+                          ? selectedLocationNotifier.value!
+                          : Position(105.2626, -5.4297),
                 ),
-                zoom: 10,
+                zoom:
+                    isMapTrackingRequestPendingNotifier.value &&
+                            selectedLocationNotifier.value != null
+                        ? 17
+                        : 10,
+                padding: EdgeInsets.zero,
               ),
             ),
             // Fullscreen listener that captures pointer ups. We purposely do

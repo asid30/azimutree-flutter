@@ -1,6 +1,7 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_loading_widget.dart';
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/services/excel_export_service.dart';
@@ -251,11 +252,8 @@ class _DialogExportDataWidgetState extends State<DialogExportDataWidget> {
                           context: context,
                           barrierDismissible: false,
                           builder:
-                              (_) => const PopScope(
-                                canPop: false,
-                                child: Center(
-                                  child: CircularProgressIndicator(),
-                                ),
+                              (_) => const AlertLoadingWidget(
+                                message: 'Mengekspor data...',
                               ),
                         );
                         try {

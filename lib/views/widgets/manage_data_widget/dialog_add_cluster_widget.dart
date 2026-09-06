@@ -5,6 +5,7 @@ import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
 import 'package:azimutree/views/widgets/location_map_widget/coordinate_picker_page.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 
 class DialogAddClusterWidget extends StatefulWidget {
   final ClusterNotifier clusterNotifier;
@@ -138,10 +139,9 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
 
     if (hasDuplicate) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Kode klaster sudah ada. Gunakan kode lain.'),
-        ),
+      await showAppWarning(
+        context,
+        'Kode klaster sudah ada. Gunakan kode lain.',
       );
       return;
     }
@@ -482,7 +482,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                     signed: true,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Altitude Titik Ikat (opsional)',
+                    labelText: 'Ketinggian Titik Ikat (m, opsional)',
                     labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
                     enabledBorder: OutlineInputBorder(

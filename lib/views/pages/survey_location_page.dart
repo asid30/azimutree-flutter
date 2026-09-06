@@ -327,8 +327,25 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
             : const Color.fromARGB(245, 220, 238, 223);
     if (_loading) return const Center(child: CircularProgressIndicator());
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       children: [
+        Row(
+          children: [
+            BackButton(
+              color: foreground,
+              onPressed: () {
+                selectedPageNotifier.value = 'home';
+                Navigator.pushNamedAndRemoveUntil(
+                  context,
+                  'home',
+                  (_) => false,
+                );
+              },
+            ),
+            Text('Kembali', style: TextStyle(fontSize: 18, color: foreground)),
+          ],
+        ),
+        const SizedBox(height: 8),
         Text(
           'Pilih Klaster',
           style: TextStyle(color: foreground, fontSize: 16),

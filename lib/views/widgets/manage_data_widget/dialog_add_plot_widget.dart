@@ -3,9 +3,11 @@ import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
+import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/services/azimuth_latlong_service.dart';
 import 'package:azimutree/views/widgets/location_map_widget/coordinate_picker_page.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'package:flutter/services.dart';
 
 class _CommaToDotNoSpaceFormatter extends TextInputFormatter {
@@ -46,6 +48,7 @@ class _PlotReference {
 
 class DialogAddPlotWidget extends StatefulWidget {
   final PlotNotifier plotNotifier;
+  final TreeNotifier? treeNotifier;
   final List<ClusterModel> clusters;
   final List<TitikIkatModel> titikIkat;
   final PlotModel? plot;
@@ -53,6 +56,7 @@ class DialogAddPlotWidget extends StatefulWidget {
   const DialogAddPlotWidget({
     super.key,
     required this.plotNotifier,
+    this.treeNotifier,
     required this.clusters,
     required this.titikIkat,
     this.plot,
@@ -272,9 +276,7 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
     );
     if (duplicate) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Kode plot sudah digunakan.')),
-      );
+      await showAppWarning(context, 'Kode plot sudah digunakan.');
       return;
     }
 
@@ -291,6 +293,7 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
       await widget.plotNotifier.addPlot(result);
     } else {
       await widget.plotNotifier.updatePlot(result);
+      await widget.treeNotifier?.loadTrees();
     }
     if (mounted) Navigator.of(context).pop(result);
   }
@@ -595,7 +598,7 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
                 const SizedBox(height: 10),
                 _numberField(
                   _altitudeController,
-                  'Altitude (opsional)',
+                  'Ketinggian (m, opsional)',
                   isDark,
                   signed: true,
                 ),

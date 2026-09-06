@@ -194,7 +194,7 @@ class TutorialPage extends StatelessWidget {
                                       'opsi tidak dapat dipilih.\n'
                                       '3. Masukkan Lintang.\n'
                                       '4. Masukkan Bujur.\n'
-                                      '5. Masukkan Altitude (opsional).',
+                                      '5. Masukkan Ketinggian (opsional).',
                                     ),
 
                                     const SizedBox(height: 8),
@@ -206,7 +206,7 @@ class TutorialPage extends StatelessWidget {
                                       '   • Azimut & Jarak, atau\n'
                                       '   • Koordinat Bebas (Lintang & Bujur).\n'
                                       '   (Hanya bisa memilih salah satu).\n'
-                                      '4. Masukkan Altitude (opsional).\n'
+                                      '4. Masukkan Ketinggian (opsional).\n'
                                       '5. Masukkan Kode Pohon (gunakan angka).\n'
                                       '6. Masukkan Nama Pohon.\n'
                                       '7. Masukkan Nama Ilmiah.\n'

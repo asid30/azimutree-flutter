@@ -1,5 +1,9 @@
 import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:azimutree/services/cloud_connection_service.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_loading_widget.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class SidebarWidget extends StatelessWidget {
@@ -9,6 +13,64 @@ class SidebarWidget extends StatelessWidget {
     selectedPageNotifier.value = page;
     Navigator.pop(context);
     Navigator.popAndPushNamed(context, page);
+  }
+
+  Future<void> _selectCloudStorage(BuildContext context) async {
+    await _selectFirebasePage(
+      context,
+      page: 'cloud_storage_page',
+      loadingMessage: 'Memeriksa layanan awan...',
+    );
+  }
+
+  Future<void> _selectAppVersions(BuildContext context) async {
+    await _selectFirebasePage(
+      context,
+      page: 'app_version_page',
+      loadingMessage: 'Memeriksa layanan versi...',
+    );
+  }
+
+  Future<void> _selectFirebasePage(
+    BuildContext context, {
+    required String page,
+    required String loadingMessage,
+  }) async {
+    final navigator = Navigator.of(context);
+    navigator.pop();
+    await Future<void>.delayed(Duration.zero);
+    if (!navigator.mounted) return;
+
+    final loadingDialog = showDialog<void>(
+      context: navigator.context,
+      barrierDismissible: false,
+      builder: (_) => AlertLoadingWidget(message: loadingMessage),
+    );
+    final result = await CloudConnectionService().checkConnection();
+    if (!navigator.mounted) return;
+    navigator.pop();
+    await loadingDialog;
+    if (!navigator.mounted) return;
+
+    final isDark = !isLightModeNotifier.value;
+    await showDialog<void>(
+      context: navigator.context,
+      barrierDismissible: false,
+      builder:
+          (_) => AlertWarningWidget(
+            title: result.isConnected ? 'Berhasil Terhubung' : 'Koneksi Gagal',
+            warningMessage: result.message,
+            backgroundColor:
+                result.isConnected
+                    ? Colors.lightGreen.shade200
+                    : Colors.red.shade200,
+            textColor: isDark ? Colors.white : Colors.black,
+          ),
+    );
+    if (!result.isConnected || !navigator.mounted) return;
+
+    selectedPageNotifier.value = page;
+    navigator.pushReplacementNamed(page);
   }
 
   @override
@@ -64,16 +126,61 @@ class SidebarWidget extends StatelessWidget {
                       color: isDark ? Colors.white24 : const Color(0xFF1F4226),
                     ),
 
-                    ListTile(
-                      leading: Icon(
-                        Icons.storage,
-                        color: isDark ? Colors.white : null,
+                    Theme(
+                      data: Theme.of(context).copyWith(
+                        dividerColor: Colors.transparent,
+                        expansionTileTheme: ExpansionTileThemeData(
+                          iconColor: isDark ? Colors.white : Colors.black87,
+                          collapsedIconColor:
+                              isDark ? Colors.white : Colors.black87,
+                          textColor: isDark ? Colors.white : Colors.black87,
+                          collapsedTextColor:
+                              isDark ? Colors.white : Colors.black87,
+                        ),
                       ),
-                      title: Text(
-                        'Kelola Data Klaster Plot',
-                        style: TextStyle(color: isDark ? Colors.white : null),
+                      child: ExpansionTile(
+                        initiallyExpanded:
+                            selectedPageNotifier.value == 'manage_data_page' ||
+                            selectedPageNotifier.value == 'cloud_storage_page',
+                        leading: Icon(
+                          Icons.storage,
+                          color: isDark ? Colors.white : null,
+                        ),
+                        title: Text(
+                          'Kelola Data',
+                          style: TextStyle(color: isDark ? Colors.white : null),
+                        ),
+                        childrenPadding: const EdgeInsets.only(left: 24),
+                        children: [
+                          ListTile(
+                            leading: Icon(
+                              Icons.folder_copy,
+                              color: isDark ? Colors.white70 : null,
+                            ),
+                            title: Text(
+                              'Data Klaster Plot',
+                              style: TextStyle(
+                                color: isDark ? Colors.white : null,
+                              ),
+                            ),
+                            onTap:
+                                () => _selectPage(context, 'manage_data_page'),
+                          ),
+                          ListTile(
+                            leading: Icon(
+                              Icons.cloud,
+                              color: isDark ? Colors.white70 : null,
+                            ),
+                            title: Text(
+                              'Penyimpanan Awan',
+                              style: TextStyle(
+                                color: isDark ? Colors.white : null,
+                              ),
+                            ),
+                            onTap: () => _selectCloudStorage(context),
+                          ),
+                        ],
                       ),
-                      onTap: () => _selectPage(context, 'manage_data_page'),
                     ),
 
                     ListTile(
@@ -140,6 +247,18 @@ class SidebarWidget extends StatelessWidget {
                       onTap: () => _selectPage(context, 'about_page'),
                     ),
 
+                    ListTile(
+                      leading: Icon(
+                        Icons.new_releases,
+                        color: isDark ? Colors.white : null,
+                      ),
+                      title: Text(
+                        'Versi Aplikasi',
+                        style: TextStyle(color: isDark ? Colors.white : null),
+                      ),
+                      onTap: () => _selectAppVersions(context),
+                    ),
+
                     Divider(
                       color: isDark ? Colors.white24 : const Color(0xFF1F4226),
                     ),
@@ -172,7 +291,6 @@ class SidebarWidget extends StatelessWidget {
                         onTap: () async {
                           const urlString = 'https://azimutree.my.id/';
                           final uri = Uri.parse(urlString);
-                          final messenger = ScaffoldMessenger.of(context);
                           try {
                             if (await canLaunchUrl(uri)) {
                               await launchUrl(
@@ -180,27 +298,17 @@ class SidebarWidget extends StatelessWidget {
                                 mode: LaunchMode.externalApplication,
                               );
                             } else {
-                              final bg =
-                                  isDark
-                                      ? const Color.fromARGB(255, 131, 30, 23)
-                                      : Colors.red.shade200;
-                              messenger.showSnackBar(
-                                SnackBar(
-                                  content: const Text('Cannot open link'),
-                                  backgroundColor: bg,
-                                ),
+                              if (!context.mounted) return;
+                              await showAppError(
+                                context,
+                                'Tautan tidak dapat dibuka.',
                               );
                             }
                           } catch (e) {
-                            final bg =
-                                isDark
-                                    ? const Color.fromARGB(255, 131, 30, 23)
-                                    : Colors.red.shade200;
-                            messenger.showSnackBar(
-                              SnackBar(
-                                content: Text('Error opening link: $e'),
-                                backgroundColor: bg,
-                              ),
+                            if (!context.mounted) return;
+                            await showAppError(
+                              context,
+                              'Terjadi kesalahan saat membuka tautan: $e',
                             );
                           }
                         },

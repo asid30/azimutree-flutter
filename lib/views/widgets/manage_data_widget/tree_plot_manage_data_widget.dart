@@ -7,6 +7,7 @@ import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widge
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:azimutree/services/gdrive_thumbnail_service.dart';
@@ -131,7 +132,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
                         : "-",
                   ),
                   _row(
-                    "Altitude",
+                    "Ketinggian",
                     tree.altitude != null ? "${tree.altitude} m" : "-",
                   ),
                   if (tree.keterangan != null && tree.keterangan!.isNotEmpty)
@@ -350,8 +351,10 @@ class TreePlotManageDataWidget extends StatelessWidget {
     selectedLocationFromSearchNotifier.value = false;
     // Disable following the user's live location so the map centers on the tree.
     isFollowingUserLocationNotifier.value = false;
-    // Preserve the current zoom level when centering (same as tapping a marker).
-    preserveZoomOnNextCenterNotifier.value = true;
+    // Tracking opens a new map, so use the map's tracking zoom instead of
+    // preserving the new page's broad default zoom.
+    preserveZoomOnNextCenterNotifier.value = false;
+    isMapTrackingRequestPendingNotifier.value = true;
     // Make the tree the selected tree so the map will render it as active
     // and trigger the dashed connection to the plot center.
     selectedTreeNotifier.value = tree;
@@ -372,9 +375,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
     );
 
     if (updated != null && context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Data pohon diperbarui")));
+      await showAppSuccess(context, 'Data pohon berhasil diperbarui.');
     }
   }
 
@@ -394,9 +395,7 @@ class TreePlotManageDataWidget extends StatelessWidget {
     await treeNotifier.deleteTree(tree.id!);
 
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Pohon dihapus")));
+      await showAppSuccess(context, 'Pohon berhasil dihapus.');
     }
   }
 }

@@ -52,7 +52,9 @@ class TitikIkatManageDataWidget extends StatelessWidget {
     selectedMarkerScreenOffsetNotifier.value = null;
     selectedLocationFromSearchNotifier.value = false;
     isFollowingUserLocationNotifier.value = false;
-    preserveZoomOnNextCenterNotifier.value = true;
+    // Let the newly opened map apply its tracking zoom.
+    preserveZoomOnNextCenterNotifier.value = false;
+    isMapTrackingRequestPendingNotifier.value = true;
     selectedTitikIkatNotifier.value = titikIkat;
     selectedTitikIkatClusterNotifier.value = cluster;
     selectedLocationNotifier.value = Position(
@@ -142,6 +144,8 @@ class TitikIkatManageDataWidget extends StatelessWidget {
                         margin: EdgeInsets.zero,
                         color: cardColor,
                         child: ExpansionTile(
+                          shape: const Border(),
+                          collapsedShape: const Border(),
                           iconColor: foreground,
                           collapsedIconColor: foreground,
                           leading: Icon(Icons.flag, color: foreground),
@@ -215,7 +219,7 @@ class TitikIkatManageDataWidget extends StatelessWidget {
                                   foreground,
                                 ),
                                 _row(
-                                  'Altitude',
+                                  'Ketinggian',
                                   titikIkat.altitude == null
                                       ? '-'
                                       : '${titikIkat.altitude} m',

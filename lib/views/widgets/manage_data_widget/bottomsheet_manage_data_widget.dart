@@ -6,10 +6,12 @@ import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
 import 'package:azimutree/services/debug_data_service.dart';
 import 'package:azimutree/services/debug_mode_service.dart';
+import 'package:azimutree/services/cloud_connection_service.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_loading_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_import_data_widget.dart';
@@ -47,6 +49,7 @@ class _BottomsheetManageDataWidgetState
   final double _maxChildSize = 0.9;
   final double _minChildSize = 0.03;
   late final DebugDataService _debugDataService;
+  late final CloudConnectionService _cloudConnectionService;
   @override
   void initState() {
     super.initState();
@@ -65,6 +68,33 @@ class _BottomsheetManageDataWidgetState
       treeNotifier: widget.treeNotifier,
       titikIkatNotifier: widget.titikIkatNotifier,
     );
+    _cloudConnectionService = CloudConnectionService();
+  }
+
+  Future<void> _checkCloudConnection() async {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (_) => const AlertLoadingWidget(message: 'Memeriksa layanan awan...'),
+    );
+
+    final result = await _cloudConnectionService.checkConnection();
+    if (!mounted) return;
+    navigator.pop();
+
+    final isDark = !isLightModeNotifier.value;
+    await _showAlert(
+      title: result.isConnected ? 'Berhasil Terhubung' : 'Koneksi Gagal',
+      message: result.message,
+      backgroundColor:
+          result.isConnected ? Colors.lightGreen.shade200 : Colors.red.shade200,
+      textColor: isDark ? Colors.white : Colors.black,
+    );
+    if (result.isConnected && mounted) {
+      Navigator.of(context).pushNamed('cloud_storage_page');
+    }
   }
 
   void _expandBottomSheet() {
@@ -361,17 +391,20 @@ class _BottomsheetManageDataWidgetState
                       builder: (context, isLightMode, _) {
                         final isDark = !isLightMode;
                         return Text(
-                          'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor data untuk menambahkan data dari file eksternal (sheet), ekspor data untuk menyimpan salinan data Anda, atau unduh template untuk format data (sheet) yang benar.',
+                          'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor dan ekspor data melalui file Excel, unduh template dengan format yang benar, atau simpan data ke penyimpanan awan.',
                           textAlign: TextAlign.justify,
                           style: TextStyle(color: isDark ? Colors.white : null),
                         );
                       },
                     ),
                     const SizedBox(height: 20),
-                    Wrap(
-                      spacing: 20,
-                      runSpacing: 20,
-                      alignment: WrapAlignment.spaceEvenly,
+                    GridView.count(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                      childAspectRatio: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
                       children: [
                         BtmButtonManageDataWidget(
                           label: "Ekspor Data",
@@ -415,11 +448,8 @@ class _BottomsheetManageDataWidgetState
                                 context: context,
                                 barrierDismissible: false,
                                 builder:
-                                    (_) => const PopScope(
-                                      canPop: false,
-                                      child: Center(
-                                        child: CircularProgressIndicator(),
-                                      ),
+                                    (_) => const AlertLoadingWidget(
+                                      message: 'Mengimpor data...',
                                     ),
                               );
                               try {
@@ -467,6 +497,17 @@ class _BottomsheetManageDataWidgetState
                                   : const Color.fromARGB(255, 32, 72, 43),
                           onPressed: () {
                             _confirmAndOpenTemplate();
+                          },
+                        ),
+                        BtmButtonManageDataWidget(
+                          label: "Penyimpanan Awan",
+                          icon: Icons.cloud,
+                          backgroundColor:
+                              isDark
+                                  ? const Color.fromARGB(255, 18, 43, 25)
+                                  : const Color.fromARGB(255, 32, 72, 43),
+                          onPressed: () {
+                            _checkCloudConnection();
                           },
                         ),
                       ],
@@ -591,6 +632,8 @@ class _BottomsheetManageDataWidgetState
                                               (context) => DialogAddPlotWidget(
                                                 plotNotifier:
                                                     widget.plotNotifier,
+                                                treeNotifier:
+                                                    widget.treeNotifier,
                                                 clusters: clusterState,
                                                 titikIkat:
                                                     widget

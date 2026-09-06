@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'package:flutter/services.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
@@ -295,12 +296,9 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
 
     if (hasDuplicate) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            'Kode pohon sudah ada pada plot ini. Gunakan kode pohon lain.',
-          ),
-        ),
+      await showAppWarning(
+        context,
+        'Kode pohon sudah ada pada plot ini. Gunakan kode pohon lain.',
       );
       return;
     }
@@ -762,7 +760,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                   controller: _altitudeController,
                   style: TextStyle(color: dialogText),
                   decoration: InputDecoration(
-                    labelText: "Altitude (opsional)",
+                    labelText: "Ketinggian (m, opsional)",
                     labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
                     enabledBorder: OutlineInputBorder(

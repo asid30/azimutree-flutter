@@ -242,9 +242,8 @@ class _LocationMapPageState extends State<LocationMapPage> {
               darkBackgroundImage: "assets/images/dark-bg-notitle.png",
             ),
             MapboxWidget(),
-            // Top row: legend (optional) and marker info. Marker info
-            // expands to fill the remaining width between the legend
-            // and the right edge.
+            // Marker information stays on the left, while the legend uses
+            // the top-right space freed by the hidden Mapbox compass.
             ValueListenableBuilder<bool>(
               valueListenable: isMapLegendVisibleNotifier,
               builder: (context, visible, child) {
@@ -255,8 +254,6 @@ class _LocationMapPageState extends State<LocationMapPage> {
                   final markerWidth = (MediaQuery.of(context).size.width * 0.5)
                       .clamp(180.0, MediaQuery.of(context).size.width);
 
-                  // Place MarkerInfo at top-left (where the legend used to be)
-                  // and move the legend to the right side (previous FAB area).
                   return SizedBox.expand(
                     child: Stack(
                       children: [
@@ -269,9 +266,8 @@ class _LocationMapPageState extends State<LocationMapPage> {
                           ),
                         ),
                         Positioned(
-                          bottom:
-                              MediaQuery.of(context).size.height * 0.28 - 10,
-                          right: 12,
+                          top: 8,
+                          right: 8,
                           child: const MapLegendWidget(),
                         ),
                       ],

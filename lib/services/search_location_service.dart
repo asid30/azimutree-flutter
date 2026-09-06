@@ -1,126 +1,227 @@
+import 'dart:async';
 import 'dart:convert';
-import 'package:azimutree/data/global_variables/logger_global.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:http/http.dart' as http;
+import 'dart:io';
+
 import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:azimutree/data/database/plot_dao.dart';
-import 'package:azimutree/data/models/plot_model.dart';
-import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/database/titik_ikat_dao.dart';
+import 'package:azimutree/data/global_variables/logger_global.dart';
+import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/data/models/plot_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
 
-Future<List<Map<String, dynamic>>> searchLocationService(String query) async {
-  // Normalize query to avoid accidental mismatches from leading/trailing
-  // whitespace (e.g., "jakarta " vs "jakarta").
+typedef ClusterLoader = Future<List<ClusterModel>> Function();
+typedef PlotLoader = Future<List<PlotModel>> Function();
+typedef TitikIkatLoader = Future<List<TitikIkatModel>> Function();
+typedef LocationHttpGet = Future<http.Response> Function(Uri uri);
+
+/// Searches local survey data first, with Mapbox as an optional fallback.
+///
+/// The injectable dependencies are primarily useful for deterministic tests.
+Future<List<Map<String, dynamic>>> searchLocationService(
+  String query, {
+  ClusterLoader? loadClusters,
+  PlotLoader? loadPlots,
+  TitikIkatLoader? loadTitikIkat,
+  LocationHttpGet? httpGet,
+  String? mapboxAccessToken,
+  Duration requestTimeout = const Duration(seconds: 6),
+}) async {
   final normalized = query.trim();
-  final token = dotenv.env['MAP_BOX_ACCESS']!;
-  final encodedQuery = Uri.encodeComponent(normalized);
-  final url =
-      'https://api.mapbox.com/geocoding/v5/mapbox.places/$encodedQuery.json?access_token=$token&limit=5';
+  if (normalized.isEmpty) return const [];
 
-  final response = await http.get(Uri.parse(url));
-  if (response.statusCode != 200) {
-    logger.e('failed to fetch location: Status ${response.statusCode}');
-    throw Exception('failed to fetch location: Status ${response.statusCode}');
-  }
+  final localResults = await _searchLocal(
+    normalized,
+    loadClusters ?? ClusterDao.getAllClusters,
+    loadPlots ?? PlotDao.getAllPlots,
+    loadTitikIkat ?? TitikIkatDao.getAllTitikIkat,
+  );
 
-  final data = json.decode(response.body);
-  final features = data['features'] as List;
+  // A local match should be usable instantly and must never wait for internet.
+  if (localResults.isNotEmpty) return localResults;
 
-  final mapboxResults =
-      features.map((f) {
-        logger.i(
-          'success to fetch location: Status ${response.statusCode} - ${f['place_name']}',
-        );
-        return {
-          'type': 'place',
-          'name': f['place_name'] as String,
-          'longitude': f['center'][0].toString(),
-          'latitude': f['center'][1].toString(),
-        };
-      }).toList();
-
-  // Also include local clusters and plots in search results (clusters first,
-  // then plots). Do not include individual trees to avoid noisy results.
-  final localResults = <Map<String, dynamic>>[];
-  try {
-    final clusters = await ClusterDao.getAllClusters();
-    final plots = await PlotDao.getAllPlots();
-    final anchors = await TitikIkatDao.getAllTitikIkat();
-
-    final q = normalized.toLowerCase();
-
-    // Cluster matches
-    for (final c in clusters) {
-      final name = c.kodeCluster.toString();
-      final nama = (c.namaPengukur ?? '').toLowerCase();
-      if (name.toLowerCase().contains(q) || nama.contains(q)) {
-        // find plot 1 for this cluster, otherwise any plot
-        final clusterPlots = plots.where((p) => p.idCluster == c.id).toList();
-        PlotModel? targetPlot;
-        try {
-          targetPlot = clusterPlots.firstWhere((p) => p.kodePlot == 1);
-        } catch (_) {
-          if (clusterPlots.isNotEmpty) targetPlot = clusterPlots.first;
-        }
-
-        if (targetPlot != null) {
-          localResults.add({
-            'type': 'cluster',
-            'name': 'Klaster ${c.kodeCluster}',
-            'clusterId': c.id,
-            'plotId': targetPlot.id,
-            'longitude': targetPlot.longitude.toString(),
-            'latitude': targetPlot.latitude.toString(),
-          });
-        }
-      }
-    }
-
-    // Titik Ikat matches. The cluster code is included so users can search
-    // either "Titik Ikat" or the associated cluster.
-    for (final anchor in anchors) {
-      final cluster = clusters.firstWhere(
-        (c) => c.id == anchor.idCluster,
-        orElse: () => ClusterModel(id: null, kodeCluster: ''),
-      );
-      final display = 'Titik Ikat ${cluster.kodeCluster}'.trim();
-      if (display.toLowerCase().contains(q) ||
-          anchor.nama.toLowerCase().contains(q)) {
-        localResults.add({
-          'type': 'anchor',
-          'name': display,
-          'clusterId': anchor.idCluster,
-          'anchorId': anchor.id,
-          'longitude': anchor.longitude.toString(),
-          'latitude': anchor.latitude.toString(),
-        });
-      }
-    }
-
-    // Plot matches
-    for (final p in plots) {
-      // Find the cluster for display
-      final cl = clusters.firstWhere(
-        (c) => c.id == p.idCluster,
-        orElse: () => ClusterModel(id: null, kodeCluster: ''),
-      );
-      final display = 'Plot ${p.kodePlot} (Klaster ${cl.kodeCluster})';
-      if (display.toLowerCase().contains(q) ||
-          p.kodePlot.toString() == normalized) {
-        localResults.add({
-          'type': 'plot',
-          'name': display,
-          'clusterId': p.idCluster,
-          'plotId': p.id,
-          'longitude': p.longitude.toString(),
-          'latitude': p.latitude.toString(),
-        });
-      }
-    }
-  } catch (e) {
-    logger.w('searchLocationService: local search failed: $e');
-  }
-
-  // Prefer local results (clusters then plots) before remote Mapbox places.
+  final mapboxResults = await _searchMapbox(
+    normalized,
+    httpGet: httpGet ?? http.get,
+    accessToken: mapboxAccessToken ?? _readMapboxAccessToken(),
+    timeout: requestTimeout,
+  );
   return [...localResults, ...mapboxResults];
+}
+
+Future<List<Map<String, dynamic>>> _searchLocal(
+  String query,
+  ClusterLoader loadClusters,
+  PlotLoader loadPlots,
+  TitikIkatLoader loadTitikIkat,
+) async {
+  try {
+    final values = await Future.wait<dynamic>([
+      loadClusters(),
+      loadPlots(),
+      loadTitikIkat(),
+    ]);
+    final clusters = values[0] as List<ClusterModel>;
+    final plots = values[1] as List<PlotModel>;
+    final anchors = values[2] as List<TitikIkatModel>;
+    final clustersById = <int, ClusterModel>{
+      for (final cluster in clusters)
+        if (cluster.id != null) cluster.id!: cluster,
+    };
+    final q = query.toLowerCase();
+    final results = <Map<String, dynamic>>[];
+
+    for (final cluster in clusters) {
+      final matchesCode = cluster.kodeCluster.toLowerCase().contains(q);
+      final matchesSurveyor = (cluster.namaPengukur ?? '')
+          .toLowerCase()
+          .contains(q);
+      if (!matchesCode && !matchesSurveyor) continue;
+
+      final clusterPlots =
+          plots.where((plot) => plot.idCluster == cluster.id).toList();
+      PlotModel? targetPlot;
+      for (final plot in clusterPlots) {
+        if (plot.kodePlot == 1) {
+          targetPlot = plot;
+          break;
+        }
+      }
+      targetPlot ??= clusterPlots.isEmpty ? null : clusterPlots.first;
+      if (targetPlot == null) continue;
+
+      results.add({
+        'type': 'cluster',
+        'name': 'Klaster ${cluster.kodeCluster}',
+        'clusterId': cluster.id,
+        'plotId': targetPlot.id,
+        'longitude': targetPlot.longitude.toString(),
+        'latitude': targetPlot.latitude.toString(),
+      });
+    }
+
+    for (final anchor in anchors) {
+      if (anchor.latitude == null || anchor.longitude == null) continue;
+      final clusterCode = clustersById[anchor.idCluster]?.kodeCluster ?? '';
+      final display = 'Titik Ikat $clusterCode'.trim();
+      if (!display.toLowerCase().contains(q) &&
+          !anchor.nama.toLowerCase().contains(q)) {
+        continue;
+      }
+      results.add({
+        'type': 'anchor',
+        'name': display,
+        'clusterId': anchor.idCluster,
+        'anchorId': anchor.id,
+        'longitude': anchor.longitude.toString(),
+        'latitude': anchor.latitude.toString(),
+      });
+    }
+
+    for (final plot in plots) {
+      final clusterCode = clustersById[plot.idCluster]?.kodeCluster ?? '';
+      final display = 'Plot ${plot.kodePlot} (Klaster $clusterCode)';
+      if (!display.toLowerCase().contains(q) &&
+          plot.kodePlot.toString() != query) {
+        continue;
+      }
+      results.add({
+        'type': 'plot',
+        'name': display,
+        'clusterId': plot.idCluster,
+        'plotId': plot.id,
+        'longitude': plot.longitude.toString(),
+        'latitude': plot.latitude.toString(),
+      });
+    }
+
+    return results;
+  } catch (error, stackTrace) {
+    logger.w(
+      'searchLocationService: local search failed',
+      error: error,
+      stackTrace: stackTrace,
+    );
+    return const [];
+  }
+}
+
+Future<List<Map<String, dynamic>>> _searchMapbox(
+  String query, {
+  required LocationHttpGet httpGet,
+  required String? accessToken,
+  required Duration timeout,
+}) async {
+  final token = accessToken?.trim();
+  if (token == null || token.isEmpty) {
+    logger.w('searchLocationService: Mapbox access token is unavailable');
+    return const [];
+  }
+
+  final uri = Uri.https(
+    'api.mapbox.com',
+    '/geocoding/v5/mapbox.places/${Uri.encodeComponent(query)}.json',
+    {'access_token': token, 'limit': '5'},
+  );
+
+  try {
+    final response = await httpGet(uri).timeout(timeout);
+    if (response.statusCode != 200) {
+      logger.w('searchLocationService: Mapbox returned ${response.statusCode}');
+      return const [];
+    }
+
+    final decoded = jsonDecode(response.body);
+    if (decoded is! Map<String, dynamic> || decoded['features'] is! List) {
+      logger.w('searchLocationService: invalid Mapbox response');
+      return const [];
+    }
+
+    final results = <Map<String, dynamic>>[];
+    for (final rawFeature in decoded['features'] as List) {
+      if (rawFeature is! Map) continue;
+      final name = rawFeature['place_name'];
+      final center = rawFeature['center'];
+      if (name is! String ||
+          center is! List ||
+          center.length < 2 ||
+          center[0] is! num ||
+          center[1] is! num) {
+        continue;
+      }
+      results.add({
+        'type': 'place',
+        'name': name,
+        'longitude': (center[0] as num).toString(),
+        'latitude': (center[1] as num).toString(),
+      });
+    }
+    return results;
+  } on TimeoutException catch (error) {
+    logger.w('searchLocationService: Mapbox request timed out: $error');
+  } on SocketException catch (error) {
+    logger.w('searchLocationService: device is offline: $error');
+  } on http.ClientException catch (error) {
+    logger.w('searchLocationService: Mapbox request failed: $error');
+  } on FormatException catch (error) {
+    logger.w('searchLocationService: invalid Mapbox JSON: $error');
+  } catch (error, stackTrace) {
+    logger.w(
+      'searchLocationService: unexpected Mapbox error',
+      error: error,
+      stackTrace: stackTrace,
+    );
+  }
+  return const [];
+}
+
+String? _readMapboxAccessToken() {
+  try {
+    return dotenv.env['MAP_BOX_ACCESS'];
+  } catch (error) {
+    logger.w('searchLocationService: dotenv is not initialized: $error');
+    return null;
+  }
 }

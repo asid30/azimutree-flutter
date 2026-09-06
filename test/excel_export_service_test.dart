@@ -114,17 +114,21 @@ void main() {
     expect(_values(plotRows[2]).take(2), ['CL02', 2]);
     expect(_values(treeRows[1]).take(3), ['CL01', 1, 7]);
     expect(_values(treeRows[2]).take(3), ['CL02', 2, 8]);
-    expect(_values(clusterRows.first).first, 'kode klaster *');
+    expect(_values(clusterRows.first).first, '* kode klaster');
     expect(
       _values(clusterRows.first),
-      containsAll(['nama pengukur *', 'tanggal pengukuran *']),
+      containsAll(['* nama pengukur', '* tanggal pengukuran']),
     );
-    expect(_values(anchorRows.first).skip(1).take(2), ['lintang *', 'bujur *']);
+    expect(_values(anchorRows.first).skip(1).take(2), ['* lintang', '* bujur']);
     expect(_values(anchorRows[1]), isNot(contains('Titik Ikat CL01')));
-    expect(_values(treeRows.first), isNot(contains('lintang *')));
-    expect(_values(treeRows.first), isNot(contains('bujur *')));
-    expect(_values(treeRows.first), containsAll(['azimuth *', 'jarak *']));
-    expect(_values(guideRows[1])[1], contains('Kolom * wajib diisi'));
+    expect(_values(treeRows.first), isNot(contains('* lintang')));
+    expect(_values(treeRows.first), isNot(contains('* bujur')));
+    expect(
+      _values(treeRows.first),
+      containsAll(['* azimuth (derajat)', '* jarak (meter)']),
+    );
+    expect(_values(treeRows.first), contains('ketinggian (meter)'));
+    expect(_values(guideRows[1])[1], contains('tanda * di depan nama'));
     expect(_values(guideRows[5])[1], contains('Nama sheet tidak boleh diubah'));
     expect(_values(guideRows[6])[1], contains('YYYY-MM-DD'));
     expect(_values(guideRows[7])[1], contains('kode klaster CL1'));

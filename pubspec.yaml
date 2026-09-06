@@ -27,6 +27,10 @@ dependencies:
   shared_preferences: ^2.2.3 # Simple persistent key-value storage for small data
   geolocator: ^11.0.0 # Device location APIs: permissions, current position, streams
   flutter_compass: ^0.8.1 # Device heading sensor for survey navigation
+  firebase_core: ^4.14.0 # Initializes the Firebase services used by the app
+  cloud_firestore: ^6.9.0 # Cloud database for shared survey snapshots
+  firebase_auth: ^6.6.1 # Authentication and ownership of cloud data
+  google_sign_in: ^7.2.0 # Google account login for cloud data owners
 
 dev_dependencies:
   flutter_test:

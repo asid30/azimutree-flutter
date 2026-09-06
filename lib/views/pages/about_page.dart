@@ -3,6 +3,7 @@ import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AboutPage extends StatelessWidget {
@@ -591,8 +592,6 @@ class AboutPage extends StatelessWidget {
                                             const urlString =
                                                 'https://azimutree.my.id/';
                                             final uri = Uri.parse(urlString);
-                                            final messenger =
-                                                ScaffoldMessenger.of(context);
                                             try {
                                               if (await canLaunchUrl(uri)) {
                                                 await launchUrl(
@@ -602,41 +601,17 @@ class AboutPage extends StatelessWidget {
                                                           .externalApplication,
                                                 );
                                               } else {
-                                                final bg =
-                                                    isDark
-                                                        ? const Color.fromARGB(
-                                                          255,
-                                                          131,
-                                                          30,
-                                                          23,
-                                                        )
-                                                        : Colors.red.shade200;
-                                                messenger.showSnackBar(
-                                                  SnackBar(
-                                                    content: const Text(
-                                                      'Cannot open link',
-                                                    ),
-                                                    backgroundColor: bg,
-                                                  ),
+                                                if (!context.mounted) return;
+                                                await showAppError(
+                                                  context,
+                                                  'Tautan tidak dapat dibuka.',
                                                 );
                                               }
                                             } catch (e) {
-                                              final bg =
-                                                  isDark
-                                                      ? const Color.fromARGB(
-                                                        255,
-                                                        131,
-                                                        30,
-                                                        23,
-                                                      )
-                                                      : Colors.red.shade200;
-                                              messenger.showSnackBar(
-                                                SnackBar(
-                                                  content: Text(
-                                                    'Error opening link: $e',
-                                                  ),
-                                                  backgroundColor: bg,
-                                                ),
+                                              if (!context.mounted) return;
+                                              await showAppError(
+                                                context,
+                                                'Terjadi kesalahan saat membuka tautan: $e',
                                               );
                                             }
                                           },

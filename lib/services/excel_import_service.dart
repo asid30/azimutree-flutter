@@ -184,7 +184,7 @@ class ExcelImportService {
           clusterCode: code,
           latitude: _coordinate(row, 'lintang', -90, 90),
           longitude: _coordinate(row, 'bujur', -180, 180),
-          altitude: _optionalNumber(row, 'altitude'),
+          altitude: _optionalNumber(row, 'ketinggian'),
           description: _optionalText(row, 'keterangan'),
           imageUrl: _optionalText(row, 'url gambar'),
         ),
@@ -220,7 +220,7 @@ class ExcelImportService {
           plotCode: plotCode,
           latitude: _coordinate(row, 'lintang', -90, 90),
           longitude: _coordinate(row, 'bujur', -180, 180),
-          altitude: _optionalNumber(row, 'altitude'),
+          altitude: _optionalNumber(row, 'ketinggian'),
         ),
       );
     }
@@ -253,7 +253,7 @@ class ExcelImportService {
           scientificName: _requiredText(row, 'nama ilmiah'),
           azimuth: azimuth,
           distanceM: distance,
-          altitude: _optionalNumber(row, 'altitude'),
+          altitude: _optionalNumber(row, 'ketinggian'),
           description: _optionalText(row, 'keterangan'),
           imageUrl: _optionalText(row, 'url gambar'),
         ),
@@ -300,8 +300,18 @@ class ExcelImportService {
     return rows;
   }
 
-  static String _normalizeHeader(String value) =>
-      value.replaceAll('*', '').trim().toLowerCase();
+  static String _normalizeHeader(String value) {
+    final normalized =
+        value
+            .replaceAll('*', '')
+            .trim()
+            .toLowerCase()
+            .replaceFirst(RegExp(r'\s*\([^)]*\)\s*$'), '')
+            .trim();
+    // Tetap menerima template lama agar file yang sudah dibagikan pengguna
+    // tidak langsung menjadi tidak kompatibel.
+    return normalized == 'altitude' ? 'ketinggian' : normalized;
+  }
 
   static String _cellValue(Data? cell) => switch (cell?.value) {
     null => '',
