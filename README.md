@@ -24,14 +24,14 @@ Struktur ini penting untuk memastikan konsistensi dan akurasi data dalam setiap 
 
 Beberapa fitur utama yang tersedia dalam aplikasi Azimutree antara lain:
 
-- Pengelolaan data **Titik Ikat, klaster, plot, dan pohon** secara lokal.
-- Input posisi menggunakan **azimut dan jarak** atau **lintang dan bujur**.
-- Pemilihan koordinat secara visual melalui peta Mapbox.
+- Pengelolaan data Titik Ikat, klaster, plot, dan pohon secara lokal.
+- Input posisi menggunakan azimut dan jarak atau lintang dan bujur.
+- Pemilihan koordinat secara visual melalui peta.
 - Visualisasi marker, area plot, garis relasi, dan lokasi pengguna pada peta digital.
-- **Survey Lokasi** dengan panduan GPS, kompas, dan radar pohon.
+- Survey Lokasi dengan panduan GPS, kompas, dan radar pohon.
 - Sesi survey persisten sehingga dapat dilanjutkan setelah kembali ke Beranda.
-- **Impor dan ekspor beberapa klaster** melalui file Excel.
-- **Penyimpanan Awan Firebase** untuk berbagi data penelitian tanpa file Excel.
+- Impor dan ekspor beberapa klaster melalui file Excel.
+- Penyimpanan Awan untuk berbagi data penelitian tanpa file Excel.
 - Data publik dapat dicari dan diunduh tanpa login.
 - Login Google opsional untuk mengunggah serta mengelola data milik sendiri.
 - Dukungan tema terang dan gelap.
