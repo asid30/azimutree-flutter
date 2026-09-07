@@ -30,6 +30,57 @@ class AnchorMiniMapWidget extends StatefulWidget {
 
 class _AnchorMiniMapWidgetState extends State<AnchorMiniMapWidget> {
   bool _satellite = true;
+  MapboxMap? _map;
+  PolylineAnnotationManager? _connectionManager;
+
+  @override
+  void didUpdateWidget(covariant AnchorMiniMapWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.userLatitude != widget.userLatitude ||
+        oldWidget.userLongitude != widget.userLongitude ||
+        oldWidget.anchorLatitude != widget.anchorLatitude ||
+        oldWidget.anchorLongitude != widget.anchorLongitude) {
+      _drawGpsToAnchorLine();
+    }
+  }
+
+  Future<void> _drawGpsToAnchorLine() async {
+    final map = _map;
+    if (map == null) return;
+    _connectionManager ??=
+        await map.annotations.createPolylineAnnotationManager();
+    await _connectionManager!.deleteAll();
+    final userLatitude = widget.userLatitude;
+    final userLongitude = widget.userLongitude;
+    if (userLatitude == null || userLongitude == null) return;
+    await _connectionManager!.create(
+      PolylineAnnotationOptions(
+        geometry: LineString(
+          coordinates: [
+            Position(userLongitude, userLatitude),
+            Position(widget.anchorLongitude, widget.anchorLatitude),
+          ],
+        ),
+        lineColor: Colors.red.toARGB32(),
+        lineWidth: 3,
+        lineOpacity: 0.9,
+      ),
+    );
+  }
+
+  Future<void> _centerOnAnchor() async {
+    final map = _map;
+    if (map == null) return;
+    await map.easeTo(
+      CameraOptions(
+        center: Point(
+          coordinates: Position(widget.anchorLongitude, widget.anchorLatitude),
+        ),
+        zoom: 17.5,
+      ),
+      MapAnimationOptions(duration: 700),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -75,12 +126,15 @@ class _AnchorMiniMapWidgetState extends State<AnchorMiniMapWidget> {
                 zoom: _zoomFor(distance),
               ),
               onMapCreated: (map) async {
+                _map = map;
+                _connectionManager = null;
                 await map.location.updateSettings(
                   LocationComponentSettings(
                     enabled: true,
                     pulsingEnabled: true,
                   ),
                 );
+                await _drawGpsToAnchorLine();
                 final manager =
                     await map.annotations.createPointAnnotationManager();
                 await manager.create(
@@ -134,6 +188,20 @@ class _AnchorMiniMapWidgetState extends State<AnchorMiniMapWidget> {
                   onSelectionChanged: (value) {
                     setState(() => _satellite = value.first);
                   },
+                ),
+              ),
+            ),
+            Positioned(
+              top: 62,
+              right: 8,
+              child: Material(
+                color: const Color(0xE61F4226),
+                shape: const CircleBorder(),
+                child: IconButton(
+                  tooltip: 'Pusatkan ke Titik Ikat',
+                  color: Colors.white,
+                  icon: const Icon(Icons.location_pin),
+                  onPressed: _centerOnAnchor,
                 ),
               ),
             ),

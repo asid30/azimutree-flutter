@@ -14,6 +14,7 @@ import 'package:azimutree/data/notifiers/survey_navigation_notifier.dart';
 import 'package:azimutree/services/azimuth_latlong_service.dart';
 import 'package:azimutree/services/compass_navigation_service.dart';
 import 'package:azimutree/services/compass_service.dart';
+import 'package:azimutree/services/gdrive_thumbnail_service.dart';
 import 'package:azimutree/services/survey_session_storage.dart';
 import 'package:azimutree/services/survey_ui_constants.dart';
 import 'package:azimutree/services/tree_direction_filter_service.dart';
@@ -23,6 +24,7 @@ import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:azimutree/views/widgets/survey_widget/tree_radar_widget.dart';
 import 'package:azimutree/views/widgets/survey_widget/anchor_mini_map_widget.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as geo;
@@ -54,6 +56,9 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
   bool _loading = true;
   bool _sessionListenerAttached = false;
   bool _radarCompassEnabled = true;
+  int? _pinnedTreeKey;
+  int? _pinnedPlotId;
+  int? _lastSurveyPlotId;
 
   @override
   void initState() {
@@ -74,8 +79,9 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
     _plots = data[2] as List<PlotModel>;
     _trees = data[3] as List<TreeModel>;
     await _restoreSession();
+    _lastSurveyPlotId = _session.value.currentPlot?.id;
     if (!_sessionListenerAttached) {
-      _session.addListener(_persistSession);
+      _session.addListener(_handleSessionChanged);
       _sessionListenerAttached = true;
     }
     if (!mounted) return;
@@ -114,6 +120,16 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
 
   void _persistSession() {
     unawaited(_sessionStorage.save(_session.value));
+  }
+
+  void _handleSessionChanged() {
+    final currentPlotId = _session.value.currentPlot?.id;
+    if (_lastSurveyPlotId != null && currentPlotId != _lastSurveyPlotId) {
+      _pinnedTreeKey = null;
+      _pinnedPlotId = null;
+    }
+    _lastSurveyPlotId = currentPlotId;
+    _persistSession();
   }
 
   ClusterModel? _findCluster(int id) {
@@ -223,7 +239,11 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       azimuth = result.azimuthDeg;
       distance = result.distanceM;
     }
-    setState(() => _selectedClusterId = clusterId);
+    setState(() {
+      _selectedClusterId = clusterId;
+      _pinnedTreeKey = null;
+      _pinnedPlotId = null;
+    });
     _session.selectSurvey(
       cluster: cluster,
       anchorPoint: anchor,
@@ -270,14 +290,20 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
     }
     await _sessionStorage.clear();
     _session.reset();
-    if (mounted) setState(() => _selectedClusterId = null);
+    if (mounted) {
+      setState(() {
+        _selectedClusterId = null;
+        _pinnedTreeKey = null;
+        _pinnedPlotId = null;
+      });
+    }
   }
 
   @override
   void dispose() {
     _positionSubscription?.cancel();
     if (_sessionListenerAttached) {
-      _session.removeListener(_persistSession);
+      _session.removeListener(_handleSessionChanged);
     }
     _session.dispose();
     super.dispose();
@@ -509,6 +535,11 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
         '${anchor.nama} · ${session.cluster!.kodeCluster}',
         style: TextStyle(color: foreground, fontSize: 16),
       ),
+      if (anchor.urlFoto?.trim().isNotEmpty == true ||
+          anchor.keterangan?.trim().isNotEmpty == true) ...[
+        const SizedBox(height: 12),
+        _anchorInformation(anchor, foreground),
+      ],
       const SizedBox(height: 16),
       _metric(
         'Estimasi jarak GPS',
@@ -592,6 +623,75 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
         child: const Text('SAYA SUDAH DI TITIK IKAT'),
       ),
     ]);
+  }
+
+  Widget _anchorInformation(TitikIkatModel anchor, Color foreground) {
+    final photoUrl = anchor.urlFoto?.trim();
+    final description = anchor.keterangan?.trim();
+    final hasPhoto = photoUrl?.isNotEmpty == true;
+    final hasDescription = description?.isNotEmpty == true;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (hasPhoto) ...[
+          Text(
+            'Foto Titik Ikat',
+            style: TextStyle(color: foreground, fontWeight: FontWeight.w600),
+          ),
+          const SizedBox(height: 8),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(10),
+            child: AspectRatio(
+              aspectRatio: 16 / 9,
+              child: CachedNetworkImage(
+                imageUrl: GDriveThumbnailService.toThumbnailUrl(photoUrl!),
+                fit: BoxFit.cover,
+                placeholder:
+                    (_, __) => ColoredBox(
+                      color: foreground.withValues(alpha: 0.08),
+                      child: const Center(
+                        child: CircularProgressIndicator(strokeWidth: 2.5),
+                      ),
+                    ),
+                errorWidget:
+                    (_, __, ___) => ColoredBox(
+                      color: foreground.withValues(alpha: 0.08),
+                      child: Center(
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.broken_image_outlined,
+                              color: foreground.withValues(alpha: 0.7),
+                            ),
+                            const SizedBox(height: 6),
+                            Text(
+                              'Foto tidak dapat dimuat',
+                              style: TextStyle(
+                                color: foreground.withValues(alpha: 0.7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+              ),
+            ),
+          ),
+        ],
+        if (hasDescription) ...[
+          if (hasPhoto) const SizedBox(height: 8),
+          Text(
+            description!,
+            style: TextStyle(
+              color: foreground.withValues(alpha: 0.72),
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ],
+    );
   }
 
   Widget _compass(
@@ -1018,6 +1118,22 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
                   plotId: activePlot.id!,
                   heading: heading,
                 );
+        TreeModel? pinnedTree;
+        if (_pinnedPlotId == activePlot.id) {
+          for (final tree in plotTrees) {
+            if (_treeKey(tree) == _pinnedTreeKey) {
+              pinnedTree = tree;
+              break;
+            }
+          }
+        }
+        final displayedTrees = <TreeModel>[...visibleTrees];
+        if (pinnedTree != null &&
+            !displayedTrees.any(
+              (tree) => _treeKey(tree) == _treeKey(pinnedTree!),
+            )) {
+          displayedTrees.insert(0, pinnedTree);
+        }
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -1090,11 +1206,21 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
               Text(
                 'Tidak ada pohon pada arah ini. Putar perangkat perlahan.',
                 style: TextStyle(color: foreground),
-              )
-            else
-              ...visibleTrees.map(
-                (tree) => _treeDirectionTile(tree, heading, foreground),
               ),
+            if (displayedTrees.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              ...displayedTrees.map(
+                (tree) => _surveyTreeCard(
+                  tree,
+                  heading,
+                  foreground,
+                  isPinned:
+                      _pinnedPlotId == activePlot.id &&
+                      _pinnedTreeKey == _treeKey(tree),
+                  onPin: () => _toggleTreePin(tree, activePlot.id),
+                ),
+              ),
+            ],
             _compassCalibrationInfo(foreground),
           ],
         );
@@ -1102,38 +1228,197 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
     );
   }
 
-  Widget _treeDirectionTile(TreeModel tree, double heading, Color foreground) {
-    final difference = signedAngleDifference(tree.azimut!, heading).abs();
+  int _treeKey(TreeModel tree) => tree.id ?? tree.kodePohon;
+
+  void _toggleTreePin(TreeModel tree, int? plotId) {
+    if (plotId == null) return;
+    final treeKey = _treeKey(tree);
+    setState(() {
+      if (_pinnedPlotId == plotId && _pinnedTreeKey == treeKey) {
+        _pinnedTreeKey = null;
+        _pinnedPlotId = null;
+      } else {
+        _pinnedTreeKey = treeKey;
+        _pinnedPlotId = plotId;
+      }
+    });
+  }
+
+  Widget _surveyTreeCard(
+    TreeModel tree,
+    double? heading,
+    Color foreground, {
+    required bool isPinned,
+    required VoidCallback onPin,
+  }) {
+    final isDark = foreground.computeLuminance() > 0.5;
     final commonName = tree.namaPohon?.trim();
     final scientificName = tree.namaIlmiah?.trim();
+    final title =
+        commonName?.isNotEmpty == true && scientificName?.isNotEmpty == true
+            ? '$commonName ($scientificName)'
+            : commonName?.isNotEmpty == true
+            ? commonName!
+            : scientificName?.isNotEmpty == true
+            ? scientificName!
+            : 'Pohon ${tree.kodePohon}';
+    final difference =
+        heading == null || tree.azimut == null
+            ? null
+            : signedAngleDifference(tree.azimut!, heading).abs();
+    final hasImage = tree.urlFoto?.trim().isNotEmpty == true;
+    final hasLocation = tree.latitude != null && tree.longitude != null;
+
     return Card(
       color:
-          foreground.computeLuminance() > 0.5
+          isDark
               ? const Color(0xFF14351D)
-              : const Color(0xFF1F4226),
+              : const Color.fromARGB(238, 211, 236, 215),
       margin: const EdgeInsets.only(bottom: 8),
-      child: ListTile(
-        leading: const Icon(Icons.park, color: Colors.white),
-        title: Text(
-          'Pohon ${tree.kodePohon.toString().padLeft(3, '0')}',
-          style: const TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      child: Theme(
+        data: Theme.of(context).copyWith(dividerColor: Colors.transparent),
+        child: ExpansionTile(
+          shape: const Border(),
+          collapsedShape: const Border(),
+          iconColor: foreground,
+          collapsedIconColor: foreground,
+          leading: Icon(Icons.park, color: foreground),
+          title: Text(title, style: TextStyle(color: foreground)),
+          subtitle: Text(
+            'Kode pohon: ${tree.kodePohon}'
+            '${difference == null ? '' : ' · Δ${difference.toStringAsFixed(1)}°'}',
+            style: TextStyle(color: foreground.withValues(alpha: 0.72)),
           ),
-        ),
-        subtitle: Text(
-          '${tree.azimut!.toStringAsFixed(1)}° • '
-          '${tree.jarakPusatM == null ? '- m' : _meters(tree.jarakPusatM!)}'
-          '${commonName == null || commonName.isEmpty ? '' : '\n$commonName'}'
-          '${scientificName == null || scientificName.isEmpty ? '' : ' • $scientificName'}',
-          style: const TextStyle(color: Colors.white70),
-        ),
-        trailing: Text(
-          'Δ${difference.toStringAsFixed(1)}°',
-          style: const TextStyle(color: Colors.white),
+          trailing: IconButton(
+            tooltip: isPinned ? 'Lepas pin' : 'Pin pohon',
+            onPressed: onPin,
+            icon: Icon(isPinned ? Icons.push_pin : Icons.push_pin_outlined),
+            color: foreground,
+          ),
+          childrenPadding: const EdgeInsets.fromLTRB(12, 0, 12, 12),
+          children: [
+            if (hasImage) ...[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: SizedBox.square(
+                  dimension: 120,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: CachedNetworkImage(
+                      imageUrl: GDriveThumbnailService.toThumbnailUrl(
+                        tree.urlFoto!,
+                      ),
+                      fit: BoxFit.cover,
+                      placeholder:
+                          (_, __) => const Center(
+                            child: CircularProgressIndicator(strokeWidth: 2.5),
+                          ),
+                      errorWidget:
+                          (_, __, ___) => const Center(
+                            child: Icon(Icons.broken_image, color: Colors.grey),
+                          ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+            ],
+            Table(
+              columnWidths: const {
+                0: FlexColumnWidth(2),
+                1: FlexColumnWidth(3),
+              },
+              children: [
+                _surveyTreeRow(
+                  'Azimut',
+                  tree.azimut == null
+                      ? '-'
+                      : '${tree.azimut!.toStringAsFixed(1)}°',
+                  foreground,
+                ),
+                _surveyTreeRow(
+                  'Jarak dari pusat',
+                  tree.jarakPusatM == null
+                      ? '-'
+                      : '${tree.jarakPusatM!.toStringAsFixed(2)} m',
+                  foreground,
+                ),
+                _surveyTreeRow(
+                  'Lintang',
+                  tree.latitude?.toStringAsFixed(6) ?? '-',
+                  foreground,
+                ),
+                _surveyTreeRow(
+                  'Bujur',
+                  tree.longitude?.toStringAsFixed(6) ?? '-',
+                  foreground,
+                ),
+                _surveyTreeRow(
+                  'Ketinggian',
+                  tree.altitude == null ? '-' : '${tree.altitude} m',
+                  foreground,
+                ),
+                if (tree.keterangan?.trim().isNotEmpty == true)
+                  _surveyTreeRow(
+                    'Keterangan',
+                    tree.keterangan!.trim(),
+                    foreground,
+                  ),
+              ],
+            ),
+            if (hasLocation) ...[
+              const SizedBox(height: 10),
+              Align(
+                alignment: Alignment.centerRight,
+                child: OutlinedButton.icon(
+                  style: _secondaryButtonStyle(foreground),
+                  onPressed: () => _trackTreeOnMap(tree),
+                  icon: const Icon(Icons.my_location),
+                  label: const Text('Tracking Data'),
+                ),
+              ),
+            ],
+          ],
         ),
       ),
     );
+  }
+
+  TableRow _surveyTreeRow(String label, String value, Color foreground) =>
+      TableRow(
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(top: 3, right: 8),
+            child: Text(label, style: TextStyle(color: foreground)),
+          ),
+          Padding(
+            padding: const EdgeInsets.only(top: 3),
+            child: Text(': $value', style: TextStyle(color: foreground)),
+          ),
+        ],
+      );
+
+  void _trackTreeOnMap(TreeModel tree) {
+    if (tree.latitude == null || tree.longitude == null) return;
+    selectedPlotNotifier.value = null;
+    selectedPlotClusterNotifier.value = null;
+    selectedCentroidNotifier.value = null;
+    selectedTitikIkatNotifier.value = null;
+    selectedTitikIkatClusterNotifier.value = null;
+    selectedTreePlotNotifier.value = null;
+    selectedTreeClusterNotifier.value = null;
+    selectedMarkerScreenOffsetNotifier.value = null;
+    selectedLocationFromSearchNotifier.value = false;
+    isFollowingUserLocationNotifier.value = false;
+    preserveZoomOnNextCenterNotifier.value = false;
+    isMapTrackingRequestPendingNotifier.value = true;
+    selectedTreeNotifier.value = tree;
+    selectedLocationNotifier.value = mapbox.Position(
+      tree.longitude!,
+      tree.latitude!,
+    );
+    Navigator.pushNamed(context, 'location_map_page');
   }
 
   Widget _compassUnavailableInfo(Color foreground) => Padding(
