@@ -19,6 +19,7 @@ import 'package:azimutree/services/survey_session_storage.dart';
 import 'package:azimutree/services/survey_ui_constants.dart';
 import 'package:azimutree/services/tree_direction_filter_service.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/compass_calibration_dialog_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
@@ -1440,10 +1441,29 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
 
   Widget _compassCalibrationInfo(Color foreground) => Padding(
     padding: const EdgeInsets.only(top: 12),
-    child: Text(
-      'Jika arah tidak stabil, jauhkan smartphone dari magnet atau benda logam lalu lakukan kalibrasi kompas.',
-      textAlign: TextAlign.center,
-      style: TextStyle(color: foreground.withValues(alpha: 0.72), fontSize: 12),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          'Jika arah tidak stabil, lakukan kalibrasi kompas.',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: foreground.withValues(alpha: 0.72),
+            fontSize: 12,
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextButton.icon(
+          onPressed:
+              () => showDialog<void>(
+                context: context,
+                builder: (_) => const CompassCalibrationDialogWidget(),
+              ),
+          icon: const Icon(Icons.help_outline),
+          label: const Text('Bagaimana cara kalibrasi kompas?'),
+          style: TextButton.styleFrom(foregroundColor: foreground),
+        ),
+      ],
     ),
   );
 
