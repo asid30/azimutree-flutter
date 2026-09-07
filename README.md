@@ -12,6 +12,7 @@ Permasalahan semakin kompleks karena pengamatan kesehatan hutan dilakukan secara
 
 Dalam metode Forest Health Monitoring, satu **klaster** terdiri dari beberapa **plot**, dengan ketentuan:
 
+- Setiap klaster memiliki tepat satu **Titik Ikat** sebagai referensi awal untuk menemukan lokasi klaster dan plot di lapangan.
 - Satu klaster maksimal memiliki **4 plot**.
 - **Plot 1** berfungsi sebagai **sentroid (pusat klaster)**.
 - Plot lainnya mengelilingi plot pusat.
