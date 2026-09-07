@@ -5,6 +5,7 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
 import 'package:azimutree/views/widgets/location_map_widget/coordinate_picker_page.dart';
+import 'package:azimutree/services/cluster_code_input_formatter.dart';
 
 class DialogEditClusterWidget extends StatefulWidget {
   final ClusterModel cluster;
@@ -40,7 +41,9 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
   @override
   void initState() {
     super.initState();
-    _kodeController = TextEditingController(text: widget.cluster.kodeCluster);
+    _kodeController = TextEditingController(
+      text: ClusterCodeInputFormatter.normalize(widget.cluster.kodeCluster),
+    );
     _namaController = TextEditingController(
       text: widget.cluster.namaPengukur ?? "",
     );
@@ -96,8 +99,7 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
   }
 
   void _validateForm() {
-    final kode =
-        _kodeController.text.replaceAll(RegExp(r'\s+'), '').toUpperCase();
+    final kode = ClusterCodeInputFormatter.normalize(_kodeController.text);
     final nama = _namaController.text.trim();
     final latitude = double.tryParse(
       _latitudeController.text.trim().replaceAll(',', '.'),
@@ -110,7 +112,9 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
     final tanggal = DateTime.tryParse(_tanggalController.text.trim());
 
     final duplicate = widget.clusterNotifier.value.any(
-      (c) => c.id != widget.cluster.id && c.kodeCluster.toUpperCase() == kode,
+      (c) =>
+          c.id != widget.cluster.id &&
+          ClusterCodeInputFormatter.normalize(c.kodeCluster) == kode,
     );
 
     if (_isDuplicate != duplicate) {
@@ -145,8 +149,9 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
   }
 
   Future<void> _save() async {
-    final kodeCluster =
-        _kodeController.text.replaceAll(RegExp(r'\s+'), '').toUpperCase();
+    final kodeCluster = ClusterCodeInputFormatter.normalize(
+      _kodeController.text,
+    );
     final namaPengukur = _capitalizeWords(_namaController.text.trim());
     final tanggalText = _tanggalController.text.trim();
     DateTime? tanggalPengukuran;
@@ -280,6 +285,7 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
                 children: [
                   TextField(
                     controller: _kodeController,
+                    inputFormatters: const [ClusterCodeInputFormatter()],
                     style: TextStyle(color: dialogText),
                     decoration: InputDecoration(
                       labelText: "Kode Klaster",

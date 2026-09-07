@@ -872,6 +872,14 @@ class _CreateLocationDialogState extends State<_CreateLocationDialog> {
                       Switch(
                         value: _isPublic,
                         onChanged: (value) => setState(() => _isPublic = value),
+                        activeTrackColor:
+                            isDark
+                                ? const Color(0xFFC1FF72)
+                                : const Color(0xFF1F4226),
+                        activeThumbColor:
+                            isDark
+                                ? const Color(0xFF1F4226)
+                                : const Color.fromARGB(255, 205, 237, 211),
                       ),
                     ],
                   ),

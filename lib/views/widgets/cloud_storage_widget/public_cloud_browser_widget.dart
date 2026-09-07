@@ -118,6 +118,7 @@ class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
     return ValueListenableBuilder<bool>(
       valueListenable: isLightModeNotifier,
       builder: (context, isLight, _) {
+        final isDark = !isLight;
         final foreground = isLight ? Colors.black87 : Colors.white;
         final cardColor =
             isLight
@@ -201,8 +202,14 @@ class _PublicCloudBrowserWidgetState extends State<PublicCloudBrowserWidget> {
                     child: Switch(
                       value: _hideEmptyLocations,
                       onChanged: _setHideEmptyLocations,
-                      activeTrackColor: const Color(0xFF1F4226),
-                      activeThumbColor: Colors.white,
+                      activeTrackColor:
+                          isDark
+                              ? const Color(0xFFC1FF72)
+                              : const Color(0xFF1F4226),
+                      activeThumbColor:
+                          isDark
+                              ? const Color(0xFF1F4226)
+                              : const Color.fromARGB(255, 205, 237, 211),
                     ),
                   ),
                 ],

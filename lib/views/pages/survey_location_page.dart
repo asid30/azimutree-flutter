@@ -1003,6 +1003,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
   }
 
   Widget _treeCompassPanel(PlotModel activePlot, Color foreground) {
+    final isDark = foreground.computeLuminance() > 0.5;
     final plotTrees =
         _trees.where((tree) => tree.plotId == activePlot.id).toList();
     return StreamBuilder<double?>(
@@ -1050,7 +1051,12 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
                 style: TextStyle(color: foreground.withValues(alpha: 0.75)),
               ),
               value: _radarCompassEnabled,
-              activeThumbColor: const Color(0xFFC1FF72),
+              activeTrackColor:
+                  isDark ? const Color(0xFFC1FF72) : const Color(0xFF1F4226),
+              activeThumbColor:
+                  isDark
+                      ? const Color(0xFF1F4226)
+                      : const Color.fromARGB(255, 205, 237, 211),
               onChanged:
                   (value) => setState(() => _radarCompassEnabled = value),
             ),
@@ -1058,7 +1064,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
             TreeRadarWidget(
               trees: plotTrees,
               heading: heading,
-              isDark: foreground.computeLuminance() > 0.5,
+              isDark: isDark,
               plotCode: activePlot.kodePlot,
               compassEnabled: _radarCompassEnabled,
             ),

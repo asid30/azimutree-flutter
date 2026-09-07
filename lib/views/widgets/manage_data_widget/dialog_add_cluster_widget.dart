@@ -6,6 +6,7 @@ import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
 import 'package:azimutree/views/widgets/location_map_widget/coordinate_picker_page.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
+import 'package:azimutree/services/cluster_code_input_formatter.dart';
 
 class DialogAddClusterWidget extends StatefulWidget {
   final ClusterNotifier clusterNotifier;
@@ -48,7 +49,6 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
 
     // Listener setiap kali user mengetik → normalisasi & validasi ulang
     _kodeClusterController.addListener(() {
-      _syncUppercase(_kodeClusterController);
       _validateForm();
     });
     _namaPengukurController.addListener(() {
@@ -76,10 +76,9 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
   }
 
   void _validateForm() {
-    final kode =
-        _kodeClusterController.text
-            .replaceAll(RegExp(r'\s+'), '')
-            .toUpperCase();
+    final kode = ClusterCodeInputFormatter.normalize(
+      _kodeClusterController.text,
+    );
     final nama = _namaPengukurController.text.trim();
     final latitude = double.tryParse(
       _titikIkatLatitudeController.text.trim().replaceAll(',', '.'),
@@ -92,7 +91,8 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
     final tanggal = DateTime.tryParse(_tanggalPengukuranController.text.trim());
 
     final isDuplicate = widget.clusterNotifier.value.any(
-      (cluster) => cluster.kodeCluster.toUpperCase() == kode,
+      (cluster) =>
+          ClusterCodeInputFormatter.normalize(cluster.kodeCluster) == kode,
     );
 
     if (_isDuplicateCode != isDuplicate) {
@@ -128,13 +128,14 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
   }
 
   Future<void> _saveCluster() async {
-    final kodeCluster =
-        _kodeClusterController.text
-            .replaceAll(RegExp(r'\s+'), '')
-            .toUpperCase();
+    final kodeCluster = ClusterCodeInputFormatter.normalize(
+      _kodeClusterController.text,
+    );
 
     final hasDuplicate = widget.clusterNotifier.value.any(
-      (cluster) => cluster.kodeCluster.toUpperCase() == kodeCluster,
+      (cluster) =>
+          ClusterCodeInputFormatter.normalize(cluster.kodeCluster) ==
+          kodeCluster,
     );
 
     if (hasDuplicate) {
@@ -237,16 +238,6 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
     _validateForm();
   }
 
-  void _syncUppercase(TextEditingController controller) {
-    final sanitized = controller.text.toUpperCase();
-    if (controller.text != sanitized) {
-      controller.value = TextEditingValue(
-        text: sanitized,
-        selection: TextSelection.collapsed(offset: sanitized.length),
-      );
-    }
-  }
-
   void _syncCapitalizedWords(TextEditingController controller) {
     final sanitized = _capitalizeWords(controller.text);
     if (controller.text != sanitized) {
@@ -299,6 +290,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                 // Kode Klaster
                 TextField(
                   controller: _kodeClusterController,
+                  inputFormatters: const [ClusterCodeInputFormatter()],
                   style: TextStyle(color: dialogText),
                   decoration: InputDecoration(
                     labelText: "Kode Klaster (wajib)",
