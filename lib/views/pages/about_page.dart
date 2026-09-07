@@ -1,650 +1,164 @@
+import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
-import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
-import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
-  Widget _sectionTitle(BuildContext context, String text) {
-    final theme = Theme.of(context);
-    final isDark = !isLightModeNotifier.value;
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Text(
-        text,
-        style: theme.textTheme.titleMedium?.copyWith(
-          fontWeight: FontWeight.bold,
-          color: isDark ? Colors.white : Colors.black,
-        ),
-      ),
-    );
-  }
-
-  Widget _bullet(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Text(
-        '• $text',
-        textAlign: TextAlign.left,
-        style: TextStyle(
-          color: !isLightModeNotifier.value ? Colors.white : Colors.black,
-        ),
-      ),
-    );
+  Future<void> _openLink(BuildContext context, String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
+          context.mounted) {
+        await showAppError(context, 'Tautan tidak dapat dibuka.');
+      }
+    } catch (_) {
+      if (context.mounted) {
+        await showAppError(context, 'Terjadi kesalahan saat membuka tautan.');
+      }
+    }
   }
 
   @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) {
-          return;
-        }
-        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
-      },
-      child: Scaffold(
-        appBar: const AppbarWidget(title: "Tentang Aplikasi"),
-        drawer: const SidebarWidget(),
-        body: Stack(
-          children: [
-            //* Background App
-            BackgroundAppWidget(
-              lightBackgroundImage: "assets/images/light-bg-notitle.png",
-              darkBackgroundImage: "assets/images/dark-bg-notitle.png",
-            ),
-            //* Content
-            SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 0,
-                ),
-                child: ValueListenableBuilder<bool>(
-                  valueListenable: isLightModeNotifier,
-                  builder: (context, isLight, child) {
-                    final isDark = !isLight;
-                    return DefaultTextStyle(
-                      style: TextStyle(
-                        color: isDark ? Colors.white : Colors.black,
+  Widget build(BuildContext context) => PopScope(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop) {
+        Navigator.pushNamedAndRemoveUntil(context, 'home', (_) => false);
+      }
+    },
+    child: Scaffold(
+      appBar: const AppbarWidget(title: 'Tentang Aplikasi'),
+      drawer: const SidebarWidget(),
+      body: Stack(
+        children: [
+          const BackgroundAppWidget(
+            lightBackgroundImage: 'assets/images/light-bg-notitle.png',
+            darkBackgroundImage: 'assets/images/dark-bg-notitle.png',
+          ),
+          ValueListenableBuilder<bool>(
+            valueListenable: isLightModeNotifier,
+            builder: (context, isLight, _) {
+              final foreground = isLight ? Colors.black87 : Colors.white;
+              final secondary = isLight ? Colors.black54 : Colors.white70;
+              final linkColor =
+                  isLight ? Colors.blue.shade800 : const Color(0xFFC1FF72);
+              final cardColor =
+                  isLight
+                      ? const Color.fromARGB(240, 180, 216, 187)
+                      : const Color.fromARGB(255, 36, 67, 42);
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                children: [
+                  Row(
+                    children: [
+                      BackButton(
+                        color: foreground,
+                        onPressed:
+                            () => Navigator.popAndPushNamed(context, 'home'),
                       ),
+                      Text(
+                        'Kembali',
+                        style: TextStyle(fontSize: 18, color: foreground),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Card(
+                    color: cardColor,
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              ValueListenableBuilder<bool>(
-                                valueListenable: isLightModeNotifier,
-                                builder: (context, isLight, child) {
-                                  return BackButton(
-                                    color: isLight ? null : Colors.white,
-                                    onPressed: () {
-                                      Navigator.popAndPushNamed(
-                                        context,
-                                        "home",
-                                      );
-                                    },
-                                  );
-                                },
+                          Text(
+                            'Azimutree 🌲🧭',
+                            style: TextStyle(
+                              color: foreground,
+                              fontSize: 24,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 14),
+                          Text(
+                            'Azimutree adalah aplikasi Android yang membantu kegiatan pemantauan kesehatan hutan dengan metode Forest Health Monitoring (FHM). Aplikasi ini digunakan untuk mencatat lokasi Titik Ikat, klaster, plot, dan pohon, lalu menampilkannya pada peta digital. Fitur radar dan kompas membantu pengguna menemukan lokasi survei di lapangan dengan lebih mudah.',
+                            textAlign: TextAlign.justify,
+                            style: TextStyle(color: foreground, height: 1.5),
+                          ),
+                          const SizedBox(height: 28),
+                          Center(
+                            child: Text(
+                              'Developed by Asid30 © 2026',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: secondary,
+                                fontWeight: FontWeight.w600,
                               ),
-                              ValueListenableBuilder<bool>(
-                                valueListenable: isLightModeNotifier,
-                                builder: (context, isLight, child) {
-                                  return Text(
-                                    "Kembali",
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      color: isLight ? null : Colors.white,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
+                            ),
                           ),
-                          const SizedBox(height: 12),
-
-                          // Latar Belakang
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isLightModeNotifier,
-                            builder: (context, isLightMode, _) {
-                              final isDark = !isLightMode;
-                              return Card(
-                                color:
-                                    isDark
-                                        ? const Color.fromARGB(255, 36, 67, 42)
-                                        : const Color.fromARGB(
-                                          240,
-                                          180,
-                                          216,
-                                          187,
-                                        ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Azimutree 🌲🧭',
-                                        style: TextStyle(
-                                          fontSize: 24,
-                                          fontWeight: FontWeight.bold,
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 12),
-                                      _sectionTitle(context, 'Latar Belakang'),
-                                      Text(
-                                        'Dalam penelitian kesehatan hutan, kondisi lingkungan dapat berubah dari waktu ke waktu akibat faktor internal maupun eksternal. Perubahan ini sering menyebabkan lokasi klaster plot hasil penelitian terdahulu mengalami perbedaan kondisi vegetasi dan lingkungan, sehingga menyulitkan peneliti saat melakukan pengamatan lanjutan. Permasalahan semakin kompleks karena pengamatan kesehatan hutan dilakukan secara berkala dan tidak jarang melibatkan peneliti yang berbeda. Meskipun data penelitian sebelumnya biasanya menyertakan koordinat lokasi, data tersebut umumnya masih disimpan dalam bentuk file Excel, sehingga kurang praktis untuk digunakan langsung di lapangan.',
-                                        textAlign: TextAlign.justify,
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
+                          const SizedBox(height: 10),
+                          _AboutLink(
+                            label:
+                                'https://github.com/asid30/azimutree-flutter',
+                            color: linkColor,
+                            onTap:
+                                () => _openLink(
+                                  context,
+                                  'https://github.com/asid30/azimutree-flutter',
                                 ),
-                              );
-                            },
                           ),
-                          const SizedBox(height: 12),
-
-                          // Konsep Klaster Plot
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isLightModeNotifier,
-                            builder: (context, isLightMode, _) {
-                              final isDark = !isLightMode;
-                              return Card(
-                                color:
-                                    isDark
-                                        ? const Color.fromARGB(255, 36, 67, 42)
-                                        : const Color.fromARGB(
-                                          240,
-                                          180,
-                                          216,
-                                          187,
-                                        ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      _sectionTitle(
-                                        context,
-                                        'Konsep Klaster Plot',
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Center(
-                                        child: InkWell(
-                                          onTap: () {
-                                            final asset =
-                                                isDark
-                                                    ? 'assets/images/dark-cl-plot.png'
-                                                    : 'assets/images/light-cl-plot.png';
-                                            Navigator.push(
-                                              context,
-                                              MaterialPageRoute(
-                                                builder:
-                                                    (context) => Scaffold(
-                                                      backgroundColor:
-                                                          isDark
-                                                              ? Colors.black
-                                                              : Colors.white,
-                                                      appBar: AppBar(
-                                                        backgroundColor:
-                                                            Colors.transparent,
-                                                        elevation: 0,
-                                                        iconTheme: IconThemeData(
-                                                          color:
-                                                              isDark
-                                                                  ? Colors.white
-                                                                  : Colors
-                                                                      .black,
-                                                        ),
-                                                      ),
-                                                      body: Center(
-                                                        child: Hero(
-                                                          tag:
-                                                              'cluster-plot-image',
-                                                          child: Image.asset(
-                                                            asset,
-                                                            fit: BoxFit.contain,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    ),
-                                              ),
-                                            );
-                                          },
-                                          child: Container(
-                                            width: double.infinity,
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  isDark
-                                                      ? Colors.black
-                                                      : Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(8),
-                                            ),
-                                            padding: const EdgeInsets.all(8),
-                                            child: Hero(
-                                              tag: 'cluster-plot-image',
-                                              child: ClipRRect(
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                child: Image.asset(
-                                                  isDark
-                                                      ? 'assets/images/dark-cl-plot.png'
-                                                      : 'assets/images/light-cl-plot.png',
-                                                  height: 180,
-                                                  fit: BoxFit.contain,
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(height: 10),
-                                      _bullet(
-                                        'Satu klaster maksimal memiliki 4 plot.',
-                                      ),
-                                      _bullet(
-                                        'Plot 1 berfungsi sebagai sentroid (pusat klaster).',
-                                      ),
-                                      _bullet(
-                                        'Plot lainnya mengelilingi plot pusat.',
-                                      ),
-                                      _bullet(
-                                        'Setiap plot terdiri dari beberapa pohon terpilih yang merepresentasikan kondisi kesehatan hutan.',
-                                      ),
-                                    ],
-                                  ),
+                          const SizedBox(height: 6),
+                          _AboutLink(
+                            label: 'https://azimutree.my.id/',
+                            color: linkColor,
+                            onTap:
+                                () => _openLink(
+                                  context,
+                                  'https://azimutree.my.id/',
                                 ),
-                              );
-                            },
                           ),
-                          const SizedBox(height: 12),
-
-                          // Tujuan Aplikasi
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isLightModeNotifier,
-                            builder: (context, isLightMode, _) {
-                              final isDark = !isLightMode;
-                              return Card(
-                                color:
-                                    isDark
-                                        ? const Color.fromARGB(255, 36, 67, 42)
-                                        : const Color.fromARGB(
-                                          240,
-                                          180,
-                                          216,
-                                          187,
-                                        ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      _sectionTitle(context, 'Tujuan Aplikasi'),
-                                      _bullet(
-                                        'Memvisualisasikan titik koordinat klaster dan plot pada peta digital.',
-                                      ),
-                                      _bullet(
-                                        'Mempermudah peneliti menemukan kembali lokasi penelitian sebelumnya di lapangan.',
-                                      ),
-                                      _bullet(
-                                        'Mengurangi kesalahan penentuan posisi plot akibat perubahan kondisi hutan.',
-                                      ),
-                                      const SizedBox(height: 6),
-                                      Text(
-                                        'Aplikasi ini berfokus pada pencatatan dan visualisasi lokasi, bukan pada pencatatan detail nilai kesehatan pohon atau hutan.',
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Fitur Utama
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isLightModeNotifier,
-                            builder: (context, isLightMode, _) {
-                              final isDark = !isLightMode;
-                              return Card(
-                                color:
-                                    isDark
-                                        ? const Color.fromARGB(255, 36, 67, 42)
-                                        : const Color.fromARGB(
-                                          240,
-                                          180,
-                                          216,
-                                          187,
-                                        ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      _sectionTitle(context, 'Fitur Utama'),
-                                      _bullet(
-                                        'Visualisasi peta digital menggunakan Mapbox.',
-                                      ),
-                                      _bullet(
-                                        'Penentuan posisi klaster dan plot berdasarkan koordinat geografis.',
-                                      ),
-                                      _bullet(
-                                        'Informasi sudut azimut, jarak dari pusat klaster, dan jarak dari posisi pengguna.',
-                                      ),
-                                      _bullet(
-                                        'Impor data dalam jumlah besar (dibatasi untuk satu klaster).',
-                                      ),
-                                      _bullet(
-                                        'Ekspor data ke format Excel untuk memudahkan berbagi data antar peneliti.',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Teknologi yang Digunakan
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isLightModeNotifier,
-                            builder: (context, isLightMode, _) {
-                              final isDark = !isLightMode;
-                              return Card(
-                                color:
-                                    isDark
-                                        ? const Color.fromARGB(255, 36, 67, 42)
-                                        : const Color.fromARGB(
-                                          240,
-                                          180,
-                                          216,
-                                          187,
-                                        ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      _sectionTitle(
-                                        context,
-                                        'Teknologi yang Digunakan',
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 6,
-                                        ),
-                                        child: RichText(
-                                          text: TextSpan(
-                                            children: [
-                                              TextSpan(
-                                                text: 'Flutter',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color:
-                                                      isDark
-                                                          ? Colors.white
-                                                          : Colors.black,
-                                                ),
-                                              ),
-                                              TextSpan(
-                                                text:
-                                                    ' sebagai framework pengembangan aplikasi.',
-                                                style: TextStyle(
-                                                  color:
-                                                      isDark
-                                                          ? Colors.white
-                                                          : Colors.black,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 6,
-                                        ),
-                                        child: RichText(
-                                          text: TextSpan(
-                                            children: [
-                                              TextSpan(
-                                                text: 'SQLite',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color:
-                                                      isDark
-                                                          ? Colors.white
-                                                          : Colors.black,
-                                                ),
-                                              ),
-                                              TextSpan(
-                                                text:
-                                                    ' untuk penyimpanan data lokal.',
-                                                style: TextStyle(
-                                                  color:
-                                                      isDark
-                                                          ? Colors.white
-                                                          : Colors.black,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                      Padding(
-                                        padding: const EdgeInsets.only(
-                                          bottom: 6,
-                                        ),
-                                        child: RichText(
-                                          text: TextSpan(
-                                            children: [
-                                              TextSpan(
-                                                text: 'Mapbox',
-                                                style: TextStyle(
-                                                  fontWeight: FontWeight.bold,
-                                                  color:
-                                                      isDark
-                                                          ? Colors.white
-                                                          : Colors.black,
-                                                ),
-                                              ),
-                                              TextSpan(
-                                                text:
-                                                    ' untuk pemetaan dan visualisasi lokasi.',
-                                                style: TextStyle(
-                                                  color:
-                                                      isDark
-                                                          ? Colors.white
-                                                          : Colors.black,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Manfaat
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isLightModeNotifier,
-                            builder: (context, isLightMode, _) {
-                              final isDark = !isLightMode;
-                              return Card(
-                                color:
-                                    isDark
-                                        ? const Color.fromARGB(255, 36, 67, 42)
-                                        : const Color.fromARGB(
-                                          240,
-                                          180,
-                                          216,
-                                          187,
-                                        ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      _sectionTitle(context, 'Manfaat'),
-                                      _bullet(
-                                        'Lebih mudah melakukan pengamatan ulang di lokasi yang sama pada periode penelitian berikutnya.',
-                                      ),
-                                      _bullet(
-                                        'Menghemat waktu pencarian lokasi klaster dan plot di lapangan.',
-                                      ),
-                                      _bullet(
-                                        'Berbagi data lokasi penelitian secara lebih praktis dan terstruktur.',
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 12),
-
-                          // Penutup
-                          ValueListenableBuilder<bool>(
-                            valueListenable: isLightModeNotifier,
-                            builder: (context, isLightMode, _) {
-                              final isDark = !isLightMode;
-                              return Card(
-                                color:
-                                    isDark
-                                        ? const Color.fromARGB(255, 36, 67, 42)
-                                        : const Color.fromARGB(
-                                          240,
-                                          180,
-                                          216,
-                                          187,
-                                        ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(16),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      _sectionTitle(context, 'Penutup'),
-                                      Text(
-                                        'Azimutree diharapkan dapat menjadi alat bantu yang efektif bagi peneliti kesehatan hutan dalam menjaga konsistensi lokasi penelitian, serta mendukung keberlanjutan pengamatan kondisi hutan dari waktu ke waktu.',
-                                        textAlign: TextAlign.justify,
-                                        style: TextStyle(
-                                          color:
-                                              isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 30),
-                                      Center(
-                                        child: Text(
-                                          'Developed by Asid30 © 2026',
-                                          textAlign: TextAlign.center,
-                                          style: TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.w600,
-                                            color:
-                                                isDark
-                                                    ? Colors.white70
-                                                    : Colors.black54,
-                                          ),
-                                        ),
-                                      ),
-                                      Center(
-                                        child: InkWell(
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                          onTap: () async {
-                                            const urlString =
-                                                'https://azimutree.my.id/';
-                                            final uri = Uri.parse(urlString);
-                                            try {
-                                              if (await canLaunchUrl(uri)) {
-                                                await launchUrl(
-                                                  uri,
-                                                  mode:
-                                                      LaunchMode
-                                                          .externalApplication,
-                                                );
-                                              } else {
-                                                if (!context.mounted) return;
-                                                await showAppError(
-                                                  context,
-                                                  'Tautan tidak dapat dibuka.',
-                                                );
-                                              }
-                                            } catch (e) {
-                                              if (!context.mounted) return;
-                                              await showAppError(
-                                                context,
-                                                'Terjadi kesalahan saat membuka tautan: $e',
-                                              );
-                                            }
-                                          },
-                                          child: Text(
-                                            'https://azimutree.my.id/',
-                                            style: TextStyle(
-                                              decoration:
-                                                  TextDecoration.underline,
-                                              color:
-                                                  isDark
-                                                      ? Colors.white70
-                                                      : Colors.blue.shade700,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                          const SizedBox(height: 24),
                         ],
                       ),
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _AboutLink extends StatelessWidget {
+  const _AboutLink({
+    required this.label,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: InkWell(
+      borderRadius: BorderRadius.circular(4),
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(color: color, decoration: TextDecoration.underline),
         ),
       ),
-    );
-  }
+    ),
+  );
 }
