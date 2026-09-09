@@ -1,10 +1,7 @@
-import 'dart:async';
-
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/services/cloud_auth_service.dart';
 import 'package:azimutree/services/cloud_user_profile_service.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
-import 'package:azimutree/views/widgets/alert_dialog_widget/app_form_dialog.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
@@ -98,101 +95,6 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
         _profileInitializedUid = null;
       }
     });
-  }
-
-  Future<void> _editDisplayName(User user, String currentDisplayName) async {
-    var draftName = currentDisplayName;
-    final name = await showDialog<String>(
-      context: context,
-      builder:
-          (dialogContext) => ValueListenableBuilder<bool>(
-            valueListenable: isLightModeNotifier,
-            builder: (context, isLightMode, _) {
-              final isDark = !isLightMode;
-              final dialogBackground =
-                  isDark ? const Color.fromARGB(255, 32, 72, 43) : Colors.white;
-              final foreground = isDark ? Colors.white : Colors.black;
-              final labelColor = isDark ? Colors.white70 : Colors.black54;
-              return AppFormDialog(
-                backgroundColor: dialogBackground,
-                title: Text(
-                  'Ubah Nama Tampilan',
-                  style: TextStyle(color: foreground),
-                ),
-                content: TextFormField(
-                  initialValue: currentDisplayName,
-                  autofocus: true,
-                  maxLength: 20,
-                  style: TextStyle(color: foreground),
-                  cursorColor: foreground,
-                  textCapitalization: TextCapitalization.words,
-                  onChanged: (value) => draftName = value,
-                  onFieldSubmitted:
-                      (value) => Navigator.pop(dialogContext, value.trim()),
-                  decoration: InputDecoration(
-                    labelText: 'Nama tampilan',
-                    hintText: 'Masukkan nama yang akan ditampilkan',
-                    labelStyle: TextStyle(color: labelColor),
-                    hintStyle: TextStyle(color: labelColor),
-                    counterStyle: TextStyle(color: labelColor),
-                    border: const OutlineInputBorder(),
-                    enabledBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color: isDark ? Colors.white54 : Colors.grey,
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderSide: BorderSide(
-                        color:
-                            isDark
-                                ? Colors.white
-                                : Theme.of(context).colorScheme.primary,
-                        width: 2,
-                      ),
-                    ),
-                  ),
-                ),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.pop(dialogContext),
-                    child: Text('Batal', style: TextStyle(color: foreground)),
-                  ),
-                  TextButton(
-                    onPressed:
-                        () => Navigator.pop(dialogContext, draftName.trim()),
-                    style: TextButton.styleFrom(foregroundColor: foreground),
-                    child: const Text('Simpan'),
-                  ),
-                ],
-              );
-            },
-          ),
-    );
-    if (name == null) return;
-    final validationMessage = CloudUserProfileService.validateDisplayName(name);
-    if (validationMessage != null) {
-      await _showMessage('Nama Tidak Valid', validationMessage);
-      return;
-    }
-
-    setState(() => _isProcessing = true);
-    try {
-      await _profileService.updateDisplayName(uid: user.uid, displayName: name);
-    } on TimeoutException {
-      await _showMessage(
-        'Koneksi Lambat',
-        'Server belum memberi konfirmasi. Perubahan mungkin sudah tersinkronisasi; periksa nama yang tampil lalu coba kembali jika belum berubah.',
-      );
-    } on FirebaseException catch (error) {
-      await _showMessage(
-        'Gagal Mengubah Nama',
-        error.message ?? 'Profil tidak dapat diperbarui.',
-      );
-    } catch (error) {
-      await _showMessage('Gagal Mengubah Nama', error.toString());
-    } finally {
-      if (mounted) setState(() => _isProcessing = false);
-    }
   }
 
   @override
@@ -327,11 +229,12 @@ class _CloudStoragePageState extends State<CloudStoragePage> {
                   profile?.email.isNotEmpty == true
                       ? profile!.email
                       : (user.email ?? 'Akun Google telah terhubung'),
-              actionTooltip: 'Ubah nama tampilan',
+              actionTooltip: 'Edit profil',
               onActionPressed:
                   _isProcessing
                       ? null
-                      : () => _editDisplayName(user, displayName),
+                      : () =>
+                          Navigator.pushNamed(context, 'cloud_profile_page'),
             ),
             const SizedBox(height: 12),
             _actionButton(

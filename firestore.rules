@@ -35,7 +35,7 @@ service cloud.firestore {
         && request.resource.data.displayName.size() <= 20
         && request.resource.data.email is string;
 
-      allow delete: if false;
+      allow delete: if request.auth != null && request.auth.uid == userId;
     }
 
     match /researchLocations/{locationId} {

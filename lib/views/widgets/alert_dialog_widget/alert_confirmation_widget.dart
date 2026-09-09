@@ -10,6 +10,7 @@ class AlertConfirmationWidget extends StatelessWidget {
   final String confirmText;
   final String cancelText;
   final String? copyableLink;
+  final bool keepBackgroundColorInDarkMode;
 
   const AlertConfirmationWidget({
     super.key,
@@ -19,6 +20,7 @@ class AlertConfirmationWidget extends StatelessWidget {
     this.confirmText = 'Hapus',
     this.cancelText = 'Batal',
     this.copyableLink,
+    this.keepBackgroundColorInDarkMode = false,
   });
 
   @override
@@ -28,8 +30,13 @@ class AlertConfirmationWidget extends StatelessWidget {
       builder: (context, isLightMode, _) {
         final isDark = !isLightMode;
         final dialogBg =
-            isDark ? const Color.fromARGB(255, 32, 72, 43) : backgroundColor;
-        final textColor = isDark ? Colors.white : Colors.black;
+            isDark && !keepBackgroundColorInDarkMode
+                ? const Color.fromARGB(255, 32, 72, 43)
+                : backgroundColor;
+        final textColor =
+            isDark && !keepBackgroundColorInDarkMode
+                ? Colors.white
+                : Colors.black;
         return AlertDialog(
           backgroundColor: dialogBg,
           title: Text(title, style: TextStyle(color: textColor)),
