@@ -1,7 +1,7 @@
 name: azimutree
 description: "Forest Health Monitoring Mapper"
 publish_to: "none"
-version: 1.1.26+26
+version: 1.1.27+27
 
 environment:
   sdk: ^3.7.2
@@ -11,7 +11,6 @@ dependencies:
     sdk: flutter
   flutter_native_splash: ^2.4.4 # Generates native Android/iOS splash screens from assets/config
   http: ^1.4.0 # Lightweight HTTP client for REST calls and network requests
-  image_picker: ^1.1.2 # Capture images from camera or select from gallery
   intl: ^0.20.2 # Internationalization & date/number formatting utilities
   file_picker: ^10.1.9 # Cross-platform file selection (document import/export)
   excel: ^4.0.6 # Read/write Excel (.xlsx/.xls) files for data import/export
