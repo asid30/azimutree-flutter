@@ -1,40 +1,52 @@
-## Environment template for Azimutree
+# Environment template for Azimutree
 
-## Copy this file to `.env` and fill the values below.
-
-## Keep this file out of version control for secrets.
+# Copy this file to `.env`, provide the required values, and keep the resulting
+# `.env` file out of version control.
 
 # Mapbox access token (public key). Required for Mapbox map rendering.
 
 # Example: pk.eyJ1IjoieW91cnVzZXIiLCJhIjoiY2t...
 
-MAP_BOX_ACCESS =
+MAP_BOX_ACCESS=
 
 # Mapbox style URI for the standard (street) map style.
 
 # Example: mapbox://styles/yourusername/your-style-id
 
-MAPBOX_STYLE_STANDARD =
+MAPBOX_STYLE_STANDARD=
 
 # Mapbox style URI for the satellite map style.
 
 # Example: mapbox://styles/yourusername/your-satellite-style-id
 
-MAPBOX_STYLE_SATELLITE =
+MAPBOX_STYLE_SATELLITE=
 
-# URL to the Google Sheets template used for importing data.
+# Public URL for downloading the Excel import template.
 
 # If not set, the app will show a warning and refuse to open the template.
 
-# Example: https://docs.google.com/spreadsheets/d/your-sheet-id/edit
+# Example: https://azimutree.heavysnack.my.id/template/
 
-TEMPLATE_URL =
-SAMPLE_DATA_URL = https://azimutree.heavysnack.my.id/sample-data/
+TEMPLATE_URL=https://azimutree.heavysnack.my.id/template/
 
-## Notes for developers:
+# Public URL for downloading sample data while Debug Mode is enabled.
 
-## - Update `.env` (not repo) with real values before running the app.
+SAMPLE_DATA_URL=https://azimutree.heavysnack.my.id/sample-data/
 
-## - The app reads these values via `flutter_dotenv` at runtime.
+# Firebase client API keys generated for each supported platform.
 
-## - Keep `MAP_BOX_ACCESS` public key safe; do not commit private tokens.
+# These values are required by `lib/firebase_options.dart`. Firebase API keys
+# identify the project; access control must still be enforced with Firebase
+# Authentication, Firestore Security Rules, and API key restrictions.
+
+FIREBASE_API_KEY_ANDROID=
+FIREBASE_API_KEY_WEB=
+FIREBASE_API_KEY_APPLE=
+
+# Notes for developers:
+
+# - Update `.env` with real values before running the app.
+
+# - The app reads these values through `flutter_dotenv` at runtime.
+
+# - Never place private server credentials or service-account keys in `.env`.
