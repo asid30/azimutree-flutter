@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 
+/// Loads cluster records and exposes them as reactive UI state.
 class ClusterNotifier extends ValueNotifier<List<ClusterModel>> {
   ClusterNotifier() : super([]);
 

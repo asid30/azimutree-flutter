@@ -57,7 +57,7 @@ class ExcelImportService {
       for (final anchor in parsed.anchors) {
         final model = TitikIkatModel(
           idCluster: clusterIdByCode[anchor.clusterCode]!,
-          nama: 'Titik Ikat ${anchor.clusterCode}',
+          nama: 'Titik ikat ${anchor.clusterCode}',
           latitude: anchor.latitude,
           longitude: anchor.longitude,
           altitude: anchor.altitude,
@@ -177,7 +177,7 @@ class ExcelImportService {
     for (final row in anchorRows) {
       final code = _requiredClusterCode(row, clusterCodes);
       if (!anchorCodes.add(code)) {
-        _fail(row, 'Klaster $code hanya boleh memiliki satu Titik Ikat.');
+        _fail(row, 'Klaster $code hanya boleh memiliki satu titik ikat.');
       }
       anchors.add(
         ParsedAnchor(
@@ -193,7 +193,7 @@ class ExcelImportService {
     final withoutAnchor = clusterCodes.difference(anchorCodes);
     if (withoutAnchor.isNotEmpty) {
       throw FormatException(
-        'Titik Ikat belum tersedia untuk klaster: ${withoutAnchor.join(', ')}.',
+        'Titik ikat belum tersedia untuk klaster: ${withoutAnchor.join(', ')}.',
       );
     }
 
@@ -308,8 +308,7 @@ class ExcelImportService {
             .toLowerCase()
             .replaceFirst(RegExp(r'\s*\([^)]*\)\s*$'), '')
             .trim();
-    // Tetap menerima template lama agar file yang sudah dibagikan pengguna
-    // tidak langsung menjadi tidak kompatibel.
+    // Preserve compatibility with older templates that used `altitude`.
     return normalized == 'altitude' ? 'ketinggian' : normalized;
   }
 

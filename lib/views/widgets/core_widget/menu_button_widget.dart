@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Large home-page navigation button used for primary features.
 class MenuButtonWidget extends StatelessWidget {
   final String label;
   final IconData icon;

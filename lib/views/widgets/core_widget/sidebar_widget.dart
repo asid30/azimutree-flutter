@@ -2,10 +2,9 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/services/cloud_connection_service.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:flutter/material.dart';
-import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_loading_widget.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+/// Application drawer that exposes primary and secondary navigation routes.
 class SidebarWidget extends StatelessWidget {
   const SidebarWidget({super.key});
 
@@ -286,40 +285,11 @@ class SidebarWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 6),
                     Center(
-                      child: InkWell(
-                        borderRadius: BorderRadius.circular(4),
-                        onTap: () async {
-                          const urlString = 'https://azimutree.my.id/';
-                          final uri = Uri.parse(urlString);
-                          try {
-                            if (await canLaunchUrl(uri)) {
-                              await launchUrl(
-                                uri,
-                                mode: LaunchMode.externalApplication,
-                              );
-                            } else {
-                              if (!context.mounted) return;
-                              await showAppError(
-                                context,
-                                'Tautan tidak dapat dibuka.',
-                              );
-                            }
-                          } catch (e) {
-                            if (!context.mounted) return;
-                            await showAppError(
-                              context,
-                              'Terjadi kesalahan saat membuka tautan: $e',
-                            );
-                          }
-                        },
-                        child: Text(
-                          'https://azimutree.my.id/',
-                          style: TextStyle(
-                            decoration: TextDecoration.underline,
-                            color:
-                                isDark ? Colors.white70 : Colors.blue.shade700,
-                            fontSize: 12,
-                          ),
+                      child: Text(
+                        'https://azimutree.heavysnack.my.id/',
+                        style: TextStyle(
+                          color: isDark ? Colors.white70 : Colors.black54,
+                          fontSize: 12,
                         ),
                       ),
                     ),

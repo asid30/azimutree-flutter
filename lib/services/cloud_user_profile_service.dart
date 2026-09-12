@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
+/// User-facing profile stored separately from Firebase Authentication.
 class CloudUserProfile {
   const CloudUserProfile({
     required this.uid,
@@ -15,6 +16,7 @@ class CloudUserProfile {
   final String email;
 }
 
+/// Creates, reads, and updates cloud profile metadata for signed-in users.
 class CloudUserProfileService {
   CloudUserProfileService({FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance;

@@ -31,6 +31,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:geolocator/geolocator.dart' as geo;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart' as mapbox;
 
+/// Guides users from an anchor point to plots and trees during field surveys.
 class SurveyLocationPage extends StatefulWidget {
   const SurveyLocationPage({
     super.key,
@@ -285,7 +286,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
   Future<void> _endSurvey() async {
     if (!await _confirm(
       'Akhiri Sesi Survey',
-      'Progress sesi survey akan dihapus. Data klaster, plot, dan Titik Ikat tetap aman.',
+      'Progress sesi survey akan dihapus. Data klaster, plot, dan titik ikat tetap aman.',
     )) {
       return;
     }
@@ -435,7 +436,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
           )
         else if (session.anchorPoint == null)
           _message(
-            'Klaster ini belum memiliki Titik Ikat.',
+            'Klaster ini belum memiliki titik ikat.',
             cardColor,
             foreground,
           )
@@ -501,7 +502,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
         style: _secondaryButtonStyle(foreground),
         onPressed: () => _openAnchorOnMap(anchor),
         icon: const Icon(Icons.map_outlined),
-        label: const Text('LIHAT TITIK IKAT DI PETA'),
+        label: const Text('Lihat titik ikat di peta'),
       ),
       const SizedBox(height: 8),
       FilledButton.icon(
@@ -511,7 +512,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
         onPressed: () async {
           if (await _confirm(
             'Mulai Survey Lapangan',
-            'Anda akan melakukan survey di lapangan. Pastikan Anda sudah berada di sekitar lokasi. Alur survey dimulai dengan mencari Titik Ikat, dilanjutkan mencari pusat plot, lalu mencari pohon berdasarkan azimut yang telah didata.',
+            'Anda akan melakukan survey di lapangan. Pastikan Anda sudah berada di sekitar lokasi. Alur survey dimulai dengan mencari titik ikat, dilanjutkan mencari pusat plot, lalu mencari pohon berdasarkan azimut yang telah didata.',
           )) {
             _session.start();
           }
@@ -530,7 +531,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
     final anchor = session.anchorPoint!;
     final estimate = _gpsDistanceTo(anchor.latitude!, anchor.longitude!);
     return _card(color, [
-      Text('Langkah 1 · Temukan Titik Ikat', style: _title(foreground)),
+      Text('Langkah 1 · Temukan titik ikat', style: _title(foreground)),
       const SizedBox(height: 8),
       Text(
         '${anchor.nama} · ${session.cluster!.kodeCluster}',
@@ -555,7 +556,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       if (_position != null &&
           _position!.accuracy > SurveyUiConstants.poorGpsAccuracyThresholdM)
         const Text(
-          'GPS kurang akurat. Gunakan Titik Ikat dan kompas sebagai referensi lapangan.',
+          'GPS kurang akurat. Gunakan titik ikat dan kompas sebagai referensi lapangan.',
           style: TextStyle(color: Colors.orange),
         ),
       if (_locationMessage != null) ...[
@@ -593,12 +594,12 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       ),
       const SizedBox(height: 8),
       Text(
-        'Pin merah menunjukkan Titik Ikat; indikator lokasi menunjukkan posisi GPS Anda.',
+        'Pin merah menunjukkan titik ikat; indikator lokasi menunjukkan posisi GPS Anda.',
         style: TextStyle(color: foreground.withValues(alpha: 0.75)),
       ),
       const SizedBox(height: 16),
       Text(
-        'GPS hanya digunakan untuk mendekati lokasi. Temukan objek Titik Ikat secara fisik.',
+        'GPS hanya digunakan untuk mendekati lokasi. Temukan objek titik ikat secara fisik.',
         style: TextStyle(color: foreground),
       ),
       const SizedBox(height: 20),
@@ -615,13 +616,13 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
         ),
         onPressed: () async {
           if (await _confirm(
-            'Konfirmasi Titik Ikat',
-            'Pastikan Anda sudah menemukan Titik Ikat secara fisik. Koordinat tidak akan diubah dari GPS.',
+            'Konfirmasi titik ikat',
+            'Pastikan Anda sudah menemukan titik ikat secara fisik. Koordinat tidak akan diubah dari GPS.',
           )) {
             _session.confirmAnchorPoint();
           }
         },
-        child: const Text('SAYA SUDAH DI TITIK IKAT'),
+        child: const Text('Saya sudah di titik ikat'),
       ),
     ]);
   }
@@ -637,7 +638,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       children: [
         if (hasPhoto) ...[
           Text(
-            'Foto Titik Ikat',
+            'Foto titik ikat',
             style: TextStyle(color: foreground, fontWeight: FontWeight.w600),
           ),
           const SizedBox(height: 8),
@@ -773,7 +774,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
             style: _secondaryButtonStyle(foreground),
             onPressed: _session.cancelNavigation,
             icon: const Icon(Icons.arrow_back),
-            label: const Text('BATAL, KEMBALI KE TITIK IKAT'),
+            label: const Text('Batal, kembali ke titik ikat'),
           ),
         ]);
       },
@@ -791,7 +792,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       const Icon(Icons.location_on, color: Colors.green, size: 64),
       const SizedBox(height: 8),
       Text(
-        'Referensi saat ini: Titik Ikat',
+        'Referensi saat ini: titik ikat',
         textAlign: TextAlign.center,
         style: _title(foreground),
       ),
@@ -897,7 +898,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
         style: _secondaryButtonStyle(foreground),
         onPressed: () => _navigateBackToAnchor(session),
         icon: const Icon(Icons.location_pin),
-        label: const Text('BATAL, KEMBALI KE TITIK IKAT'),
+        label: const Text('Batal, kembali ke titik ikat'),
       ),
       const Divider(height: 32),
       _treeCompassPanel(session.currentPlot!, foreground),
@@ -983,7 +984,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
             style: _secondaryButtonStyle(foreground),
             onPressed: () => _navigateBackToAnchor(session),
             icon: const Icon(Icons.location_pin),
-            label: const Text('BATAL, KEMBALI KE TITIK IKAT'),
+            label: const Text('Batal, kembali ke titik ikat'),
           ),
         ]);
       },
@@ -1023,7 +1024,7 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
         final difference =
             heading == null ? null : signedAngleDifference(target, heading);
         return _card(color, [
-          Text('Kembali ke Titik Ikat', style: _title(foreground)),
+          Text('Kembali ke titik ikat', style: _title(foreground)),
           const SizedBox(height: 12),
           Transform.rotate(
             angle:
@@ -1065,13 +1066,13 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
             ),
             onPressed: () async {
               if (await _confirm(
-                'Konfirmasi Titik Ikat',
-                'Pastikan Anda sudah kembali ke Titik Ikat secara fisik.',
+                'Konfirmasi titik ikat',
+                'Pastikan Anda sudah kembali ke titik ikat secara fisik.',
               )) {
                 _session.confirmAnchorReturn();
               }
             },
-            child: const Text('SAYA SUDAH DI TITIK IKAT'),
+            child: const Text('Saya sudah di titik ikat'),
           ),
         ]);
       },
@@ -1511,15 +1512,19 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
       TextStyle(color: color, fontSize: 22, fontWeight: FontWeight.bold);
 
   ButtonStyle get _primaryButtonStyle => FilledButton.styleFrom(
-    backgroundColor: const Color(0xFF1F4226),
+    backgroundColor: SurveyUiConstants.primaryButtonLight,
     foregroundColor: Colors.white,
-    disabledBackgroundColor: const Color(0xFF1F4226).withValues(alpha: 0.45),
+    disabledBackgroundColor: SurveyUiConstants.primaryButtonLight.withValues(
+      alpha: 0.45,
+    ),
     disabledForegroundColor: Colors.white70,
   );
 
   ButtonStyle _plotTargetButtonStyle({required bool isDark}) {
     final backgroundColor =
-        isDark ? const Color(0xFF14351D) : const Color(0xFF1F4226);
+        isDark
+            ? SurveyUiConstants.primaryButtonDark
+            : SurveyUiConstants.primaryButtonLight;
     return FilledButton.styleFrom(
       backgroundColor: backgroundColor,
       foregroundColor: Colors.white,
@@ -1530,7 +1535,9 @@ class _SurveyLocationPageState extends State<SurveyLocationPage> {
 
   ButtonStyle _themedPrimaryButtonStyle({required bool isDark}) {
     final backgroundColor =
-        isDark ? const Color(0xFF14351D) : const Color(0xFF1F4226);
+        isDark
+            ? SurveyUiConstants.primaryButtonDark
+            : SurveyUiConstants.primaryButtonLight;
     return FilledButton.styleFrom(
       backgroundColor: backgroundColor,
       foregroundColor: Colors.white,

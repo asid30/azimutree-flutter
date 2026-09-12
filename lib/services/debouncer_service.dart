@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:ui';
 
+/// Delays rapid callbacks so only the latest action is executed.
 class DebouncerService {
   final Duration delay;
   Timer? _timer;

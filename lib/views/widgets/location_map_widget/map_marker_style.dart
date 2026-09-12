@@ -43,6 +43,7 @@ const int kCentroidColor = 0xFF6A1B9A;
 const int kTitikIkatColor = 0xFFE53935;
 const double kTitikIkatIconSize = 0.88;
 
+/// Builds and caches theme-aware bitmap icons for tree markers.
 class TreeMarkerIconFactory {
   TreeMarkerIconFactory._();
 
@@ -119,6 +120,7 @@ class TreeMarkerIconFactory {
   }
 }
 
+/// Builds and caches bitmap icons for anchor-point markers.
 class TitikIkatMarkerIconFactory {
   TitikIkatMarkerIconFactory._();
 
@@ -162,7 +164,7 @@ class TitikIkatMarkerIconFactory {
     final image = await recorder.endRecording().toImage(48, 48);
     final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
     image.dispose();
-    if (bytes == null) throw StateError('Gagal membuat ikon Titik Ikat');
+    if (bytes == null) throw StateError('Gagal membuat ikon titik ikat');
     final result = bytes.buffer.asUint8List();
     _cache[selected] = result;
     return result;

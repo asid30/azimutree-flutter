@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
 
+/// Reports whether the configured cloud service is available.
 class CloudConnectionResult {
   final bool isConnected;
   final String message;
@@ -13,6 +14,7 @@ class CloudConnectionResult {
   });
 }
 
+/// Checks the public Firestore status document before opening cloud features.
 class CloudConnectionService {
   CloudConnectionService({FirebaseFirestore? firestore})
     : _firestore = firestore;

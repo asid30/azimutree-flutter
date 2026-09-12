@@ -1,6 +1,7 @@
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/services/debug_mode_service.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +18,34 @@ class _SettingsPageState extends State<SettingsPage> {
   void initState() {
     super.initState();
     DebugModeService.instance.init();
+  }
+
+  Future<void> _changeDebugMode(bool enable) async {
+    if (!enable) {
+      await DebugModeService.instance.setEnabled(false);
+      return;
+    }
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (_) => AlertConfirmationWidget(
+            title: 'Aktifkan Mode Debug?',
+            message:
+                'Mode Debug hanya digunakan untuk menguji coba aplikasi. '
+                'Jika diaktifkan, menu Kelola Data akan menampilkan pilihan '
+                'untuk membuat data acak, mengunduh data uji coba, dan '
+                'menghapus seluruh data lokal. Aktifkan hanya saat sedang '
+                'melakukan pengujian dan pastikan data penting sudah diamankan.',
+            confirmText: 'Aktifkan',
+            cancelText: 'Batal',
+            backgroundColor: Colors.orange.shade200,
+          ),
+    );
+
+    if (confirmed == true) {
+      await DebugModeService.instance.setEnabled(true);
+    }
   }
 
   @override
@@ -88,7 +117,7 @@ class _SettingsPageState extends State<SettingsPage> {
                           ),
                           const SizedBox(height: 12),
 
-                          // Theme switch
+                          // Theme selector
                           ValueListenableBuilder<bool>(
                             valueListenable: isLightModeNotifier,
                             builder: (context, isLightMode, _) {
@@ -103,31 +132,67 @@ class _SettingsPageState extends State<SettingsPage> {
                                           216,
                                           187,
                                         ),
-                                child: SwitchListTile(
+                                child: ListTile(
                                   title: Text(
-                                    'Tema',
+                                    'Mode Tema',
                                     style: TextStyle(
                                       color:
                                           isDark ? Colors.white : Colors.black,
                                     ),
                                   ),
-                                  activeTrackColor:
-                                      isDark
-                                          ? const Color(0xFFC1FF72)
-                                          : const Color(0xFF1F4226),
-                                  activeThumbColor:
-                                      isDark ? const Color(0xFF1F4226) : null,
                                   subtitle: Text(
-                                    isLightMode ? 'Tema Terang' : 'Tema Gelap',
+                                    'Pilih tema tampilan aplikasi',
                                     style: TextStyle(
                                       color:
-                                          isDark ? Colors.white : Colors.black,
+                                          isDark
+                                              ? Colors.white70
+                                              : Colors.black54,
                                     ),
                                   ),
-                                  value: isLightMode,
-                                  onChanged: (value) {
-                                    isLightModeNotifier.value = value;
-                                  },
+                                  trailing: DropdownButtonHideUnderline(
+                                    child: DropdownButton<bool>(
+                                      value: isLightMode,
+                                      dropdownColor:
+                                          isDark
+                                              ? const Color.fromARGB(
+                                                255,
+                                                36,
+                                                67,
+                                                42,
+                                              )
+                                              : const Color.fromARGB(
+                                                255,
+                                                180,
+                                                216,
+                                                187,
+                                              ),
+                                      iconEnabledColor:
+                                          isDark
+                                              ? const Color(0xFFC1FF72)
+                                              : const Color(0xFF1F4226),
+                                      style: TextStyle(
+                                        color:
+                                            isDark
+                                                ? Colors.white
+                                                : Colors.black,
+                                      ),
+                                      items: const [
+                                        DropdownMenuItem<bool>(
+                                          value: true,
+                                          child: Text('Terang'),
+                                        ),
+                                        DropdownMenuItem<bool>(
+                                          value: false,
+                                          child: Text('Gelap'),
+                                        ),
+                                      ],
+                                      onChanged: (value) {
+                                        if (value != null) {
+                                          isLightModeNotifier.value = value;
+                                        }
+                                      },
+                                    ),
+                                  ),
                                 ),
                               );
                             },
@@ -173,19 +238,16 @@ class _SettingsPageState extends State<SettingsPage> {
                                               ? const Color(0xFF1F4226)
                                               : null,
                                       subtitle: Text(
-                                        'Tampilkan fitur debug (generate/hapus data) di Kelola Data',
+                                        'Tampilkan alat pengujian developer di Kelola Data',
                                         style: TextStyle(
                                           color:
                                               isDark
-                                                  ? Colors.white
-                                                  : Colors.black,
+                                                  ? Colors.white70
+                                                  : Colors.black54,
                                         ),
                                       ),
                                       value: enabled,
-                                      onChanged: (value) async {
-                                        await DebugModeService.instance
-                                            .setEnabled(value);
-                                      },
+                                      onChanged: _changeDebugMode,
                                     );
                                   },
                                 ),

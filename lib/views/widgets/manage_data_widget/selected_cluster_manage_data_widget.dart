@@ -283,7 +283,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     );
   }
 
-  /// Row helper biar kodenya ga berantakan
+  /// Builds a consistently styled label-and-value table row.
   TableRow _row(BuildContext context, bool isDark, String label, String value) {
     final theme = Theme.of(context);
     final color = isDark ? Colors.white : theme.textTheme.bodyMedium?.color;
@@ -303,7 +303,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     );
   }
 
-  /// Format tanggal jadi dd-mm-yyyy
+  /// Formats a date as `dd-mm-yyyy` for display.
   String _formatDate(DateTime date) {
     final d = date.day.toString().padLeft(2, '0');
     final m = date.month.toString().padLeft(2, '0');
@@ -349,7 +349,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
           (_) => AlertConfirmationWidget(
             title: 'Hapus klaster?',
             message:
-                'Semua Titik Ikat, plot, dan pohon di klaster ini akan ikut terhapus.',
+                'Semua titik ikat, plot, dan pohon di klaster ini akan ikut terhapus.',
             confirmText: 'Hapus',
             cancelText: 'Batal',
           ),

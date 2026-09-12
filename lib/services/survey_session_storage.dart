@@ -1,6 +1,7 @@
 import 'package:azimutree/data/notifiers/survey_navigation_notifier.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Serializable progress needed to restore an interrupted survey session.
 class SurveySessionSnapshot {
   const SurveySessionSnapshot({
     required this.clusterId,
@@ -23,6 +24,7 @@ class SurveySessionSnapshot {
   final double? targetDistanceM;
 }
 
+/// Persists and restores the active survey session on the device.
 class SurveySessionStorage {
   static const _prefix = 'survey_session_';
   static const _clusterIdKey = '${_prefix}cluster_id';

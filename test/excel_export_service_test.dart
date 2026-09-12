@@ -27,14 +27,14 @@ void main() {
       TitikIkatModel(
         id: 1,
         idCluster: 1,
-        nama: 'Titik Ikat CL01',
+        nama: 'Titik ikat CL01',
         latitude: -5.1,
         longitude: 105.1,
       ),
       TitikIkatModel(
         id: 2,
         idCluster: 2,
-        nama: 'Titik Ikat CL02',
+        nama: 'Titik ikat CL02',
         latitude: -5.2,
         longitude: 105.2,
       ),
@@ -120,7 +120,7 @@ void main() {
       containsAll(['* nama pengukur', '* tanggal pengukuran']),
     );
     expect(_values(anchorRows.first).skip(1).take(2), ['* lintang', '* bujur']);
-    expect(_values(anchorRows[1]), isNot(contains('Titik Ikat CL01')));
+    expect(_values(anchorRows[1]), isNot(contains('Titik ikat CL01')));
     expect(_values(treeRows.first), isNot(contains('* lintang')));
     expect(_values(treeRows.first), isNot(contains('* bujur')));
     expect(

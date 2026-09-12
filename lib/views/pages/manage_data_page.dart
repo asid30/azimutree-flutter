@@ -129,7 +129,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
 
                           return Column(
                             children: [
-                              // Dropdown tetap sama, karena sudah pakai selectedDropdownClusterNotifier
+                              // Keep the dropdown synchronized through the shared cluster selection notifier.
                               ValueListenableBuilder<bool>(
                                 valueListenable: isLightModeNotifier,
                                 builder: (context, isLightMode, _) {
@@ -205,12 +205,12 @@ class _ManageDataPageState extends State<ManageDataPage> {
                               const SizedBox(height: 8),
 
                               if (hasCluster)
-                                // 🔥 Dengarkan dropdown pilihan klaster
+                                // Rebuild the detail sections when the selected cluster changes.
                                 ValueListenableBuilder<String?>(
                                   valueListenable:
                                       selectedDropdownClusterNotifier,
                                   builder: (context, selectedKodeCluster, _) {
-                                    // Cari cluster yang cocok dengan kode yang dipilih
+                                    // Resolve the selected cluster from its stable code.
                                     final selectedCluster = clusters.firstWhere(
                                       (c) =>
                                           c.kodeCluster == selectedKodeCluster,
@@ -250,7 +250,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                                 final plots =
                                                     plotData; // List<PlotModel>
 
-                                                // 💡 Filter plot berdasarkan idCluster dari cluster terpilih
+                                                // Show only plots owned by the selected cluster.
                                                 final plotsForSelectedCluster =
                                                     plots
                                                         .where(

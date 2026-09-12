@@ -164,7 +164,7 @@ class ExcelExportService {
       'Contoh kode: kode klaster CL1, kode plot 1, dan kode pohon 1.',
     ]);
 
-    // Cluster sheet. Every other sheet uses kode klaster as its stable,
+    // Cluster sheet. Every other sheet uses the cluster code as its stable,
     // human-readable relationship key.
     final Sheet clustersSheet = excel['klaster'];
     clustersSheet.appendValues([
@@ -182,7 +182,7 @@ class ExcelExportService {
       ]);
     }
 
-    // One Titik Ikat belongs to one cluster.
+    // Each cluster owns exactly one anchor point.
     final Sheet anchorsSheet = excel['titik_ikat'];
     anchorsSheet.appendValues([
       '* kode klaster',

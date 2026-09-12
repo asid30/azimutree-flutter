@@ -1,3 +1,4 @@
+/// Represents the physical anchor point used to begin a cluster survey.
 class TitikIkatModel {
   int? id;
   int idCluster;

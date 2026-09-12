@@ -2,6 +2,7 @@ import 'package:azimutree/data/database/azimutree_db.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:sqflite/sqflite.dart';
 
+/// Provides SQLite operations for the single anchor point owned by each cluster.
 class TitikIkatDao {
   static const String tableName = 'titik_ikat';
 
@@ -30,7 +31,7 @@ class TitikIkatDao {
       ]),
     );
     if ((existing ?? 0) > 0) {
-      throw StateError('Klaster ini sudah memiliki Titik Ikat');
+      throw StateError('Klaster ini sudah memiliki titik ikat');
     }
     return db.insert(tableName, titikIkat.toMap());
   }
@@ -71,7 +72,7 @@ class TitikIkatDao {
       ),
     );
     if ((existing ?? 0) > 0) {
-      throw StateError('Klaster ini sudah memiliki Titik Ikat');
+      throw StateError('Klaster ini sudah memiliki titik ikat');
     }
     return db.update(
       tableName,

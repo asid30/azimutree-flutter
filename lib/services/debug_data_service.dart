@@ -15,8 +15,8 @@ import 'package:azimutree/data/notifiers/tree_notifier.dart';
 import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
 import 'package:azimutree/services/azimuth_latlong_service.dart';
 
-/// Utility untuk kebutuhan pengembangan: seed data random dan menghapus semua
-/// data. Simpan semua logic di satu tempat supaya UI tetap ringkas.
+/// Creates deterministic-shaped sample datasets and clears local survey data
+/// for development and manual application testing.
 class DebugDataService {
   final ClusterNotifier clusterNotifier;
   final PlotNotifier plotNotifier;
@@ -32,7 +32,7 @@ class DebugDataService {
     required this.titikIkatNotifier,
   });
 
-  /// Generate beberapa klaster, Titik Ikat, plot, dan pohon secara acak.
+  /// Generates random clusters, anchor points, plots, and trees with valid geometry.
   Future<void> seedRandomData({
     int clusterCount = 3,
     int minPlotPerCluster = 4,
@@ -50,7 +50,7 @@ class DebugDataService {
         tanggalPengukuran: now.subtract(Duration(days: _rng.nextInt(60))),
       );
 
-      // Tentukan pusat klaster (plot 1) agar plot lain tidak terlalu jauh
+      // Keep all generated plots near the cluster's Plot 1 center.
       const latMin = -5.6;
       const latMax = -5.3;
       const lonMin = 105.1;
@@ -59,8 +59,8 @@ class DebugDataService {
       final centerLon = _randomCoordinate(lonMin, lonMax);
       final centerAltitude = 100 + _rng.nextInt(250).toDouble();
 
-      // Tempatkan Titik Ikat 25–100 meter dari P1. Arah dan jarak menuju P1
-      // tetap dihitung dari koordinat saat sesi survey dimulai.
+      // Place the anchor point 25–100 meters from Plot 1. Navigation derives
+      // the direction and distance from these coordinates at survey time.
       final anchorDistanceM = 25 + _rng.nextDouble() * 75;
       final anchorBearingFromPlot1 = _rng.nextDouble() * 360;
       final anchorCoordinate = AzimuthLatLongService.fromAzimuthDistance(
@@ -73,7 +73,7 @@ class DebugDataService {
         cluster,
         TitikIkatModel(
           idCluster: 0,
-          nama: 'Titik Ikat $clusterCode',
+          nama: 'Titik ikat $clusterCode',
           latitude: anchorCoordinate.latitude,
           longitude: anchorCoordinate.longitude,
           altitude: centerAltitude,
@@ -135,7 +135,7 @@ class DebugDataService {
     await _refreshNotifiers();
   }
 
-  /// Bersihkan seluruh tabel supaya database kembali kosong.
+  /// Deletes every local survey row and resets the related SQLite sequences.
   Future<void> clearAllData() async {
     final db = await AzimutreeDB.instance.database;
 
@@ -182,7 +182,7 @@ class DebugDataService {
     required int plotIndex,
     required int treeIndex,
   }) {
-    // Tidak semua pohon dikasih foto supaya bisa lihat perbedaan loading.
+    // Attach photos selectively so image and placeholder states can be tested.
     final shouldAttachPhoto = _rng.nextBool();
     if (!shouldAttachPhoto) return null;
 

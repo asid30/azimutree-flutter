@@ -11,6 +11,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+/// Hosts public browsing, authentication, and owned cloud-data management.
 class CloudStoragePage extends StatefulWidget {
   const CloudStoragePage({super.key});
 

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:azimutree/data/models/app_version_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Reads application release notes and version metadata from Firestore.
 class AppVersionService {
   AppVersionService({FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance;

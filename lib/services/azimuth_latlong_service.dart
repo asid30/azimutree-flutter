@@ -1,6 +1,6 @@
 import 'dart:math';
 
-/// Titik koordinat sederhana (latitude, longitude) dalam derajat.
+/// Immutable latitude and longitude coordinates expressed in degrees.
 class LatLngPoint {
   final double latitude;
   final double longitude;
@@ -11,12 +11,12 @@ class LatLngPoint {
   String toString() => 'LatLngPoint(lat: $latitude, lon: $longitude)';
 }
 
-/// Representasi azimut (derajat) dan jarak (meter) dari titik pusat.
+/// Azimuth in degrees and distance in meters relative to an origin point.
 class AzimuthDistance {
-  /// Azimut dalam derajat, 0° = utara, 90° = timur, searah jarum jam.
+  /// Clockwise bearing where 0° is north and 90° is east.
   final double azimuthDeg;
 
-  /// Jarak dari pusat dalam meter.
+  /// Distance from the origin in meters.
   final double distanceM;
 
   const AzimuthDistance({required this.azimuthDeg, required this.distanceM});
@@ -26,28 +26,28 @@ class AzimuthDistance {
       'AzimuthDistance(azimuthDeg: $azimuthDeg, distanceM: $distanceM)';
 }
 
-/// Service helper untuk konversi azimut <-> koordinat.
-/// Catatan:
-/// Menggunakan rumus geodesik great-circle pada bumi berbentuk bola. Rumus ini
-/// tetap stabil untuk jarak plot yang pendek dan tidak bergantung pada arah.
+/// Converts between coordinates and azimuth-distance measurements.
+///
+/// Calculations use great-circle geodesics on a spherical Earth model, which
+/// remains stable for the short distances used by survey plots.
 class AzimuthLatLongService {
   static const double _earthRadiusMeters = 6371000.0;
   static const double _degToRadFactor = pi / 180.0;
   static const double _radToDegFactor = 180.0 / pi;
 
-  const AzimuthLatLongService._(); // private constructor, ga perlu di-instantiate
+  const AzimuthLatLongService._(); // Static utility; prevent instantiation.
 
   static double _degToRad(double deg) => deg * _degToRadFactor;
 
   static double _radToDeg(double rad) => rad * _radToDegFactor;
 
-  /// Hitung koordinat target berdasarkan titik pusat, azimut, dan jarak.
+  /// Calculates target coordinates from an origin, bearing, and distance.
   ///
-  /// [centerLatDeg], [centerLonDeg] dalam derajat.
-  /// [azimuthDeg] dalam derajat, 0° = utara, meningkat searah jarum jam.
-  /// [distanceM] dalam meter.
+  /// [centerLatDeg] and [centerLonDeg] are expressed in degrees.
+  /// [azimuthDeg] starts at north and increases clockwise.
+  /// [distanceM] is expressed in meters.
   ///
-  /// Return: koordinat pohon (LatLngPoint).
+  /// Returns the destination as a [LatLngPoint].
   static LatLngPoint fromAzimuthDistance({
     required double centerLatDeg,
     required double centerLonDeg,
@@ -77,11 +77,11 @@ class AzimuthLatLongService {
     );
   }
 
-  /// Hitung azimut (derajat) dan jarak (meter) dari titik pusat ke target.
+  /// Calculates bearing and distance from an origin to a target coordinate.
   ///
-  /// [centerLatDeg], [centerLonDeg], [targetLatDeg], [targetLonDeg] dalam derajat.
+  /// All coordinate parameters are expressed in degrees.
   ///
-  /// Return: [AzimuthDistance] dengan azimut 0–360° dan jarak meter.
+  /// Returns a normalized 0–360° bearing and a distance in meters.
   static AzimuthDistance toAzimuthDistance({
     required double centerLatDeg,
     required double centerLonDeg,
@@ -113,7 +113,7 @@ class AzimuthLatLongService {
     return AzimuthDistance(azimuthDeg: azimuth, distanceM: distance);
   }
 
-  /// Hitung hanya jarak geodesik (meter).
+  /// Calculates only the geodesic distance in meters.
   static double distanceMeters({
     required double lat1Deg,
     required double lon1Deg,

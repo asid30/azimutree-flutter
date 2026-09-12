@@ -32,12 +32,12 @@ void main() {
     ),
   );
 
-  testWidgets('first plot only offers Titik Ikat as reference', (tester) async {
+  testWidgets('first plot only offers titik ikat as reference', (tester) async {
     final notifier = PlotNotifier();
     addTearDown(notifier.dispose);
     await tester.pumpWidget(form(notifier));
 
-    expect(find.text('Titik Ikat'), findsOneWidget);
+    expect(find.text('Titik ikat'), findsOneWidget);
     expect(find.text('Azimut & Jarak'), findsOneWidget);
     expect(find.text('Lintang & Bujur'), findsOneWidget);
     expect(find.text('Plot 1'), findsOneWidget);
@@ -57,7 +57,7 @@ void main() {
     ];
     await tester.pumpWidget(form(notifier));
 
-    await tester.tap(find.text('Titik Ikat').last);
+    await tester.tap(find.text('Titik ikat').last);
     await tester.pumpAndSettle();
     expect(find.text('Plot 1'), findsWidgets);
   });

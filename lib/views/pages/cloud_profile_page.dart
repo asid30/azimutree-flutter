@@ -13,6 +13,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+/// Allows the signed-in user to edit or permanently delete a cloud account.
 class CloudProfilePage extends StatefulWidget {
   const CloudProfilePage({super.key});
 

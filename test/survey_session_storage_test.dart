@@ -16,7 +16,7 @@ void main() {
     final anchor = TitikIkatModel(
       id: 20,
       idCluster: 10,
-      nama: 'Titik Ikat CLS-10',
+      nama: 'Titik ikat CLS-10',
       latitude: -5,
       longitude: 105,
     );

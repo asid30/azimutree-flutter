@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:azimutree/data/database/plot_dao.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 
+/// Loads plot records and exposes them as reactive UI state.
 class PlotNotifier extends ValueNotifier<List<PlotModel>> {
   PlotNotifier() : super([]);
 

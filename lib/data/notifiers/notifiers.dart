@@ -62,7 +62,7 @@ ValueNotifier<TreeModel?> selectedTreeNotifier = ValueNotifier(null);
 /// The currently-selected `PlotModel` (set when a plot marker is tapped).
 ValueNotifier<PlotModel?> selectedPlotNotifier = ValueNotifier(null);
 
-/// Currently-selected Titik Ikat marker and its owning cluster.
+/// Currently selected anchor-point marker and its owning cluster.
 ValueNotifier<TitikIkatModel?> selectedTitikIkatNotifier = ValueNotifier(null);
 ValueNotifier<ClusterModel?> selectedTitikIkatClusterNotifier = ValueNotifier(
   null,

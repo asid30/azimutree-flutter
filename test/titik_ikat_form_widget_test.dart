@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
-  testWidgets('new Cluster form requires Titik Ikat coordinates', (
+  testWidgets('new Cluster form requires titik ikat coordinates', (
     tester,
   ) async {
     final clusterNotifier = ClusterNotifier();
@@ -24,9 +24,9 @@ void main() {
       ),
     );
 
-    expect(find.text('Koordinat Titik Ikat'), findsOneWidget);
-    expect(find.text('Lintang Titik Ikat (wajib)'), findsOneWidget);
-    expect(find.text('Bujur Titik Ikat (wajib)'), findsOneWidget);
+    expect(find.text('Koordinat titik ikat'), findsOneWidget);
+    expect(find.text('Lintang titik ikat (wajib)'), findsOneWidget);
+    expect(find.text('Bujur titik ikat (wajib)'), findsOneWidget);
     expect(find.textContaining('Nama dibuat otomatis'), findsOneWidget);
   });
 }

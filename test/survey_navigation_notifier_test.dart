@@ -9,7 +9,7 @@ void main() {
   final anchor = TitikIkatModel(
     id: 1,
     idCluster: 1,
-    nama: 'Titik Ikat A',
+    nama: 'Titik ikat A',
     latitude: -5,
     longitude: 105,
   );
@@ -49,7 +49,7 @@ void main() {
     },
   );
 
-  test('Plot 1 cannot be confirmed before Titik Ikat', () {
+  test('Plot 1 cannot be confirmed before titik ikat', () {
     final notifier = SurveyNavigationNotifier();
     addTearDown(notifier.dispose);
     notifier.selectSurvey(

@@ -4,6 +4,7 @@ import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:flutter/material.dart';
 
+/// Explains the application's primary data and field-survey workflows.
 class TutorialPage extends StatelessWidget {
   const TutorialPage({super.key});
 
@@ -109,20 +110,20 @@ class TutorialPage extends StatelessWidget {
                             children: const [
                               _GuideSubtitle('Susunan data'),
                               _GuideParagraph(
-                                'Satu klaster memiliki satu Titik Ikat, maksimal empat plot, dan setiap plot dapat memiliki banyak pohon.',
+                                'Satu klaster memiliki satu titik ikat, maksimal empat plot, dan setiap plot dapat memiliki banyak pohon.',
                               ),
-                              _GuideSubtitle('Tambah Klaster dan Titik Ikat'),
+                              _GuideSubtitle('Tambah Klaster dan titik ikat'),
                               _GuideBullets([
                                 'Isi kode tanpa spasi. Huruf otomatis kapital, misalnya CL1.',
-                                'Nama pengukur, tanggal, lintang, dan bujur Titik Ikat wajib diisi.',
-                                'Nama Titik Ikat dibuat otomatis dari kode klaster.',
+                                'Nama pengukur, tanggal, lintang, dan bujur titik ikat wajib diisi.',
+                                'Nama titik ikat dibuat otomatis dari kode klaster.',
                                 'Ketinggian, keterangan, dan link gambar bersifat opsional.',
                                 'Gunakan Pilih dari Peta untuk mengambil koordinat secara visual.',
                               ]),
                               _GuideSubtitle('Tambah Plot'),
                               _GuideBullets([
                                 'Pilih salah satu metode: Azimut & Jarak atau Lintang & Bujur.',
-                                'Plot pertama mengacu pada Titik Ikat. Plot tersimpan kemudian dapat dipilih sebagai referensi.',
+                                'Plot pertama mengacu pada titik ikat. Plot tersimpan kemudian dapat dipilih sebagai referensi.',
                                 'Koordinat dari Azimut & Jarak dihitung berdasarkan referensi yang dipilih.',
                                 'Jika pusat plot diedit, lokasi pohon tetap, sedangkan azimut dan jaraknya dihitung ulang.',
                               ]),
@@ -137,7 +138,7 @@ class TutorialPage extends StatelessWidget {
                               _GuideBullets([
                                 'Pilih klaster dari dropdown untuk menampilkan seluruh data terkait.',
                                 'Gunakan tombol edit, hapus, atau Tracking Data pada kartu data.',
-                                'Menghapus klaster turut menghapus Titik Ikat, plot, dan pohon di dalamnya.',
+                                'Menghapus klaster turut menghapus titik ikat, plot, dan pohon di dalamnya.',
                                 'Tracking Data membuka peta dan memilih marker tujuan.',
                               ]),
                             ],
@@ -173,7 +174,7 @@ class TutorialPage extends StatelessWidget {
                             children: const [
                               _GuideSubtitle('Marker dan area'),
                               _GuideBullets([
-                                'Titik Ikat memakai pin merah, plot berwarna biru, centroid ungu, dan pohon memakai ikon pohon.',
+                                'Titik ikat memakai pin merah, plot berwarna biru, centroid ungu, dan pohon memakai ikon pohon.',
                                 'Pohon yang selesai pada Workflow Inspeksi berubah menjadi hijau.',
                                 'Area biru muda menunjukkan area plot berdasarkan pohon terjauh ditambah margin.',
                                 'Tekan dan tahan marker untuk memilih. Detail tersedia pada kartu layar dan bottom sheet.',
@@ -181,7 +182,7 @@ class TutorialPage extends StatelessWidget {
                               ]),
                               _GuideSubtitle('Pencarian dan kontrol'),
                               _GuideBullets([
-                                'Pencarian mencakup lokasi Mapbox serta klaster, Titik Ikat, plot, dan pohon lokal.',
+                                'Pencarian mencakup lokasi Mapbox serta klaster, titik ikat, plot, dan pohon lokal.',
                                 'Hasil lokal tetap tersedia jika Mapbox atau internet bermasalah.',
                                 'Bottom sheet menyediakan tipe peta, lokasi pengguna, dan arah utara.',
                               ]),
@@ -189,7 +190,7 @@ class TutorialPage extends StatelessWidget {
                               _GuideBullets([
                                 'Atur pemilihan marker, legenda, info marker, dan Workflow Inspeksi.',
                                 'Garis Pohon → Plot dan Plot → Plot dapat diatur terpisah.',
-                                'Ukuran marker Titik Ikat, plot, centroid, dan pohon dapat diubah satu per satu.',
+                                'Ukuran marker titik ikat, plot, centroid, dan pohon dapat diubah satu per satu.',
                                 'Pengaturan Map Tools disimpan untuk penggunaan berikutnya.',
                               ]),
                             ],
@@ -209,10 +210,10 @@ class TutorialPage extends StatelessWidget {
                               ]),
                               _GuideSubtitle('Alur survey'),
                               _GuideBullets([
-                                'Langkah 1: menuju Titik Ikat dengan jarak GPS dan peta kecil interaktif.',
-                                'Langkah 2: dari Titik Ikat menuju pusat Plot 1 berdasarkan arah dan jarak.',
+                                'Langkah 1: menuju titik ikat dengan jarak GPS dan peta kecil interaktif.',
+                                'Langkah 2: dari titik ikat menuju pusat Plot 1 berdasarkan arah dan jarak.',
                                 'Langkah 3: pilih plot tujuan lain atau cari pohon pada plot aktif menggunakan radar.',
-                                'Batal dan kembali ke Titik Ikat tidak mengakhiri sesi.',
+                                'Batal dan kembali ke titik ikat tidak mengakhiri sesi.',
                                 'Gunakan Akhiri Sesi Survey untuk menutup sesi sepenuhnya.',
                               ]),
                               _GuideSubtitle('Radar pohon'),

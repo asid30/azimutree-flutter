@@ -657,7 +657,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       await processCoordinate(tree.longitude!, tree.latitude!, tree: tree);
     }
 
-    // Titik Ikat is at the same navigation level as plots.
+    // The anchor point is at the same navigation level as plots.
     for (final titikIkat in _titikIkatCache) {
       if (titikIkat.latitude == null || titikIkat.longitude == null) continue;
       await processCoordinate(

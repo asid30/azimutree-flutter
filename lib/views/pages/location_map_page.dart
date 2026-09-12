@@ -203,7 +203,7 @@ class _LocationMapPageState extends State<LocationMapPage> {
                       ),
                       const SizedBox(height: 8),
                       _MarkerSizeSlider(
-                        label: 'Titik Ikat',
+                        label: 'Titik ikat',
                         icon: Icons.location_pin,
                         prefKey: 'map_marker_scale_titik_ikat',
                         notifier: titikIkatMarkerScaleNotifier,

@@ -6,6 +6,7 @@ import 'package:intl/intl.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+/// Searches and downloads public research data without requiring sign-in.
 class PublicCloudBrowserWidget extends StatefulWidget {
   const PublicCloudBrowserWidget({
     super.key,

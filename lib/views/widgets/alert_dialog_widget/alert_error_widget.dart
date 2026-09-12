@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 
+/// Displays a themed error message that requires acknowledgement.
 class AlertErrorWidget extends StatelessWidget {
   final Object errorMessage;
   const AlertErrorWidget({super.key, required this.errorMessage});

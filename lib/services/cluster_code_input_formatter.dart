@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 
+/// Normalizes cluster codes to uppercase characters without whitespace.
 class ClusterCodeInputFormatter extends TextInputFormatter {
   const ClusterCodeInputFormatter();
 

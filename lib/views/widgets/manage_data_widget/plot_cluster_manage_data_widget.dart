@@ -51,8 +51,8 @@ class _PlotClusterManageDataWidgetState
       valueListenable: isLightModeNotifier,
       builder: (context, isLightMode, child) {
         final isDark = !isLightMode;
-        // Kalau dari parent sudah dibilang klaster ini tidak punya plot,
-        // langsung tampilkan pesan dan jangan render list plot sama sekali.
+        // Avoid building the plot list when the parent already knows that this
+        // cluster has no plots.
         if (widget.isEmpty) {
           return Container(
             width: double.infinity,
@@ -85,7 +85,7 @@ class _PlotClusterManageDataWidgetState
           );
         }
 
-        // Fallback: kalau isEmpty == false tapi plotData kosong (just in case)
+        // Handle an inconsistent empty list defensively.
         if (widget.plotData.isEmpty) {
           return Container(
             width: double.infinity,
@@ -118,7 +118,7 @@ class _PlotClusterManageDataWidgetState
           );
         }
 
-        // Normal case: ada plot untuk klaster ini
+        // Sort populated plot data into its natural numeric order.
         final sortedPlotData = [...widget.plotData]
           ..sort((a, b) => a.kodePlot.compareTo(b.kodePlot));
 

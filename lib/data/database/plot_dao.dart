@@ -63,8 +63,8 @@ class PlotDao {
         whereArgs: [plot.id],
       );
 
-      // Koordinat pohon adalah posisi absolut. Saat pusat plot dipindahkan,
-      // posisi itu tetap dan nilai relatifnya harus dihitung ulang.
+      // Tree coordinates are absolute. Moving a plot center must preserve each
+      // tree position and recalculate its relative azimuth and distance.
       final trees = await transaction.query(
         'trees',
         where: 'plotId = ?',
@@ -74,8 +74,8 @@ class PlotDao {
         double? treeLatitude = (tree['latitude'] as num?)?.toDouble();
         double? treeLongitude = (tree['longitude'] as num?)?.toDouble();
 
-        // Data lama mungkin hanya memiliki azimut dan jarak. Pulihkan dahulu
-        // koordinat absolutnya dari pusat plot sebelum diedit.
+        // Legacy rows may only contain azimuth and distance. Restore their
+        // absolute coordinates from the old plot center before recalculating.
         if (treeLatitude == null || treeLongitude == null) {
           final oldAzimuth = (tree['azimut'] as num?)?.toDouble();
           final oldDistance = (tree['jarakPusatM'] as num?)?.toDouble();

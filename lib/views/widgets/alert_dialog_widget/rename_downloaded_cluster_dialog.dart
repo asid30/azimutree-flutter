@@ -2,6 +2,7 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/app_form_dialog.dart';
 import 'package:flutter/material.dart';
 
+/// Requests a unique local code when downloaded cluster data conflicts.
 class RenameDownloadedClusterDialog extends StatefulWidget {
   const RenameDownloadedClusterDialog({super.key, required this.initialCode});
 

@@ -2,6 +2,7 @@ import 'package:azimutree/data/database/titik_ikat_dao.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:flutter/material.dart';
 
+/// Loads anchor-point records and exposes them as reactive UI state.
 class TitikIkatNotifier extends ValueNotifier<List<TitikIkatModel>> {
   TitikIkatNotifier() : super([]);
 

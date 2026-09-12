@@ -156,15 +156,15 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
       references.add(
         _PlotReference(
           key: 'anchor:${anchor.id ?? anchor.idCluster}',
-          label: 'Titik Ikat',
+          label: 'Titik ikat',
           latitude: anchor.latitude!,
           longitude: anchor.longitude!,
         ),
       );
     }
 
-    // Plot pertama wajib mengacu ke Titik Ikat. Setelah itu plot yang sudah
-    // tersimpan ikut menjadi pilihan referensi.
+    // The first plot must use the anchor point. Saved plots become additional
+    // reference choices for subsequent plots.
     if (_plotsForSelectedCluster.isNotEmpty) {
       for (final plot in _plotsForSelectedCluster) {
         if (plot.id == null) continue;
@@ -482,7 +482,7 @@ class _DialogAddPlotWidgetState extends State<DialogAddPlotWidget> {
                   Padding(
                     padding: const EdgeInsets.only(top: 5),
                     child: Text(
-                      'Titik Ikat klaster belum memiliki koordinat.',
+                      'Titik ikat klaster belum memiliki koordinat.',
                       style: TextStyle(
                         color: isDark ? Colors.orange : Colors.red,
                       ),

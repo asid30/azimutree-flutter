@@ -30,7 +30,7 @@ class DropdownManageDataWidget extends StatelessWidget {
             (selectedValue == null ||
                 !clusterOptions.contains(selectedValue))) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            // Set default value ke item pertama
+            // Select the first available cluster when the current value is stale.
             selectedDropdownClusterNotifier.value = clusterOptions.first;
           });
         }

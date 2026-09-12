@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 
+/// Reusable themed dialog for confirming potentially consequential actions.
 class AlertConfirmationWidget extends StatelessWidget {
   final String title;
   final String message;
@@ -54,7 +55,6 @@ class AlertConfirmationWidget extends StatelessWidget {
                         copyableLink!,
                         style: TextStyle(
                           color: isDark ? Colors.lightBlue[200] : Colors.blue,
-                          decoration: TextDecoration.underline,
                         ),
                       ),
                     ),

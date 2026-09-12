@@ -14,7 +14,7 @@ TitikIkatModel validTitikIkat({double? latitude, double? longitude}) {
 }
 
 void main() {
-  test('valid Titik Ikat converts to and from map', () {
+  test('valid titik ikat converts to and from map', () {
     final model = validTitikIkat(latitude: -5.4, longitude: 105.2);
     model.validate();
 
@@ -28,7 +28,7 @@ void main() {
   test('coordinates are valid without obsolete direction attributes', () {
     final model = TitikIkatModel(
       idCluster: 1,
-      nama: 'Titik Ikat CL1',
+      nama: 'Titik ikat CL1',
       latitude: -5.4,
       longitude: 105.2,
     );
@@ -43,7 +43,7 @@ void main() {
     );
   });
 
-  test('coordinates calculate forward azimuth from Titik Ikat to Plot 1', () {
+  test('coordinates calculate forward azimuth from titik ikat to Plot 1', () {
     final result = AzimuthLatLongService.toAzimuthDistance(
       centerLatDeg: -5.401,
       centerLonDeg: 105.2,

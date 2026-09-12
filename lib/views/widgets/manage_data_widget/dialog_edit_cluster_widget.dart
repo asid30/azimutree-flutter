@@ -7,6 +7,7 @@ import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
 import 'package:azimutree/views/widgets/location_map_widget/coordinate_picker_page.dart';
 import 'package:azimutree/services/cluster_code_input_formatter.dart';
 
+/// Edits cluster metadata together with its required anchor point.
 class DialogEditClusterWidget extends StatefulWidget {
   final ClusterModel cluster;
   final ClusterNotifier clusterNotifier;
@@ -173,7 +174,7 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
       TitikIkatModel(
         id: widget.titikIkat.id,
         idCluster: widget.cluster.id!,
-        nama: 'Titik Ikat $kodeCluster',
+        nama: 'Titik ikat $kodeCluster',
         latitude: double.parse(
           _latitudeController.text.trim().replaceAll(',', '.'),
         ),
@@ -373,7 +374,7 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
                   Align(
                     alignment: Alignment.centerLeft,
                     child: Text(
-                      'Koordinat Titik Ikat',
+                      'Koordinat titik ikat',
                       style: TextStyle(
                         color: dialogText,
                         fontSize: 16,
@@ -398,7 +399,7 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
                       signed: true,
                     ),
                     decoration: _fieldDecoration(
-                      'Lintang Titik Ikat (wajib)',
+                      'Lintang titik ikat (wajib)',
                       isDark,
                       labelColor,
                       helperText: 'Rentang -90 sampai 90',
@@ -413,7 +414,7 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
                       signed: true,
                     ),
                     decoration: _fieldDecoration(
-                      'Bujur Titik Ikat (wajib)',
+                      'Bujur titik ikat (wajib)',
                       isDark,
                       labelColor,
                       helperText: 'Rentang -180 sampai 180',
@@ -440,7 +441,7 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
                       signed: true,
                     ),
                     decoration: _fieldDecoration(
-                      'Ketinggian Titik Ikat (m, opsional)',
+                      'Ketinggian titik ikat (m, opsional)',
                       isDark,
                       labelColor,
                     ),
@@ -451,7 +452,7 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
                     style: TextStyle(color: dialogText),
                     maxLines: 3,
                     decoration: _fieldDecoration(
-                      'Keterangan Titik Ikat (opsional)',
+                      'Keterangan titik ikat (opsional)',
                       isDark,
                       labelColor,
                     ),
@@ -462,7 +463,7 @@ class _DialogEditClusterWidgetState extends State<DialogEditClusterWidget> {
                     style: TextStyle(color: dialogText),
                     keyboardType: TextInputType.url,
                     decoration: _fieldDecoration(
-                      'Link gambar Titik Ikat (opsional)',
+                      'Link gambar titik ikat (opsional)',
                       isDark,
                       labelColor,
                       helperText: 'URL gambar atau tautan Google Drive',

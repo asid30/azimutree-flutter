@@ -4,6 +4,7 @@ import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/database/titik_ikat_dao.dart';
 
+/// Provides SQLite operations for clusters and their dependent survey data.
 class ClusterDao {
   static const String tableName = 'clusters';
 
@@ -66,7 +67,7 @@ class ClusterDao {
       );
       await txn.update(
         TitikIkatDao.tableName,
-        {'nama': 'Titik Ikat ${cluster.kodeCluster}'},
+        {'nama': 'Titik ikat ${cluster.kodeCluster}'},
         where: 'idCluster = ?',
         whereArgs: [cluster.id],
       );

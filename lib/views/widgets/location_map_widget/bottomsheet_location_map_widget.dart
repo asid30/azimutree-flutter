@@ -896,7 +896,7 @@ class _BottomsheetLocationMapWidgetState
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           const Text(
-                                            'Titik Ikat',
+                                            'Titik ikat',
                                             style: TextStyle(
                                               fontSize: 18,
                                               fontWeight: FontWeight.bold,
@@ -918,7 +918,7 @@ class _BottomsheetLocationMapWidgetState
                                               ),
                                               IconButton(
                                                 tooltip:
-                                                    'Center pada Titik Ikat',
+                                                    'Center pada titik ikat',
                                                 onPressed:
                                                     () =>
                                                         _selectAndCenterTitikIkat(

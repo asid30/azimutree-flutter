@@ -1,6 +1,6 @@
 ## Tentang Aplikasi
 
-**Azimutree** adalah aplikasi Android untuk membantu kegiatan **pemantauan kesehatan hutan** dengan metode **Forest Health Monitoring (FHM)**. Aplikasi ini mencatat lokasi Titik Ikat, klaster, plot, dan pohon, lalu menampilkannya pada peta digital. Fitur radar dan kompas membantu pengguna menemukan lokasi survei di lapangan dengan lebih mudah.
+**Azimutree** adalah aplikasi Android untuk membantu kegiatan **pemantauan kesehatan hutan** dengan metode **Forest Health Monitoring (FHM)**. Aplikasi ini mencatat lokasi titik ikat, klaster, plot, dan pohon, lalu menampilkannya pada peta digital. Fitur radar dan kompas membantu pengguna menemukan lokasi survei di lapangan dengan lebih mudah.
 
 ## Latar Belakang
 
@@ -12,7 +12,7 @@ Permasalahan semakin kompleks karena pengamatan kesehatan hutan dilakukan secara
 
 Dalam metode Forest Health Monitoring, satu **klaster** terdiri dari beberapa **plot**, dengan ketentuan:
 
-- Setiap klaster memiliki tepat satu **Titik Ikat** sebagai referensi awal untuk menemukan lokasi klaster dan plot di lapangan.
+- Setiap klaster memiliki tepat satu **titik ikat** sebagai referensi awal untuk menemukan lokasi klaster dan plot di lapangan.
 - Satu klaster maksimal memiliki **4 plot**.
 - **Plot 1** berfungsi sebagai **sentroid (pusat klaster)**.
 - Plot lainnya mengelilingi plot pusat.
@@ -24,7 +24,7 @@ Struktur ini penting untuk memastikan konsistensi dan akurasi data dalam setiap 
 
 Beberapa fitur utama yang tersedia dalam aplikasi Azimutree antara lain:
 
-- Pengelolaan data Titik Ikat, klaster, plot, dan pohon secara lokal.
+- Pengelolaan data titik ikat, klaster, plot, dan pohon secara lokal.
 - Input posisi menggunakan azimut dan jarak atau lintang dan bujur.
 - Pemilihan koordinat secara visual melalui peta.
 - Visualisasi marker, area plot, garis relasi, dan lokasi pengguna pada peta digital.
@@ -121,7 +121,7 @@ Gunakan `env_template` yang sudah ada — salin dan ubah namanya menjadi `.env`,
 
 ```bash
 cp env_template .env
-# lalu buka .env dan isi:
+# Then open .env and provide the required values:
 # MAP_BOX_ACCESS=pk.your_mapbox_public_token_here
 ```
 

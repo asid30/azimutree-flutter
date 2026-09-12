@@ -121,10 +121,13 @@ class _BottomsheetManageDataWidgetState
       context: context,
       builder:
           (_) => AlertConfirmationWidget(
-            title: 'Hapus semua data?',
-            message: 'Semua klaster, plot, dan pohon akan dihapus permanen.',
-            confirmText: 'Hapus',
+            title: 'Hapus Semua Data?',
+            message:
+                'Semua data klaster, titik ikat, plot, dan pohon akan dihapus permanen. Data yang dibuat manual, diimpor, diunduh, maupun dibuat melalui Generate Data Random juga ikut terhapus. Tindakan ini tidak dapat dibatalkan.',
+            confirmText: 'Hapus Permanen',
             cancelText: 'Batal',
+            backgroundColor: const Color.fromARGB(255, 255, 205, 210),
+            keepBackgroundColorInDarkMode: true,
           ),
     );
 
@@ -149,6 +152,20 @@ class _BottomsheetManageDataWidgetState
   }
 
   Future<void> _generateRandomData() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder:
+          (_) => const AlertConfirmationWidget(
+            title: 'Generate Data Random?',
+            message:
+                'Aplikasi akan membuat dan menambahkan data contoh berupa klaster, titik ikat, plot, dan pohon ke penyimpanan lokal. Data yang sudah ada tidak akan dihapus.',
+            confirmText: 'Generate',
+            cancelText: 'Batal',
+          ),
+    );
+
+    if (confirm != true || !mounted) return;
+
     try {
       await _debugDataService.seedRandomData();
       if (!mounted) return;
@@ -226,35 +243,40 @@ class _BottomsheetManageDataWidgetState
     );
   }
 
-  Future<void> _confirmAndOpenTemplate() async {
-    final templateEnv = dotenv.env['TEMPLATE_URL'];
-    if (templateEnv == null || templateEnv.trim().isEmpty) {
+  Future<void> _confirmAndOpenDownload({
+    required String environmentKey,
+    required String title,
+    required String itemName,
+  }) async {
+    final configuredUrl = dotenv.env[environmentKey];
+    if (configuredUrl == null || configuredUrl.trim().isEmpty) {
       await _showAlert(
         title: 'Gagal',
         message:
-            'Template belum dikonfigurasi. Silakan tambahkan TEMPLATE_URL di file .env.',
+            '$itemName belum dikonfigurasi. Silakan tambahkan $environmentKey di file .env.',
         backgroundColor: Colors.red.shade200,
       );
       return;
     }
-    final templateUrl = templateEnv.trim();
+    final downloadUrl = configuredUrl.trim();
 
     final confirm = await showDialog<bool>(
       context: context,
       builder:
           (_) => AlertConfirmationWidget(
-            title: 'Unduh Template',
+            title: title,
             message:
-                'Apakah Anda ingin membuka browser untuk mengunduh template?',
+                'Apakah Anda ingin membuka browser untuk mengunduh '
+                '${itemName.toLowerCase()}?',
             confirmText: 'Buka',
             cancelText: 'Batal',
-            copyableLink: templateUrl,
+            copyableLink: downloadUrl,
           ),
     );
 
     if (confirm != true) return;
 
-    final uri = Uri.parse(templateUrl);
+    final uri = Uri.parse(downloadUrl);
     try {
       if (!await canLaunchUrl(uri)) {
         if (!mounted) return;
@@ -299,6 +321,18 @@ class _BottomsheetManageDataWidgetState
       );
     }
   }
+
+  Future<void> _confirmAndOpenTemplate() => _confirmAndOpenDownload(
+    environmentKey: 'TEMPLATE_URL',
+    title: 'Unduh Template',
+    itemName: 'Template',
+  );
+
+  Future<void> _confirmAndOpenSampleData() => _confirmAndOpenDownload(
+    environmentKey: 'SAMPLE_DATA_URL',
+    title: 'Unduh Data Uji Coba',
+    itemName: 'Data uji coba',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -471,7 +505,7 @@ class _BottomsheetManageDataWidgetState
                                 await _showAlert(
                                   title: 'Sukses',
                                   message:
-                                      'Impor selesai. Klaster: ${importResult['clusters']}, Titik Ikat: ${importResult['anchors']}, Plot: ${importResult['plots']}, Pohon: ${importResult['trees']}',
+                                      'Impor selesai. Klaster: ${importResult['clusters']}, titik ikat: ${importResult['anchors']}, Plot: ${importResult['plots']}, Pohon: ${importResult['trees']}',
                                   backgroundColor: Colors.lightGreen.shade200,
                                 );
                               } catch (e) {
@@ -601,7 +635,7 @@ class _BottomsheetManageDataWidgetState
                                       label: "Plot",
                                       minSize: const Size(100, 40),
                                       maxSize: const Size(150, 70),
-                                      // kalau kamu mau beda warna ketika belum ada klaster:
+                                      // Disable plot creation until a cluster exists.
                                       isEnabled: hasCluster,
                                       backgroundColor:
                                           isDark
@@ -721,6 +755,18 @@ class _BottomsheetManageDataWidgetState
                                 foregroundColor: Colors.white,
                               ),
                               child: const Text("Generate Data Random"),
+                            ),
+                            const SizedBox(height: 8),
+                            ElevatedButton(
+                              onPressed: _confirmAndOpenSampleData,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    isDark
+                                        ? const Color.fromARGB(255, 18, 43, 25)
+                                        : const Color.fromARGB(255, 32, 72, 43),
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text("Unduh Data Uji Coba"),
                             ),
                             const SizedBox(height: 8),
                             ElevatedButton(

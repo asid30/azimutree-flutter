@@ -6,6 +6,7 @@ import 'package:azimutree/services/compass_navigation_service.dart';
 import 'package:azimutree/services/survey_ui_constants.dart';
 import 'package:flutter/material.dart';
 
+/// Displays trees around a plot center using compass-relative radar geometry.
 class TreeRadarWidget extends StatefulWidget {
   const TreeRadarWidget({
     super.key,

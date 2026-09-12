@@ -1,6 +1,7 @@
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
 
+/// Displays a non-interactive progress dialog during asynchronous work.
 class AlertLoadingWidget extends StatelessWidget {
   const AlertLoadingWidget({super.key, this.message = 'Memproses...'});
 

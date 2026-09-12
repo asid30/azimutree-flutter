@@ -481,7 +481,7 @@ class MarkerInfoWidget extends StatelessWidget {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const Text(
-                  'Titik Ikat',
+                  'Titik ikat',
                   style: TextStyle(fontWeight: FontWeight.w600),
                 ),
                 Text(

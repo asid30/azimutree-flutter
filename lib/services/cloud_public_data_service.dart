@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:azimutree/services/cloud_owned_data_service.dart';
 
+/// Public metadata for a research location shared through Firestore.
 class CloudResearchLocation {
   const CloudResearchLocation({
     required this.id,
@@ -19,6 +20,7 @@ class CloudResearchLocation {
   final List<String> clusterCodes;
 }
 
+/// Lightweight cluster metadata shown in the public cloud browser.
 class CloudClusterSummary {
   const CloudClusterSummary({
     required this.id,
@@ -33,6 +35,7 @@ class CloudClusterSummary {
   final DateTime? surveyDate;
 }
 
+/// Retrieves public research locations and downloadable cluster data.
 class CloudPublicDataService {
   CloudPublicDataService({FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:azimutree/data/database/tree_dao.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 
+/// Loads tree records and exposes them as reactive UI state.
 class TreeNotifier extends ValueNotifier<List<TreeModel>> {
   TreeNotifier() : super([]);
 

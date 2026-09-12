@@ -1,7 +1,7 @@
 name: azimutree
-description: "Forest Health Monitoring Mapper"
+description: "Pemetaan lokasi dan pemantauan kesehatan hutan dengan metode FHM."
 publish_to: "none"
-version: 1.1.27+27
+version: 1.1.28+28
 
 environment:
   sdk: ^3.7.2

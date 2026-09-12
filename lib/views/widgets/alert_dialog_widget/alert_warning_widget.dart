@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 
+/// Displays a themed status or warning message with an acknowledgement action.
 class AlertWarningWidget extends StatelessWidget {
   final String title;
   final String warningMessage;

@@ -11,6 +11,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
+/// Coordinate returned by the interactive map picker.
 class PickedCoordinate {
   final double latitude;
   final double longitude;
@@ -18,6 +19,7 @@ class PickedCoordinate {
   const PickedCoordinate({required this.latitude, required this.longitude});
 }
 
+/// Opens the map picker and returns the confirmed coordinate, if any.
 Future<PickedCoordinate?> pickCoordinateFromMap(
   BuildContext context, {
   double? initialLatitude,
@@ -39,6 +41,7 @@ Future<PickedCoordinate?> pickCoordinateFromMap(
   );
 }
 
+/// Full-screen Mapbox interface for selecting a coordinate under a fixed pin.
 class CoordinatePickerPage extends StatefulWidget {
   final double initialLatitude;
   final double initialLongitude;

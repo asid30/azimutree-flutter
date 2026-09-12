@@ -1,11 +1,14 @@
 import 'dart:math' as math;
 
+import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:azimutree/services/survey_ui_constants.dart';
 import 'package:azimutree/views/widgets/location_map_widget/map_marker_style.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
+/// Interactive mini map showing the user's route toward an anchor point.
 class AnchorMiniMapWidget extends StatefulWidget {
   const AnchorMiniMapWidget({
     super.key,
@@ -102,13 +105,13 @@ class _AnchorMiniMapWidgetState extends State<AnchorMiniMapWidget> {
             )
             : 0.0;
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(12),
-      child: SizedBox(
-        height: 210,
-        child: Stack(
-          children: [
-            MapWidget(
+    return Column(
+      children: [
+        ClipRRect(
+          borderRadius: BorderRadius.circular(12),
+          child: SizedBox(
+            height: 210,
+            child: MapWidget(
               key: ValueKey(
                 'anchor-mini-map-${widget.anchorLatitude}-${widget.anchorLongitude}-$_satellite',
               ),
@@ -154,60 +157,77 @@ class _AnchorMiniMapWidgetState extends State<AnchorMiniMapWidget> {
                 );
               },
             ),
-            Positioned(
-              top: 8,
-              right: 8,
-              child: Material(
-                color: const Color(0xE61F4226),
-                borderRadius: BorderRadius.circular(8),
-                child: SegmentedButton<bool>(
-                  showSelectedIcon: false,
-                  style: ButtonStyle(
-                    visualDensity: VisualDensity.compact,
-                    foregroundColor: const WidgetStatePropertyAll(Colors.white),
-                    backgroundColor: WidgetStateProperty.resolveWith(
-                      (states) =>
-                          states.contains(WidgetState.selected)
-                              ? const Color(0xFF176E26)
-                              : Colors.transparent,
-                    ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          children: [
+            Expanded(
+              child: SegmentedButton<bool>(
+                showSelectedIcon: false,
+                style: ButtonStyle(
+                  visualDensity: VisualDensity.compact,
+                  foregroundColor: const WidgetStatePropertyAll(Colors.white),
+                  backgroundColor: WidgetStateProperty.resolveWith(
+                    (states) =>
+                        states.contains(WidgetState.selected)
+                            ? const Color(0xFF176E26)
+                            : const Color(0xFF1F4226),
                   ),
-                  segments: const [
-                    ButtonSegment(
-                      value: false,
-                      icon: Icon(Icons.map_outlined, size: 18),
-                      label: Text('Medan'),
-                    ),
-                    ButtonSegment(
-                      value: true,
-                      icon: Icon(Icons.satellite_alt, size: 18),
-                      label: Text('Satelit'),
-                    ),
-                  ],
-                  selected: {_satellite},
-                  onSelectionChanged: (value) {
-                    setState(() => _satellite = value.first);
-                  },
                 ),
+                segments: const [
+                  ButtonSegment(
+                    value: false,
+                    icon: Icon(Icons.map_outlined, size: 18),
+                    label: Text('Medan'),
+                  ),
+                  ButtonSegment(
+                    value: true,
+                    icon: Icon(Icons.satellite_alt, size: 18),
+                    label: Text('Satelit'),
+                  ),
+                ],
+                selected: {_satellite},
+                onSelectionChanged: (value) {
+                  setState(() => _satellite = value.first);
+                },
               ),
             ),
-            Positioned(
-              top: 62,
-              right: 8,
-              child: Material(
-                color: const Color(0xE61F4226),
-                shape: const CircleBorder(),
-                child: IconButton(
-                  tooltip: 'Pusatkan ke Titik Ikat',
-                  color: Colors.white,
-                  icon: const Icon(Icons.location_pin),
-                  onPressed: _centerOnAnchor,
-                ),
-              ),
+            const SizedBox(width: 8),
+            ValueListenableBuilder<bool>(
+              valueListenable: isLightModeNotifier,
+              builder: (context, isLightMode, _) {
+                return Material(
+                  color:
+                      isLightMode
+                          ? SurveyUiConstants.primaryButtonLight
+                          : SurveyUiConstants.primaryButtonDark,
+                  shape: const CircleBorder(),
+                  child: SizedBox.square(
+                    dimension: 36,
+                    child: IconButton(
+                      tooltip: 'Pusatkan ke titik ikat',
+                      color: Colors.white,
+                      iconSize: 19,
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                      constraints: const BoxConstraints.tightFor(
+                        width: 36,
+                        height: 36,
+                      ),
+                      style: IconButton.styleFrom(
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      icon: const Icon(Icons.location_pin),
+                      onPressed: _centerOnAnchor,
+                    ),
+                  ),
+                );
+              },
             ),
           ],
         ),
-      ),
+      ],
     );
   }
 

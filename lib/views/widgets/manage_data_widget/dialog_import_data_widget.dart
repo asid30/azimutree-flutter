@@ -2,6 +2,7 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 
+/// Selects and imports an Azimutree Excel workbook into local storage.
 class DialogImportDataWidget extends StatefulWidget {
   const DialogImportDataWidget({super.key});
 
@@ -41,7 +42,7 @@ class _DialogImportDataWidgetState extends State<DialogImportDataWidget> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Pilih file hasil ekspor Azimutree. Klaster, Titik Ikat, plot, dan pohon akan dibaca langsung dari file.',
+                'Pilih file hasil ekspor Azimutree. Klaster, titik ikat, plot, dan pohon akan dibaca langsung dari file.',
                 style: TextStyle(color: textColor),
               ),
               const SizedBox(height: 12),

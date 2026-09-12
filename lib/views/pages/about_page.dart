@@ -1,4 +1,5 @@
 import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
@@ -6,6 +7,7 @@ import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
+/// Presents a concise application description and verified external links.
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
 
@@ -20,6 +22,29 @@ class AboutPage extends StatelessWidget {
       if (context.mounted) {
         await showAppError(context, 'Terjadi kesalahan saat membuka tautan.');
       }
+    }
+  }
+
+  Future<void> _confirmAndOpenLink({
+    required BuildContext context,
+    required String title,
+    required String message,
+    required String url,
+  }) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder:
+          (_) => AlertConfirmationWidget(
+            title: title,
+            message: message,
+            confirmText: 'Buka',
+            cancelText: 'Batal',
+            copyableLink: url,
+          ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await _openLink(context, url);
     }
   }
 
@@ -85,43 +110,92 @@ class AboutPage extends StatelessWidget {
                           ),
                           const SizedBox(height: 14),
                           Text(
-                            'Azimutree adalah aplikasi Android yang membantu kegiatan pemantauan kesehatan hutan dengan metode Forest Health Monitoring (FHM). Aplikasi ini digunakan untuk mencatat lokasi Titik Ikat, klaster, plot, dan pohon, lalu menampilkannya pada peta digital. Fitur radar dan kompas membantu pengguna menemukan lokasi survei di lapangan dengan lebih mudah.',
+                            'Azimutree adalah aplikasi Android yang membantu kegiatan pemantauan kesehatan hutan dengan metode Forest Health Monitoring (FHM). Aplikasi ini digunakan untuk mencatat lokasi titik ikat, klaster, plot, dan pohon, lalu menampilkannya pada peta digital. Fitur radar dan kompas membantu pengguna menemukan lokasi survei di lapangan dengan lebih mudah.',
                             textAlign: TextAlign.justify,
                             style: TextStyle(color: foreground, height: 1.5),
                           ),
                           const SizedBox(height: 28),
                           Center(
-                            child: Text(
-                              'Developed by Asid30 © 2026',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: secondary,
-                                fontWeight: FontWeight.w600,
-                              ),
+                            child: Wrap(
+                              alignment: WrapAlignment.center,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  'Developed by ',
+                                  style: TextStyle(
+                                    color: secondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                InkWell(
+                                  borderRadius: BorderRadius.circular(4),
+                                  onTap:
+                                      () => _confirmAndOpenLink(
+                                        context: context,
+                                        title: 'Buka Profil Pengembang',
+                                        message:
+                                            'Apakah Anda ingin membuka profil GitHub pengembang?',
+                                        url: 'https://github.com/asid30',
+                                      ),
+                                  child: Text(
+                                    'Asid30',
+                                    style: TextStyle(
+                                      color: linkColor,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                Text(
+                                  ' © 2026',
+                                  style: TextStyle(
+                                    color: secondary,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ],
                             ),
                           ),
                           const SizedBox(height: 10),
                           _AboutLink(
-                            label:
-                                'https://github.com/asid30/azimutree-flutter',
+                            label: 'https://azimutree.heavysnack.my.id/',
                             color: linkColor,
                             onTap:
-                                () => _openLink(
-                                  context,
-                                  'https://github.com/asid30/azimutree-flutter',
-                                ),
-                          ),
-                          const SizedBox(height: 6),
-                          _AboutLink(
-                            label: 'https://azimutree.my.id/',
-                            color: linkColor,
-                            onTap:
-                                () => _openLink(
-                                  context,
-                                  'https://azimutree.my.id/',
+                                () => _confirmAndOpenLink(
+                                  context: context,
+                                  title: 'Buka Situs Resmi',
+                                  message:
+                                      'Apakah Anda ingin membuka situs resmi Azimutree?',
+                                  url: 'https://azimutree.heavysnack.my.id/',
                                 ),
                           ),
                         ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed:
+                          () => _confirmAndOpenLink(
+                            context: context,
+                            title: 'Kritik dan Saran',
+                            message:
+                                'Apakah Anda ingin membuka halaman kritik dan saran?',
+                            url: 'https://azimutree.heavysnack.my.id/feedback/',
+                          ),
+                      icon: const Icon(Icons.feedback_outlined),
+                      label: const Text('Kritik dan Saran'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            isLight
+                                ? const Color(0xFF1F4226)
+                                : const Color.fromARGB(255, 36, 67, 42),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
@@ -156,7 +230,7 @@ class _AboutLink extends StatelessWidget {
         child: Text(
           label,
           textAlign: TextAlign.center,
-          style: TextStyle(color: color, decoration: TextDecoration.underline),
+          style: TextStyle(color: color),
         ),
       ),
     ),

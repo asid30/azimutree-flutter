@@ -1,6 +1,7 @@
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:flutter/material.dart';
 
+/// Semantic alert categories used to select consistent dialog styling.
 enum AppAlertType { success, warning, error, info }
 
 Future<void> showAppAlert(

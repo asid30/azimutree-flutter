@@ -11,6 +11,7 @@ import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Metadata for a research location managed by the signed-in owner.
 class CloudOwnedResearchLocation {
   const CloudOwnedResearchLocation({
     required this.id,
@@ -29,6 +30,7 @@ class CloudOwnedResearchLocation {
   final List<String> clusterCodes;
 }
 
+/// A local cluster and its related records prepared for cloud upload.
 class LocalClusterSnapshot {
   const LocalClusterSnapshot({
     required this.cluster,
@@ -43,6 +45,7 @@ class LocalClusterSnapshot {
   final int treeCount;
 }
 
+/// Summary of a cluster stored inside an owned research location.
 class CloudOwnedCluster {
   const CloudOwnedCluster({
     required this.id,
@@ -57,6 +60,7 @@ class CloudOwnedCluster {
   final DateTime? surveyDate;
 }
 
+/// Uploads, downloads, updates, and deletes cloud data owned by a user.
 class CloudOwnedDataService {
   CloudOwnedDataService({FirebaseFirestore? firestore})
     : _firestore = firestore ?? FirebaseFirestore.instance;
@@ -262,7 +266,7 @@ class CloudOwnedDataService {
     }
     final anchor = data['anchor'];
     if (anchor is! Map) {
-      throw const FormatException('Data Titik Ikat tidak valid');
+      throw const FormatException('Data titik ikat tidak valid');
     }
     final plotRows = data['plots'];
     if (plotRows is! List) throw const FormatException('Data plot tidak valid');
@@ -279,7 +283,7 @@ class CloudOwnedDataService {
       );
       final anchorModel = TitikIkatModel(
         idCluster: clusterId,
-        nama: 'Titik Ikat ${localCode.trim()}',
+        nama: 'Titik ikat ${localCode.trim()}',
         latitude: (anchor['latitude'] as num?)?.toDouble(),
         longitude: (anchor['longitude'] as num?)?.toDouble(),
         altitude: (anchor['altitude'] as num?)?.toDouble(),

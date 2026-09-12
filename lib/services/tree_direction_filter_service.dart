@@ -1,6 +1,7 @@
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/services/compass_navigation_service.dart';
 
+/// Filters trees by their angular relationship to the device heading.
 class TreeDirectionFilterService {
   const TreeDirectionFilterService._();
 

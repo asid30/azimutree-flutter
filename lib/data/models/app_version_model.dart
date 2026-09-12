@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// Describes one published application version and its release notes.
 class AppVersionModel {
   const AppVersionModel({
     required this.version,

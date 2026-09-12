@@ -58,7 +58,7 @@ class DialogAddTreeWidget extends StatefulWidget {
 }
 
 class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
-  // Controllers field input
+  // Controllers for editable tree fields.
   final TextEditingController _kodePohonController = TextEditingController();
   final TextEditingController _namaPohonController = TextEditingController();
   final TextEditingController _namaIlmiahController = TextEditingController();
@@ -67,7 +67,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
   final TextEditingController _keteranganController = TextEditingController();
   final TextEditingController _urlFotoController = TextEditingController();
 
-  // Koordinat
+  // Coordinate input state.
   final TextEditingController _latitudeController = TextEditingController();
   final TextEditingController _longitudeController = TextEditingController();
   final TextEditingController _altitudeController = TextEditingController();
@@ -78,7 +78,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
 
   TreePositionInputMode _positionMode = TreePositionInputMode.azimuthDistance;
 
-  // Notifier status valid form
+  // Tracks form validity for the save action.
   final ValueNotifier<bool> _isFormValid = ValueNotifier(false);
 
   @override
@@ -123,7 +123,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
       }
     }
 
-    // listener untuk validasi real-time
+    // Revalidate whenever an editable field changes.
     _kodePohonController.addListener(_validateForm);
     _namaPohonController.addListener(() {
       _syncCapitalizedWords(_namaPohonController);
@@ -174,7 +174,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
     final namaIlmiahText = _namaIlmiahController.text.trim();
     final kodePohon = int.tryParse(kodePohonText);
 
-    // posisi
+    // Resolve coordinates according to the selected input method.
     bool positionValid = false;
 
     if (_positionMode == TreePositionInputMode.azimuthDistance) {
@@ -224,7 +224,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
     final plotsForSelectedCluster = _filteredPlots;
     final hasPlotsForSelectedCluster = plotsForSelectedCluster.isNotEmpty;
     if (!hasPlotsForSelectedCluster || _selectedPlotId == null) {
-      // harusnya ga kejadian karena tombol disabled, tapi buat jaga-jaga
+      // Guard against programmatic submission while the form is invalid.
       return;
     }
 
@@ -405,7 +405,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 SizedBox(height: 8),
-                // Dropdown Klaster
+                // Cluster selector.
                 DropdownButtonFormField<int>(
                   initialValue: _selectedClusterId,
                   style: TextStyle(color: dialogText),
@@ -452,7 +452,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 ),
                 const SizedBox(height: 8),
 
-                // Dropdown Plot
+                // Plot selector constrained by the selected cluster.
                 DropdownButtonFormField<int>(
                   initialValue: _selectedPlotId,
                   style: TextStyle(color: dialogText),
@@ -510,7 +510,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                   ),
                 const SizedBox(height: 8),
 
-                // Metode input posisi
+                // Mutually exclusive coordinate input method.
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -585,7 +585,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 ),
                 const SizedBox(height: 8),
 
-                // Field posisi sesuai mode
+                // Position fields for the active input method.
                 if (_positionMode == TreePositionInputMode.azimuthDistance) ...[
                   Row(
                     children: [
@@ -755,7 +755,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 ],
                 const SizedBox(height: 8),
 
-                // Altitude
+                // Optional elevation value.
                 TextField(
                   controller: _altitudeController,
                   style: TextStyle(color: dialogText),
@@ -789,7 +789,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 ),
                 const SizedBox(height: 8),
 
-                // Identitas pohon
+                // Tree identity fields.
                 TextField(
                   controller: _kodePohonController,
                   style: TextStyle(color: dialogText),
@@ -894,7 +894,7 @@ class _DialogAddTreeWidgetState extends State<DialogAddTreeWidget> {
                 ),
                 const SizedBox(height: 8),
 
-                // Opsional
+                // Optional descriptive metadata.
                 TextField(
                   controller: _keteranganController,
                   style: TextStyle(color: dialogText),

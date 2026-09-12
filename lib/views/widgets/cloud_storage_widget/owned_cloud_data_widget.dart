@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+/// Manages research locations and cluster data owned by the signed-in user.
 class OwnedCloudDataWidget extends StatefulWidget {
   const OwnedCloudDataWidget({
     super.key,

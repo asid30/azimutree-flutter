@@ -1,6 +1,7 @@
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
 
+/// Shows visual instructions for calibrating the device compass.
 class CompassCalibrationDialogWidget extends StatelessWidget {
   const CompassCalibrationDialogWidget({super.key});
 

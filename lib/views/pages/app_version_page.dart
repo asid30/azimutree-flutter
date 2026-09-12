@@ -10,6 +10,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+/// Displays version history retrieved from the cloud service.
 class AppVersionPage extends StatefulWidget {
   const AppVersionPage({super.key});
 

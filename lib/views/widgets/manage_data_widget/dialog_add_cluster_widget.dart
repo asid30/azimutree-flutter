@@ -47,7 +47,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
   void initState() {
     super.initState();
 
-    // Listener setiap kali user mengetik → normalisasi & validasi ulang
+    // Normalize and revalidate the cluster code as the user types.
     _kodeClusterController.addListener(() {
       _validateForm();
     });
@@ -163,7 +163,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
 
     final titikIkat = TitikIkatModel(
       idCluster: 0,
-      nama: 'Titik Ikat $kodeCluster',
+      nama: 'Titik ikat $kodeCluster',
       latitude: double.parse(
         _titikIkatLatitudeController.text.trim().replaceAll(',', '.'),
       ),
@@ -287,7 +287,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // Kode Klaster
+                // Cluster identity and uniqueness input.
                 TextField(
                   controller: _kodeClusterController,
                   inputFormatters: const [ClusterCodeInputFormatter()],
@@ -326,7 +326,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                 ),
                 const SizedBox(height: 8),
 
-                // Nama Pengukur
+                // Surveyor information.
                 TextField(
                   controller: _namaPengukurController,
                   style: TextStyle(color: dialogText),
@@ -353,7 +353,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                 ),
                 const SizedBox(height: 8),
 
-                // Tanggal wajib
+                // Required survey date selector.
                 GestureDetector(
                   onTap: _selectDate,
                   child: AbsorbPointer(
@@ -395,7 +395,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Text(
-                    'Koordinat Titik Ikat',
+                    'Koordinat titik ikat',
                     style: TextStyle(
                       color: dialogText,
                       fontSize: 16,
@@ -420,7 +420,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                     signed: true,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Lintang Titik Ikat (wajib)',
+                    labelText: 'Lintang titik ikat (wajib)',
                     labelStyle: TextStyle(color: labelColor),
                     helperText: 'Rentang -90 sampai 90',
                     helperStyle: TextStyle(color: labelColor),
@@ -441,7 +441,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                     signed: true,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Bujur Titik Ikat (wajib)',
+                    labelText: 'Bujur titik ikat (wajib)',
                     labelStyle: TextStyle(color: labelColor),
                     helperText: 'Rentang -180 sampai 180',
                     helperStyle: TextStyle(color: labelColor),
@@ -474,7 +474,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                     signed: true,
                   ),
                   decoration: InputDecoration(
-                    labelText: 'Ketinggian Titik Ikat (m, opsional)',
+                    labelText: 'Ketinggian titik ikat (m, opsional)',
                     labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
                     enabledBorder: OutlineInputBorder(
@@ -490,7 +490,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                   style: TextStyle(color: dialogText),
                   maxLines: 3,
                   decoration: InputDecoration(
-                    labelText: 'Keterangan Titik Ikat (opsional)',
+                    labelText: 'Keterangan titik ikat (opsional)',
                     labelStyle: TextStyle(color: labelColor),
                     border: const OutlineInputBorder(),
                     enabledBorder: OutlineInputBorder(
@@ -506,7 +506,7 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
                   style: TextStyle(color: dialogText),
                   keyboardType: TextInputType.url,
                   decoration: InputDecoration(
-                    labelText: 'Link gambar Titik Ikat (opsional)',
+                    labelText: 'Link gambar titik ikat (opsional)',
                     labelStyle: TextStyle(color: labelColor),
                     hintText: 'URL gambar atau tautan Google Drive',
                     hintStyle: TextStyle(color: labelColor),
@@ -522,14 +522,14 @@ class _DialogAddClusterWidgetState extends State<DialogAddClusterWidget> {
             ),
           ),
 
-          // Tombol aksi
+          // Dialog actions.
           actions: [
             TextButton(
               child: Text("Batal", style: TextStyle(color: dialogText)),
               onPressed: () => Navigator.of(context).pop(false),
             ),
 
-            // Tombol Simpan pakai ValueListenableBuilder
+            // Rebuild the save action whenever form validity changes.
             ValueListenableBuilder<bool>(
               valueListenable: _isFormValid,
               builder: (context, isValid, _) {

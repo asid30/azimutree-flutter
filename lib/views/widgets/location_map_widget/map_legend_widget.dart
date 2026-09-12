@@ -89,7 +89,7 @@ class MapLegendWidget extends StatelessWidget {
                           ),
                           const SizedBox(width: 6),
                           const Text(
-                            'Titik Ikat',
+                            'Titik ikat',
                             style: TextStyle(fontSize: 10),
                           ),
                         ],

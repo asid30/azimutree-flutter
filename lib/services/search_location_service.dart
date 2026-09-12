@@ -105,7 +105,7 @@ Future<List<Map<String, dynamic>>> _searchLocal(
     for (final anchor in anchors) {
       if (anchor.latitude == null || anchor.longitude == null) continue;
       final clusterCode = clustersById[anchor.idCluster]?.kodeCluster ?? '';
-      final display = 'Titik Ikat $clusterCode'.trim();
+      final display = 'Titik ikat $clusterCode'.trim();
       if (!display.toLowerCase().contains(q) &&
           !anchor.nama.toLowerCase().contains(q)) {
         continue;

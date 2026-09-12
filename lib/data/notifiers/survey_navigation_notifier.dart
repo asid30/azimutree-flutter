@@ -3,11 +3,14 @@ import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:flutter/foundation.dart';
 
+/// Identifies the reference location from which navigation starts.
 enum SurveyReferenceType { none, anchorPoint, plot }
 
+/// Identifies the destination currently selected by the survey workflow.
 enum SurveyTargetType { none, anchorPoint, plot }
 
 @immutable
+/// Immutable state describing the active survey navigation step.
 class SurveyNavigationState {
   const SurveyNavigationState({
     this.cluster,
@@ -48,6 +51,7 @@ class SurveyNavigationState {
   );
 }
 
+/// Coordinates survey transitions between the anchor point and plots.
 class SurveyNavigationNotifier extends ValueNotifier<SurveyNavigationState> {
   SurveyNavigationNotifier() : super(const SurveyNavigationState());
 

@@ -121,7 +121,7 @@ class TitikIkatManageDataWidget extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Data Titik Ikat',
+                'Data titik ikat',
                 style: TextStyle(
                   color: foreground,
                   fontSize: 16,
@@ -131,7 +131,7 @@ class TitikIkatManageDataWidget extends StatelessWidget {
               const SizedBox(height: 8),
               if (titikIkatData.isEmpty)
                 Text(
-                  'Tidak ada Titik Ikat untuk klaster ini',
+                  'Tidak ada titik ikat untuk klaster ini',
                   style: TextStyle(color: foreground),
                 )
               else
