@@ -1,50 +1,19 @@
 import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:azimutree/data/database/plot_dao.dart';
 import 'package:azimutree/data/database/tree_dao.dart';
+import 'package:azimutree/data/database/titik_ikat_dao.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:azimutree/views/widgets/location_map_widget/map_marker_style.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'dart:math' as math;
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
-
-// Marker style constants
-const int kClusterColor = 0xFF2E7D32;
-const int kClusterStrokeColor = 0xFF1B5E20;
-const double kClusterRadius = 11.0;
-const double kClusterStrokeWidth = 1.5;
-const double kClusterOpacity = 0.85;
-
-const int kPlotColor = 0xFF1565C0;
-const int kPlotStrokeColor = 0xFF0D47A1;
-const double kPlotRadius = 9.0;
-const double kPlotStrokeWidth = 1.2;
-const double kPlotOpacity = 0.9;
-const int kPlotSelectedStrokeColor = 0xFFFFFFFF;
-const double kPlotSelectedStrokeWidth = 1.6;
-
-const int kTreeColor = 0xFFF57C00;
-const int kTreeStrokeColor = 0xFFE65100;
-const int kTreeSelectedStrokeColor = 0xFFFFFFFF;
-const double kTreeRadius = 6.0;
-const double kTreeSelectedStrokeWidth = 1.6;
-const double kTreeStrokeWidth = 1.0;
-const double kTreeOpacity = 0.95;
-
-const int kConnectionColor = 0xFFB71C1C;
-const double kConnectionRadius = 2.0;
-const int kConnectionSegments = 120;
-// Light green for inspected trees (visually distinct from normal tree color)
-const int kTreeInspectedColor = 0xFF8BC34A;
-// Light blue for plot-to-plot cluster connection lines
-const int kPlotConnectionColor = 0xFF81D4FA;
-
-// Centroid generated marker color
-const int kCentroidColor = 0xFF6A1B9A;
 
 class MapboxWidget extends StatefulWidget {
   final String standardStyleUri;
@@ -65,32 +34,43 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   late final String _sateliteStyleUri;
   MapboxMap? _mapboxMap;
   CircleAnnotationManager? _circleManager;
+  PolygonAnnotationManager? _plotAreaManager;
+  PointAnnotationManager? _treePointManager;
   CircleAnnotationManager? _searchResultManager;
   // Cache of generated centroid markers for hit-testing and metadata.
   final List<Map<String, dynamic>> _centroidCache = [];
   // Use dynamic so we can support line annotation manager when available
   // while avoiding static analyzer errors on plugin API mismatches.
   dynamic _connectionManager;
+  dynamic _persistentPlotConnectionManager;
   // Track current zoom locally so zoom buttons can apply relative changes.
   double _currentZoom = 10.0;
   late final VoidCallback _styleListener;
   late final VoidCallback _northResetListener;
   late final VoidCallback _selectedTreeListener;
+  late final VoidCallback _selectedPlotListener;
   late final VoidCallback _inspectedListener;
   late final VoidCallback _inspectionToggleListener;
   late final VoidCallback _userLocationListener;
   late final VoidCallback _selectedCentroidListener;
   late final VoidCallback _treeToPlotToggleListener;
   late final VoidCallback _plotToPlotToggleListener;
+  late final VoidCallback _selectedTitikIkatListener;
+  late final VoidCallback _markerSizeListener;
   // Cache of tree models currently displayed on the map.
   final List<TreeModel> _treesCache = [];
   // Cache of plot models currently displayed on the map.
   final List<PlotModel> _plotsCache = [];
+  final List<TitikIkatModel> _titikIkatCache = [];
   // Timer used to differentiate single-tap from double-tap (double-tap = zoom).
   // Timer used to detect a short hold (long-press) before activating markers.
   Timer? _holdTimer;
+  Timer? _markerSizeDebounce;
   // Whether a long-press was recognized for the current pointer sequence.
   bool _longPressRecognized = false;
+
+  MbxEdgeInsets get _cameraPadding =>
+      MbxEdgeInsets(top: 0, left: 0, bottom: 0, right: 0);
 
   @override
   void initState() {
@@ -127,7 +107,11 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           _mapboxMap != null &&
           isFollowingUserLocationNotifier.value) {
         _mapboxMap!.easeTo(
-          CameraOptions(center: Point(coordinates: pos), zoom: 14),
+          CameraOptions(
+            center: Point(coordinates: pos),
+            padding: _cameraPadding,
+            zoom: 14,
+          ),
           MapAnimationOptions(duration: 800),
         );
         _currentZoom = 14.0;
@@ -158,15 +142,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     isTreeToPlotLineVisibleNotifier.addListener(_treeToPlotToggleListener);
 
     _plotToPlotToggleListener = () {
-      if (!isPlotToPlotLineVisibleNotifier.value) {
-        Future.microtask(() async => await _removeConnectionMarkers());
-      } else {
-        if (selectedPlotNotifier.value != null) {
-          Future.microtask(
-            () async => await _updateConnectionForSelectedPlot(),
-          );
-        }
-      }
+      Future.microtask(() async => await _refreshPersistentPlotConnections());
     };
     isPlotToPlotLineVisibleNotifier.addListener(_plotToPlotToggleListener);
     _selectedTreeListener = () {
@@ -203,28 +179,29 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     };
     selectedCentroidNotifier.addListener(_selectedCentroidListener);
 
+    _selectedTitikIkatListener = () {
+      if (!mounted || _mapboxMap == null) return;
+      _loadMarkers();
+    };
+    selectedTitikIkatNotifier.addListener(_selectedTitikIkatListener);
+    _markerSizeListener = () {
+      _markerSizeDebounce?.cancel();
+      _markerSizeDebounce = Timer(const Duration(milliseconds: 120), () {
+        if (mounted && _mapboxMap != null) _loadMarkers();
+      });
+    };
+    titikIkatMarkerScaleNotifier.addListener(_markerSizeListener);
+    plotMarkerScaleNotifier.addListener(_markerSizeListener);
+    centroidMarkerScaleNotifier.addListener(_markerSizeListener);
+    treeMarkerScaleNotifier.addListener(_markerSizeListener);
+
     _inspectedListener = () {
       if (!mounted) return;
       // Run asynchronously so the notifier call doesn't block the UI.
       Future.microtask(() async {
         try {
           if (_mapboxMap == null) return;
-          // If we have a circle manager and cached trees, update only tree
-          // annotations for a faster, more reliable visual update.
-          if (_circleManager != null && _treesCache.isNotEmpty) {
-            try {
-              await _circleManager!.deleteAll();
-            } catch (_) {}
-            await _addClusterMarkers(
-              await ClusterDao.getAllClusters(),
-              await PlotDao.getAllPlots(),
-            );
-            await _addPlotMarkers(_plotsCache);
-            await _addTreeMarkers(_treesCache);
-          } else {
-            // Fallback: reload everything.
-            await _loadMarkers();
-          }
+          await _loadMarkers();
         } catch (_) {}
       });
     };
@@ -244,11 +221,12 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     isInspectionWorkflowEnabledNotifier.addListener(_inspectionToggleListener);
 
     // React to plot selection (marker taps).
-    selectedPlotNotifier.addListener(() {
+    _selectedPlotListener = () {
       if (!mounted) return;
       if (_mapboxMap != null) _loadMarkers();
       _updateConnectionForSelectedPlot();
-    });
+    };
+    selectedPlotNotifier.addListener(_selectedPlotListener);
 
     _northResetListener = () {
       _resetBearingToNorth();
@@ -258,11 +236,14 @@ class _MapboxWidgetState extends State<MapboxWidget> {
 
   @override
   void dispose() {
+    _holdTimer?.cancel();
+    _markerSizeDebounce?.cancel();
     selectedMenuBottomSheetNotifier.removeListener(_styleListener);
     selectedLocationNotifier.removeListener(_onLocationChanged);
     northResetRequestNotifier.removeListener(_northResetListener);
     userLocationNotifier.removeListener(_userLocationListener);
     selectedTreeNotifier.removeListener(_selectedTreeListener);
+    selectedPlotNotifier.removeListener(_selectedPlotListener);
     inspectedTreeIdsNotifier.removeListener(_inspectedListener);
     isInspectionWorkflowEnabledNotifier.removeListener(
       _inspectionToggleListener,
@@ -270,6 +251,11 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     isTreeToPlotLineVisibleNotifier.removeListener(_treeToPlotToggleListener);
     isPlotToPlotLineVisibleNotifier.removeListener(_plotToPlotToggleListener);
     selectedCentroidNotifier.removeListener(_selectedCentroidListener);
+    selectedTitikIkatNotifier.removeListener(_selectedTitikIkatListener);
+    titikIkatMarkerScaleNotifier.removeListener(_markerSizeListener);
+    plotMarkerScaleNotifier.removeListener(_markerSizeListener);
+    centroidMarkerScaleNotifier.removeListener(_markerSizeListener);
+    treeMarkerScaleNotifier.removeListener(_markerSizeListener);
     super.dispose();
   }
 
@@ -282,14 +268,21 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       // don't supply a zoom value so the map keeps its current zoom level.
       if (preserveZoomOnNextCenterNotifier.value) {
         _mapboxMap!.easeTo(
-          CameraOptions(center: Point(coordinates: pos)),
+          CameraOptions(
+            center: Point(coordinates: pos),
+            padding: _cameraPadding,
+          ),
           MapAnimationOptions(duration: follow ? 800 : 1500),
         );
         // Reset the flag after applying
         preserveZoomOnNextCenterNotifier.value = false;
       } else {
         _mapboxMap!.easeTo(
-          CameraOptions(center: Point(coordinates: pos), zoom: 14),
+          CameraOptions(
+            center: Point(coordinates: pos),
+            padding: _cameraPadding,
+            zoom: 14,
+          ),
           MapAnimationOptions(duration: follow ? 800 : 1500),
         );
         _currentZoom = 14.0;
@@ -306,6 +299,36 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         // Ensure any previous search result marker is removed.
         _removeSearchResultMarker();
       }
+    }
+  }
+
+  Future<void> _applyPendingTrackingRequest() async {
+    if (!isMapTrackingRequestPendingNotifier.value || _mapboxMap == null) {
+      return;
+    }
+    final target = selectedLocationNotifier.value;
+    if (target == null) {
+      isMapTrackingRequestPendingNotifier.value = false;
+      return;
+    }
+
+    try {
+      await _mapboxMap!.easeTo(
+        CameraOptions(
+          center: Point(coordinates: target),
+          padding: _cameraPadding,
+          zoom: 17,
+        ),
+        MapAnimationOptions(duration: 700),
+      );
+      _currentZoom = 17;
+      bottomsheetMinimizeRequestNotifier.value++;
+    } catch (_) {
+      // The target remains selected even if Mapbox rejects the animation.
+      // The initial viewport above already points to the same coordinate.
+    } finally {
+      isMapTrackingRequestPendingNotifier.value = false;
+      preserveZoomOnNextCenterNotifier.value = false;
     }
   }
 
@@ -331,44 +354,50 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         return Stack(
           children: [
             MapWidget(
-              onMapCreated: (map) {
+              onMapCreated: (map) async {
                 _mapboxMap = map;
-                // Initial zoom matches the MapWidget cameraOptions below.
-                _currentZoom = 10.0;
+                final trackingTarget =
+                    isMapTrackingRequestPendingNotifier.value
+                        ? selectedLocationNotifier.value
+                        : null;
+                _currentZoom = trackingTarget == null ? 10.0 : 17.0;
                 final style =
                     // Use satellite as the default for menu index 0
                     selectedMenuBottomSheetNotifier.value == 0
                         ? _sateliteStyleUri
                         : _standardStyleUri;
-                _applyStyleAndMarkers(style);
+                _applyStyleAndMarkers(style).then((_) {
+                  if (mounted) _applyPendingTrackingRequest();
+                });
                 _enableUserLocationPuck();
-                // Hide the native Mapbox compass so it won't overlap marker
-                // info on some devices (we keep a small right gap too).
-                try {
-                  final dyn = _mapboxMap as dynamic;
-                  try {
-                    dyn.uiSettings?.setCompassEnabled(false);
-                  } catch (_) {
-                    dyn.setCompassEnabled?.call(false);
-                  }
-                } catch (_) {}
-                // Keep the Mapbox built-in compass enabled (use default UI).
-                // If a target location was set before the map was created
-                // (e.g., via "Tracking Data"), center the camera immediately.
-                _onLocationChanged();
+                await map.compass.updateSettings(
+                  CompassSettings(enabled: false),
+                );
+                // Non-tracking selections can still use the regular centering
+                // path. Tracking waits until the style is ready above.
+                if (!isMapTrackingRequestPendingNotifier.value) {
+                  _onLocationChanged();
+                }
               },
               styleUri:
                   // Show satellite by default when bottom sheet menu index is 0
                   selectedMenuBottomSheet == 0
                       ? _sateliteStyleUri
                       : _standardStyleUri,
-              cameraOptions: CameraOptions(
-                // Center the initial camera on Bandar Lampung (Lampung province)
+              viewport: CameraViewportState(
                 center: Point(
-                  // Longitude, Latitude for Bandar Lampung
-                  coordinates: Position(105.2626, -5.4297),
+                  coordinates:
+                      isMapTrackingRequestPendingNotifier.value &&
+                              selectedLocationNotifier.value != null
+                          ? selectedLocationNotifier.value!
+                          : Position(105.2626, -5.4297),
                 ),
-                zoom: 10,
+                zoom:
+                    isMapTrackingRequestPendingNotifier.value &&
+                            selectedLocationNotifier.value != null
+                        ? 17
+                        : 10,
+                padding: EdgeInsets.zero,
               ),
             ),
             // Fullscreen listener that captures pointer ups. We purposely do
@@ -579,12 +608,15 @@ class _MapboxWidgetState extends State<MapboxWidget> {
 
   Future<void> _handleMapSingleTap(Offset localPosition) async {
     if (_mapboxMap == null) return;
-    if (_treesCache.isEmpty && _plotsCache.isEmpty) return;
+    if (_treesCache.isEmpty && _plotsCache.isEmpty && _titikIkatCache.isEmpty) {
+      return;
+    }
 
     // Convert tree and plot coordinates to screen pixels and find nearest.
     double minDist = double.infinity;
     TreeModel? nearestTree;
     PlotModel? nearestPlot;
+    TitikIkatModel? nearestTitikIkat;
 
     // Track nearest centroid candidate entry (contains cluster, lat, lon)
     Map<String, dynamic>? nearestCentroidEntry;
@@ -595,6 +627,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       double lat, {
       TreeModel? tree,
       PlotModel? plot,
+      TitikIkatModel? titikIkat,
       Map<String, dynamic>? centroidEntry,
     }) async {
       try {
@@ -610,9 +643,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           minDist = dist;
           nearestTree = tree;
           nearestPlot = plot;
-          if (centroidEntry != null) {
-            nearestCentroidEntry = centroidEntry;
-          }
+          nearestTitikIkat = titikIkat;
+          nearestCentroidEntry = centroidEntry;
         }
       } catch (_) {
         // ignore conversion errors per point
@@ -623,6 +655,16 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     for (final tree in _treesCache) {
       if (tree.latitude == null || tree.longitude == null) continue;
       await processCoordinate(tree.longitude!, tree.latitude!, tree: tree);
+    }
+
+    // The anchor point is at the same navigation level as plots.
+    for (final titikIkat in _titikIkatCache) {
+      if (titikIkat.latitude == null || titikIkat.longitude == null) continue;
+      await processCoordinate(
+        titikIkat.longitude!,
+        titikIkat.latitude!,
+        titikIkat: titikIkat,
+      );
     }
 
     // Then check plots
@@ -651,6 +693,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         // Clear centroid selection when selecting a tree so its marker
         // style deactivates immediately.
         selectedCentroidNotifier.value = null;
+        selectedTitikIkatNotifier.value = null;
+        selectedTitikIkatClusterNotifier.value = null;
         selectedPlotNotifier.value = null;
         selectedTreeNotifier.value = selTree;
         // Resolve plot and cluster for UI consumption
@@ -684,11 +728,43 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         return;
       }
 
+      if (nearestTitikIkat != null) {
+        final selected = nearestTitikIkat!;
+        selectedTreeNotifier.value = null;
+        selectedTreePlotNotifier.value = null;
+        selectedTreeClusterNotifier.value = null;
+        selectedPlotNotifier.value = null;
+        selectedPlotClusterNotifier.value = null;
+        selectedCentroidNotifier.value = null;
+        ClusterModel? selectedCluster;
+        try {
+          selectedCluster = await ClusterDao.getClusterById(selected.idCluster);
+        } catch (_) {
+          selectedCluster = null;
+        }
+        selectedTitikIkatClusterNotifier.value = selectedCluster;
+        selectedTitikIkatNotifier.value = selected;
+        selectedMarkerScreenOffsetNotifier.value = Offset(
+          localPosition.dx,
+          localPosition.dy - 48,
+        );
+        isFollowingUserLocationNotifier.value = false;
+        preserveZoomOnNextCenterNotifier.value = true;
+        selectedLocationFromSearchNotifier.value = false;
+        selectedLocationNotifier.value = Position(
+          selected.longitude!,
+          selected.latitude!,
+        );
+        return;
+      }
+
       if (nearestPlot != null) {
         final selPlot = nearestPlot;
         // Clear centroid selection when selecting a plot so centroid
         // loses the active style immediately.
         selectedCentroidNotifier.value = null;
+        selectedTitikIkatNotifier.value = null;
+        selectedTitikIkatClusterNotifier.value = null;
         selectedTreeNotifier.value = null;
         selectedTreePlotNotifier.value = null;
         selectedTreeClusterNotifier.value = null;
@@ -722,6 +798,8 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         final selLon = selEntry['lon'] as double?;
         selectedTreeNotifier.value = null;
         selectedPlotNotifier.value = null;
+        selectedTitikIkatNotifier.value = null;
+        selectedTitikIkatClusterNotifier.value = null;
         selectedCentroidNotifier.value = selCluster;
         selectedPlotClusterNotifier.value = selCluster;
         selectedMarkerScreenOffsetNotifier.value = Offset(
@@ -786,6 +864,11 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     if (_mapboxMap == null) return;
     _circleManager ??=
         await _mapboxMap!.annotations.createCircleAnnotationManager();
+    // Keep plot areas underneath all interactive plot/tree annotations.
+    _plotAreaManager ??= await _mapboxMap!.annotations
+        .createPolygonAnnotationManager(below: _circleManager!.id);
+    _treePointManager ??=
+        await _mapboxMap!.annotations.createPointAnnotationManager();
   }
 
   Future<void> _ensureSearchManager() async {
@@ -813,6 +896,48 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         final style = (_mapboxMap as dynamic).style;
         await style.removeSource('connection-line-source');
       } catch (_) {}
+    } catch (_) {}
+  }
+
+  Future<void> _refreshPersistentPlotConnections([
+    List<PlotModel>? loadedPlots,
+  ]) async {
+    if (_mapboxMap == null) return;
+    try {
+      _persistentPlotConnectionManager ??=
+          await (_mapboxMap!.annotations as dynamic)
+              .createPolylineAnnotationManager();
+      await (_persistentPlotConnectionManager as dynamic).deleteAll();
+      if (!isPlotToPlotLineVisibleNotifier.value) return;
+
+      final plots = loadedPlots ?? await PlotDao.getAllPlots();
+      final byCluster = <int, List<PlotModel>>{};
+      for (final plot in plots) {
+        byCluster.putIfAbsent(plot.idCluster, () => []).add(plot);
+      }
+      for (final clusterPlots in byCluster.values) {
+        if (clusterPlots.length < 2) continue;
+        final plot1 = clusterPlots.firstWhere(
+          (plot) => plot.kodePlot == 1,
+          orElse: () => clusterPlots.first,
+        );
+        for (final plot in clusterPlots) {
+          if (plot.id == plot1.id) continue;
+          await (_persistentPlotConnectionManager as dynamic).create(
+            PolylineAnnotationOptions(
+              geometry: LineString(
+                coordinates: [
+                  Position(plot1.longitude, plot1.latitude),
+                  Position(plot.longitude, plot.latitude),
+                ],
+              ),
+              lineColor: kPlotConnectionColor,
+              lineWidth: 2.0,
+              lineOpacity: 1.0,
+            ),
+          );
+        }
+      }
     } catch (_) {}
   }
 
@@ -1218,20 +1343,30 @@ class _MapboxWidgetState extends State<MapboxWidget> {
     if (_circleManager == null) return;
 
     await _circleManager!.deleteAll();
+    await _plotAreaManager?.deleteAll();
+    await _treePointManager?.deleteAll();
 
     final clusters = await ClusterDao.getAllClusters();
     final plots = await PlotDao.getAllPlots();
     final trees = await TreeDao.getAllTrees();
+    final titikIkat = await TitikIkatDao.getAllTitikIkat();
 
     // Populate cache for quick access during tap hit-testing.
     _treesCache.clear();
     _treesCache.addAll(trees);
     _plotsCache.clear();
     _plotsCache.addAll(plots);
+    _titikIkatCache.clear();
+    _titikIkatCache.addAll(titikIkat);
 
+    await _addPlotAreas(plots, trees);
     await _addClusterMarkers(clusters, plots);
     await _addPlotMarkers(plots);
+    await _addTitikIkatMarkers(titikIkat);
     await _addTreeMarkers(trees);
+    // Plot connections are a persistent map layer: when enabled they remain
+    // visible without requiring a plot marker to be selected first.
+    await _refreshPersistentPlotConnections(plots);
     // If there's an active selected location that originated from a search,
     // show its pin. Other flows that set `selectedLocationNotifier` (e.g.
     // tracking, map marker taps) should set
@@ -1253,6 +1388,129 @@ class _MapboxWidgetState extends State<MapboxWidget> {
       // No selection: ensure no stale connection remains.
       await _removeConnectionMarkers();
     }
+  }
+
+  Future<void> _addTitikIkatMarkers(List<TitikIkatModel> titikIkat) async {
+    if (_treePointManager == null) return;
+    final markers = <PointAnnotationOptions>[];
+    for (final item in titikIkat) {
+      final latitude = item.latitude;
+      final longitude = item.longitude;
+      if (latitude == null || longitude == null) continue;
+      final selected = selectedTitikIkatNotifier.value?.id == item.id;
+      markers.add(
+        PointAnnotationOptions(
+          geometry: Point(coordinates: Position(longitude, latitude)),
+          image: await TitikIkatMarkerIconFactory.create(selected: selected),
+          iconAnchor: IconAnchor.BOTTOM,
+          iconSize:
+              (selected ? 1.0 : kTitikIkatIconSize) *
+              titikIkatMarkerScaleNotifier.value,
+          iconOpacity: 1,
+        ),
+      );
+    }
+    if (markers.isNotEmpty) await _treePointManager!.createMulti(markers);
+  }
+
+  Future<void> _addPlotAreas(
+    List<PlotModel> plots,
+    List<TreeModel> trees,
+  ) async {
+    if (_plotAreaManager == null) return;
+
+    final treesByPlot = <int, List<TreeModel>>{};
+    for (final tree in trees) {
+      treesByPlot.putIfAbsent(tree.plotId, () => []).add(tree);
+    }
+
+    final areas = <PolygonAnnotationOptions>[];
+    for (final plot in plots) {
+      var farthestTreeMeters = 0.0;
+      for (final tree in treesByPlot[plot.id] ?? const <TreeModel>[]) {
+        final lat = tree.latitude;
+        final lon = tree.longitude;
+        final distance =
+            lat != null && lon != null
+                ? _distanceMeters(plot.latitude, plot.longitude, lat, lon)
+                : (tree.jarakPusatM ?? 0.0);
+        farthestTreeMeters = math.max(farthestTreeMeters, distance);
+      }
+
+      final radiusMeters =
+          farthestTreeMeters > 0
+              ? farthestTreeMeters + kPlotAreaMarginMeters
+              : kEmptyPlotAreaRadiusMeters;
+      areas.add(
+        PolygonAnnotationOptions(
+          geometry: Polygon(
+            coordinates: [
+              _circleCoordinates(plot.latitude, plot.longitude, radiusMeters),
+            ],
+          ),
+          fillColor: kPlotAreaColor,
+          fillOutlineColor: kPlotAreaOutlineColor,
+          fillOpacity: kPlotAreaOpacity,
+        ),
+      );
+    }
+
+    if (areas.isNotEmpty) await _plotAreaManager!.createMulti(areas);
+  }
+
+  double _distanceMeters(
+    double fromLat,
+    double fromLon,
+    double toLat,
+    double toLon,
+  ) {
+    const earthRadiusMeters = 6371008.8;
+    final lat1 = fromLat * math.pi / 180;
+    final lat2 = toLat * math.pi / 180;
+    final deltaLat = (toLat - fromLat) * math.pi / 180;
+    final deltaLon = (toLon - fromLon) * math.pi / 180;
+    final a =
+        math.sin(deltaLat / 2) * math.sin(deltaLat / 2) +
+        math.cos(lat1) *
+            math.cos(lat2) *
+            math.sin(deltaLon / 2) *
+            math.sin(deltaLon / 2);
+    return earthRadiusMeters * 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a));
+  }
+
+  List<Position> _circleCoordinates(
+    double centerLat,
+    double centerLon,
+    double radiusMeters,
+  ) {
+    const earthRadiusMeters = 6371008.8;
+    final angularDistance = radiusMeters / earthRadiusMeters;
+    final centerLatRadians = centerLat * math.pi / 180;
+    final centerLonRadians = centerLon * math.pi / 180;
+    final coordinates = <Position>[];
+
+    for (var index = 0; index <= kPlotAreaSegments; index++) {
+      final bearing = 2 * math.pi * index / kPlotAreaSegments;
+      final latitude = math.asin(
+        math.sin(centerLatRadians) * math.cos(angularDistance) +
+            math.cos(centerLatRadians) *
+                math.sin(angularDistance) *
+                math.cos(bearing),
+      );
+      final longitude =
+          centerLonRadians +
+          math.atan2(
+            math.sin(bearing) *
+                math.sin(angularDistance) *
+                math.cos(centerLatRadians),
+            math.cos(angularDistance) -
+                math.sin(centerLatRadians) * math.sin(latitude),
+          );
+      coordinates.add(
+        Position(longitude * 180 / math.pi, latitude * 180 / math.pi),
+      );
+    }
+    return coordinates;
   }
 
   Future<void> _addClusterMarkers(
@@ -1300,7 +1558,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
             _buildCircleOptions(
               Position(centroidLon, centroidLat),
               circleColor: kCentroidColor,
-              circleRadius: kPlotRadius,
+              circleRadius: kPlotRadius * centroidMarkerScaleNotifier.value,
               circleStrokeColor:
                   isSelectedCentroid
                       ? kPlotSelectedStrokeColor
@@ -1330,7 +1588,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
           _buildCircleOptions(
             Position(plot.longitude, plot.latitude),
             circleColor: kPlotColor,
-            circleRadius: kPlotRadius,
+            circleRadius: kPlotRadius * plotMarkerScaleNotifier.value,
             circleStrokeColor:
                 selected ? kPlotSelectedStrokeColor : kPlotStrokeColor,
             circleStrokeWidth:
@@ -1345,6 +1603,7 @@ class _MapboxWidgetState extends State<MapboxWidget> {
   }
 
   Future<void> _addTreeMarkers(List<TreeModel> trees) async {
+    if (_treePointManager == null) return;
     final futures = <Future>[];
     final selTree = selectedTreeNotifier.value;
     int? selPlotId = selTree?.plotId;
@@ -1428,17 +1687,22 @@ class _MapboxWidgetState extends State<MapboxWidget> {
         if (inspected) circleColor = kTreeInspectedColor;
       }
 
+      final icon = await TreeMarkerIconFactory.create(
+        circleColor,
+        selected: selected,
+      );
       futures.add(
-        _circleManager!.create(
-          _buildCircleOptions(
-            Position(tree.longitude!, tree.latitude!),
-            circleColor: circleColor,
-            circleRadius: kTreeRadius,
-            circleStrokeColor:
-                selected ? kTreeSelectedStrokeColor : kTreeStrokeColor,
-            circleStrokeWidth:
-                selected ? kTreeSelectedStrokeWidth : kTreeStrokeWidth,
-            circleOpacity: kTreeOpacity,
+        _treePointManager!.create(
+          PointAnnotationOptions(
+            geometry: Point(
+              coordinates: Position(tree.longitude!, tree.latitude!),
+            ),
+            image: icon,
+            iconAnchor: IconAnchor.BOTTOM,
+            iconSize:
+                (selected ? kTreeSelectedIconSize : kTreeIconSize) *
+                treeMarkerScaleNotifier.value,
+            iconOpacity: kTreeOpacity,
           ),
         ),
       );

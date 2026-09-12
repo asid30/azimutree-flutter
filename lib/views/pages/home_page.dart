@@ -70,44 +70,74 @@ class _HomePageState extends State<HomePage> {
                   },
                 ),
                 SizedBox(
-                  width: MediaQuery.of(context).size.width * 0.625,
+                  width: MediaQuery.of(context).size.width * 0.9,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     mainAxisSize: MainAxisSize.max,
                     children: [
-                      MenuButtonWidget(
-                        label: "Kelola Data\nKlaster Plot",
-                        icon: Icons.storage,
-                        onPressed: () {
-                          Navigator.popAndPushNamed(
-                            context,
-                            "manage_data_page",
-                          );
-                        },
+                      Row(
+                        children: [
+                          Expanded(
+                            child: MenuButtonWidget(
+                              label: "Kelola Data\nKlaster Plot",
+                              icon: Icons.storage,
+                              onPressed: () {
+                                Navigator.popAndPushNamed(
+                                  context,
+                                  "manage_data_page",
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: MenuButtonWidget(
+                              label: "Peta Lokasi\nKlaster Plot",
+                              icon: Icons.map,
+                              onPressed: () {
+                                Navigator.popAndPushNamed(
+                                  context,
+                                  "location_map_page",
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 10),
-                      MenuButtonWidget(
-                        label: "Peta Lokasi\nKlaster Plot",
-                        icon: Icons.map,
-                        onPressed: () {
-                          Navigator.popAndPushNamed(
-                            context,
-                            "location_map_page",
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 10),
-                      MenuButtonWidget(
-                        label: "Panduan\nAplikasi",
-                        icon: Icons.book,
-                        onPressed: () {
-                          Navigator.popAndPushNamed(context, "tutorial_page");
-                        },
+                      Row(
+                        children: [
+                          Expanded(
+                            child: MenuButtonWidget(
+                              label: "Survey\nLokasi",
+                              icon: Icons.explore,
+                              onPressed: () {
+                                Navigator.popAndPushNamed(
+                                  context,
+                                  "survey_location_page",
+                                );
+                              },
+                            ),
+                          ),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: MenuButtonWidget(
+                              label: "Panduan\nAplikasi",
+                              icon: Icons.book,
+                              onPressed: () {
+                                Navigator.popAndPushNamed(
+                                  context,
+                                  "tutorial_page",
+                                );
+                              },
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 10),
                       Row(
                         mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        mainAxisAlignment: MainAxisAlignment.end,
                         children: [
                           SmallMenuButtonWidget(
                             icon: Icons.settings,
@@ -115,12 +145,14 @@ class _HomePageState extends State<HomePage> {
                               Navigator.pushNamed(context, 'settings_page');
                             },
                           ),
+                          SizedBox(width: 10),
                           SmallMenuButtonWidget(
                             icon: Icons.info,
                             onPressed: () {
                               Navigator.pushNamed(context, 'about_page');
                             },
                           ),
+                          SizedBox(width: 10),
                           SmallMenuButtonWidget(
                             icon: Icons.exit_to_app,
                             onPressed: () {

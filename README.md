@@ -1,6 +1,6 @@
 ## Tentang Aplikasi
 
-**Azimutree** adalah aplikasi Android yang dikembangkan untuk membantu proses **pemantauan kesehatan hutan** menggunakan metode **Forest Health Monitoring (FHM)**. Aplikasi ini dirancang untuk mendukung kegiatan **penelitian lapangan**, khususnya dalam memetakan dan memvisualisasikan lokasi **klaster plot** pada peta digital.
+**Azimutree** adalah aplikasi Android untuk membantu kegiatan **pemantauan kesehatan hutan** dengan metode **Forest Health Monitoring (FHM)**. Aplikasi ini mencatat lokasi titik ikat, klaster, plot, dan pohon, lalu menampilkannya pada peta digital. Fitur radar dan kompas membantu pengguna menemukan lokasi survei di lapangan dengan lebih mudah.
 
 ## Latar Belakang
 
@@ -12,6 +12,7 @@ Permasalahan semakin kompleks karena pengamatan kesehatan hutan dilakukan secara
 
 Dalam metode Forest Health Monitoring, satu **klaster** terdiri dari beberapa **plot**, dengan ketentuan:
 
+- Setiap klaster memiliki tepat satu **titik ikat** sebagai referensi awal untuk menemukan lokasi klaster dan plot di lapangan.
 - Satu klaster maksimal memiliki **4 plot**.
 - **Plot 1** berfungsi sebagai **sentroid (pusat klaster)**.
 - Plot lainnya mengelilingi plot pusat.
@@ -19,19 +20,21 @@ Dalam metode Forest Health Monitoring, satu **klaster** terdiri dari beberapa **
 
 Struktur ini penting untuk memastikan konsistensi dan akurasi data dalam setiap periode penelitian.
 
-## Tujuan Aplikasi
-
-<!-- `Tujuan Aplikasi` moved below Fitur Utama; screenshots will be inserted here -->
-
 ## Fitur Utama
 
 Beberapa fitur utama yang tersedia dalam aplikasi Azimutree antara lain:
 
-- **Visualisasi peta digital** menggunakan Mapbox.
-- **Penentuan posisi klaster dan plot** berdasarkan koordinat geografis.
-- Informasi **sudut azimut**, **jarak dari pusat klaster**, dan **jarak dari posisi pengguna**.
-- **Impor data** dalam jumlah besar (dibatasi untuk satu klaster).
-- **Ekspor data ke format Excel** untuk memudahkan berbagi data antar peneliti.
+- Pengelolaan data titik ikat, klaster, plot, dan pohon secara lokal.
+- Input posisi menggunakan azimut dan jarak atau lintang dan bujur.
+- Pemilihan koordinat secara visual melalui peta.
+- Visualisasi marker, area plot, garis relasi, dan lokasi pengguna pada peta digital.
+- Survey Lokasi dengan panduan GPS, kompas, dan radar pohon.
+- Sesi survey persisten sehingga dapat dilanjutkan setelah kembali ke Beranda.
+- Impor dan ekspor beberapa klaster melalui file Excel.
+- Penyimpanan Awan untuk berbagi data penelitian tanpa file Excel.
+- Data publik dapat dicari dan diunduh tanpa login.
+- Login Google opsional untuk mengunggah serta mengelola data milik sendiri.
+- Dukungan tema terang dan gelap.
 
 ## Screenshots
 
@@ -63,7 +66,7 @@ Azimutree dikembangkan untuk menjawab kebutuhan peneliti kesehatan hutan dalam:
 - Mempermudah peneliti menemukan kembali **lokasi penelitian sebelumnya** di lapangan.
 - Mengurangi kesalahan penentuan posisi plot akibat perubahan kondisi hutan.
 
-Aplikasi ini berfokus pada **pencatatan dan visualisasi lokasi**, bukan pada pencatatan detail nilai kesehatan pohon atau hutan.
+Aplikasi ini berfokus pada **pencatatan, visualisasi, dan navigasi lokasi**, bukan pada pencatatan detail nilai kesehatan pohon atau hutan.
 
 ## Teknologi yang Digunakan
 
@@ -72,6 +75,8 @@ Azimutree dikembangkan menggunakan teknologi berikut:
 - **Flutter** sebagai framework pengembangan aplikasi.
 - **SQLite** untuk penyimpanan data lokal.
 - **Mapbox** untuk pemetaan dan visualisasi lokasi.
+- **Firebase Authentication** untuk login Google secara opsional.
+- **Cloud Firestore** sebagai backend penyimpanan dan berbagi data penelitian, status layanan, profil pengguna, serta catatan versi aplikasi.
 
 ## Manfaat
 
@@ -80,6 +85,7 @@ Dengan menggunakan Azimutree, peneliti dapat:
 - Lebih mudah melakukan pengamatan ulang di lokasi yang sama pada periode penelitian berikutnya.
 - Menghemat waktu pencarian lokasi klaster dan plot di lapangan.
 - Berbagi data lokasi penelitian secara lebih praktis dan terstruktur.
+- Mengakses data penelitian publik dan menyimpan data sendiri melalui layanan awan.
 
 ## Penutup
 
@@ -115,11 +121,40 @@ Gunakan `env_template` yang sudah ada — salin dan ubah namanya menjadi `.env`,
 
 ```bash
 cp env_template .env
-# lalu buka .env dan isi:
+# Then open .env and provide the required values:
 # MAP_BOX_ACCESS=pk.your_mapbox_public_token_here
 ```
 
 Pastikan **tidak** meng-commit `.env` ke repo (file template tetap di-repo). Aplikasi membaca nilai ini melalui `flutter_dotenv` dan kode menggunakan variabel `MAP_BOX_ACCESS`.
+
+### Konfigurasi Firebase
+
+Proyek Firebase diperlukan untuk fitur Penyimpanan Awan, login Google, pemeriksaan status layanan, dan catatan versi aplikasi.
+
+1. Instal Firebase CLI dan FlutterFire CLI.
+2. Login ke Firebase lalu hubungkan aplikasi dengan proyek Firebase:
+
+```bash
+firebase login
+flutterfire configure --project=YOUR_FIREBASE_PROJECT_ID
+```
+
+3. Aktifkan **Google** pada Firebase Authentication → Sign-in method.
+4. Buat database Cloud Firestore.
+5. Terapkan Security Rules yang tersedia di [`firestore.rules`](firestore.rules):
+
+```bash
+firebase deploy --only firestore:rules --project YOUR_FIREBASE_PROJECT_ID
+```
+
+6. Buat dokumen `system/status` dengan field berikut agar pemeriksaan layanan berhasil:
+
+```text
+cloudEnabled: true
+message: "Aplikasi berhasil terhubung ke layanan penyimpanan awan."
+```
+
+Catatan versi disimpan pada koleksi `appVersions`. Setiap dokumen yang ingin ditampilkan harus memiliki `isPublished: true`.
 
 Jalankan aplikasi:
 

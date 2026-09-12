@@ -2,12 +2,14 @@ import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
+import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/bottomsheet_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/plot_cluster_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/selected_cluster_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dropdown_manage_data_widget.dart';
+import 'package:azimutree/views/widgets/manage_data_widget/titik_ikat_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
 import 'package:flutter/material.dart';
 
@@ -22,25 +24,40 @@ class _ManageDataPageState extends State<ManageDataPage> {
   late final ClusterNotifier clusterNotifier;
   late final PlotNotifier plotNotifier;
   late final TreeNotifier treeNotifier;
+  late final TitikIkatNotifier titikIkatNotifier;
   late final DraggableScrollableController _draggableController;
+  late final VoidCallback _localDataRevisionListener;
 
   @override
   void initState() {
     super.initState();
+    selectedPageNotifier.value = 'manage_data_page';
     clusterNotifier = ClusterNotifier();
     plotNotifier = PlotNotifier();
     treeNotifier = TreeNotifier();
+    titikIkatNotifier = TitikIkatNotifier();
     _draggableController = DraggableScrollableController();
-    clusterNotifier.loadClusters();
-    plotNotifier.loadPlots();
-    treeNotifier.loadTrees();
+    _localDataRevisionListener = _reloadLocalData;
+    localDataRevisionNotifier.addListener(_localDataRevisionListener);
+    _reloadLocalData();
+  }
+
+  Future<void> _reloadLocalData() async {
+    await Future.wait([
+      clusterNotifier.loadClusters(),
+      plotNotifier.loadPlots(),
+      treeNotifier.loadTrees(),
+      titikIkatNotifier.loadTitikIkat(),
+    ]);
   }
 
   @override
   void dispose() {
+    localDataRevisionNotifier.removeListener(_localDataRevisionListener);
     clusterNotifier.dispose();
     plotNotifier.dispose();
     treeNotifier.dispose();
+    titikIkatNotifier.dispose();
     _draggableController.dispose();
     super.dispose();
   }
@@ -112,7 +129,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
 
                           return Column(
                             children: [
-                              // Dropdown tetap sama, karena sudah pakai selectedDropdownClusterNotifier
+                              // Keep the dropdown synchronized through the shared cluster selection notifier.
                               ValueListenableBuilder<bool>(
                                 valueListenable: isLightModeNotifier,
                                 builder: (context, isLightMode, _) {
@@ -179,6 +196,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                         clusterNotifier: clusterNotifier,
                                         plotNotifier: plotNotifier,
                                         treeNotifier: treeNotifier,
+                                        titikIkatNotifier: titikIkatNotifier,
                                       );
                                     },
                                   );
@@ -187,12 +205,12 @@ class _ManageDataPageState extends State<ManageDataPage> {
                               const SizedBox(height: 8),
 
                               if (hasCluster)
-                                // 🔥 Dengarkan dropdown pilihan klaster
+                                // Rebuild the detail sections when the selected cluster changes.
                                 ValueListenableBuilder<String?>(
                                   valueListenable:
                                       selectedDropdownClusterNotifier,
                                   builder: (context, selectedKodeCluster, _) {
-                                    // Cari cluster yang cocok dengan kode yang dipilih
+                                    // Resolve the selected cluster from its stable code.
                                     final selectedCluster = clusters.firstWhere(
                                       (c) =>
                                           c.kodeCluster == selectedKodeCluster,
@@ -200,35 +218,76 @@ class _ManageDataPageState extends State<ManageDataPage> {
                                     );
 
                                     return ValueListenableBuilder(
-                                      valueListenable: plotNotifier,
-                                      builder: (context, plotData, child) {
-                                        final plots =
-                                            plotData; // List<PlotModel>
-
-                                        // 💡 Filter plot berdasarkan idCluster dari cluster terpilih
-                                        final plotsForSelectedCluster =
-                                            plots
+                                      valueListenable: titikIkatNotifier,
+                                      builder: (context, titikIkatData, child) {
+                                        final selectedTitikIkat =
+                                            titikIkatData
                                                 .where(
-                                                  (plot) =>
-                                                      plot.idCluster ==
+                                                  (item) =>
+                                                      item.idCluster ==
                                                       selectedCluster.id,
                                                 )
                                                 .toList();
 
-                                        return ValueListenableBuilder(
-                                          valueListenable: treeNotifier,
-                                          builder: (context, treeData, child) {
-                                            return PlotClusterManageDataWidget(
-                                              plotData: plotsForSelectedCluster,
-                                              treeData: treeData,
-                                              clustersData: clusters,
-                                              plotNotifier: plotNotifier,
-                                              treeNotifier: treeNotifier,
-                                              isEmpty:
-                                                  plotsForSelectedCluster
-                                                      .isEmpty,
-                                            );
-                                          },
+                                        return Column(
+                                          children: [
+                                            TitikIkatManageDataWidget(
+                                              cluster: selectedCluster,
+                                              clusters: clusters,
+                                              plots: plotNotifier.value,
+                                              titikIkatData: selectedTitikIkat,
+                                              titikIkatNotifier:
+                                                  titikIkatNotifier,
+                                            ),
+                                            const SizedBox(height: 8),
+                                            ValueListenableBuilder(
+                                              valueListenable: plotNotifier,
+                                              builder: (
+                                                context,
+                                                plotData,
+                                                child,
+                                              ) {
+                                                final plots =
+                                                    plotData; // List<PlotModel>
+
+                                                // Show only plots owned by the selected cluster.
+                                                final plotsForSelectedCluster =
+                                                    plots
+                                                        .where(
+                                                          (plot) =>
+                                                              plot.idCluster ==
+                                                              selectedCluster
+                                                                  .id,
+                                                        )
+                                                        .toList();
+
+                                                return ValueListenableBuilder(
+                                                  valueListenable: treeNotifier,
+                                                  builder: (
+                                                    context,
+                                                    treeData,
+                                                    child,
+                                                  ) {
+                                                    return PlotClusterManageDataWidget(
+                                                      plotData:
+                                                          plotsForSelectedCluster,
+                                                      treeData: treeData,
+                                                      clustersData: clusters,
+                                                      plotNotifier:
+                                                          plotNotifier,
+                                                      treeNotifier:
+                                                          treeNotifier,
+                                                      titikIkatData:
+                                                          selectedTitikIkat,
+                                                      isEmpty:
+                                                          plotsForSelectedCluster
+                                                              .isEmpty,
+                                                    );
+                                                  },
+                                                );
+                                              },
+                                            ),
+                                          ],
                                         );
                                       },
                                     );
@@ -259,6 +318,7 @@ class _ManageDataPageState extends State<ManageDataPage> {
               clusterNotifier: clusterNotifier,
               plotNotifier: plotNotifier,
               treeNotifier: treeNotifier,
+              titikIkatNotifier: titikIkatNotifier,
               draggableController: _draggableController,
             ),
           ],

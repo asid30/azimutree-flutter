@@ -29,6 +29,7 @@ MAPBOX_STYLE_SATELLITE =
 # Example: https://docs.google.com/spreadsheets/d/your-sheet-id/edit
 
 TEMPLATE_URL =
+SAMPLE_DATA_URL = https://azimutree.heavysnack.my.id/sample-data/
 
 ## Notes for developers:
 

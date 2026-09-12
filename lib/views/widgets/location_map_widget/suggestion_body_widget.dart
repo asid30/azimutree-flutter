@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:azimutree/data/database/plot_dao.dart';
 import 'package:azimutree/data/database/cluster_dao.dart';
+import 'package:azimutree/data/database/titik_ikat_dao.dart';
 
 class SuggestionBodyWidget extends StatelessWidget {
   final bool isSearching;
@@ -41,6 +42,13 @@ class SuggestionBodyWidget extends StatelessWidget {
               title: Text(place["name"] ?? ""),
               subtitle: Text("${place["longitude"]} ${place["latitude"]}"),
               onTap: () async {
+                // A selected result ends the search interaction. Release the
+                // real FocusNode as well as the shared focus state so the
+                // keyboard cannot reappear when Map Tools is opened later.
+                FocusScope.of(context).unfocus();
+                isSearchFieldFocusedNotifier.value = false;
+                bottomsheetMinimizeRequestNotifier.value =
+                    bottomsheetMinimizeRequestNotifier.value + 1;
                 logger.i(
                   "Selected place: $place\n${place["longitude"]} ${place["latitude"]}",
                 );
@@ -49,6 +57,8 @@ class SuggestionBodyWidget extends StatelessWidget {
                 // should not linger after user searches).
                 selectedTreeNotifier.value = null;
                 selectedPlotNotifier.value = null;
+                selectedTitikIkatNotifier.value = null;
+                selectedTitikIkatClusterNotifier.value = null;
                 // If this is a cluster/plot local result, resolve DB models
                 // and set selectedPlotNotifier so the UI shows the plot
                 // details. For local `plot`/`cluster` results we DO NOT want
@@ -57,6 +67,27 @@ class SuggestionBodyWidget extends StatelessWidget {
                 // to true for generic Mapbox API place results (fallback).
                 final type = place['type'] as String?;
                 try {
+                  if (type == 'anchor') {
+                    final anchorId = place['anchorId'] as int?;
+                    if (anchorId != null) {
+                      final anchor = await TitikIkatDao.getTitikIkatById(
+                        anchorId,
+                      );
+                      if (anchor != null) {
+                        selectedLocationFromSearchNotifier.value = false;
+                        selectedTitikIkatNotifier.value = anchor;
+                        selectedTitikIkatClusterNotifier.value =
+                            await ClusterDao.getClusterById(anchor.idCluster);
+                        isFollowingUserLocationNotifier.value = false;
+                        selectedLocationNotifier.value = Position(
+                          anchor.longitude!,
+                          anchor.latitude!,
+                        );
+                        userInputSearchBarNotifier.value = '';
+                        return;
+                      }
+                    }
+                  }
                   if (type == 'plot' || type == 'cluster') {
                     final plotId = place['plotId'] as int?;
                     if (plotId != null) {

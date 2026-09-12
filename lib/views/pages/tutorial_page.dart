@@ -1,542 +1,369 @@
+import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/views/widgets/core_widget/appbar_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/background_app_widget.dart';
 import 'package:azimutree/views/widgets/core_widget/sidebar_widget.dart';
-import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
 
+/// Explains the application's primary data and field-survey workflows.
 class TutorialPage extends StatelessWidget {
   const TutorialPage({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (didPop) return;
-        Navigator.pushNamedAndRemoveUntil(context, 'home', (route) => false);
-      },
-      child: Scaffold(
-        appBar: const AppbarWidget(title: 'Panduan Aplikasi'),
-        drawer: const SidebarWidget(),
-        body: Stack(
-          children: [
-            BackgroundAppWidget(
-              lightBackgroundImage: 'assets/images/light-bg-notitle.png',
-              darkBackgroundImage: 'assets/images/dark-bg-notitle.png',
-            ),
-            SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: ValueListenableBuilder<bool>(
-                  valueListenable: isLightModeNotifier,
-                  builder: (context, isLight, _) {
-                    final isDark = !isLight;
-                    final bodyColor = isDark ? Colors.white70 : Colors.black87;
-
-                    Widget bold(String text) => Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        text,
-                        textAlign: TextAlign.left,
-                        style: TextStyle(
-                          fontWeight: FontWeight.w700,
-                          color: bodyColor,
-                        ),
+  Widget build(BuildContext context) => PopScope(
+    canPop: false,
+    onPopInvokedWithResult: (didPop, _) {
+      if (!didPop) {
+        Navigator.pushNamedAndRemoveUntil(context, 'home', (_) => false);
+      }
+    },
+    child: Scaffold(
+      appBar: const AppbarWidget(title: 'Panduan Aplikasi'),
+      drawer: const SidebarWidget(),
+      body: Stack(
+        children: [
+          const BackgroundAppWidget(
+            lightBackgroundImage: 'assets/images/light-bg-notitle.png',
+            darkBackgroundImage: 'assets/images/dark-bg-notitle.png',
+          ),
+          ValueListenableBuilder<bool>(
+            valueListenable: isLightModeNotifier,
+            builder: (context, isLight, _) {
+              final foreground = isLight ? Colors.black87 : Colors.white;
+              final cardColor =
+                  isLight
+                      ? const Color.fromARGB(240, 180, 216, 187)
+                      : const Color.fromARGB(255, 36, 67, 42);
+              return ListView(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 24),
+                children: [
+                  Row(
+                    children: [
+                      BackButton(
+                        color: foreground,
+                        onPressed:
+                            () => Navigator.popAndPushNamed(context, 'home'),
                       ),
-                    );
-
-                    Widget normal(String text) => Align(
-                      alignment: Alignment.centerLeft,
-                      child: Text(
-                        text,
-                        textAlign: TextAlign.left,
-                        style: TextStyle(color: bodyColor),
+                      Text(
+                        'Kembali',
+                        style: TextStyle(fontSize: 18, color: foreground),
                       ),
-                    );
-
-                    return Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.start,
-                          children: [
-                            ValueListenableBuilder<bool>(
-                              valueListenable: isLightModeNotifier,
-                              builder: (context, isLight, child) {
-                                return BackButton(
-                                  color: isLight ? null : Colors.white,
-                                  onPressed: () {
-                                    Navigator.popAndPushNamed(context, "home");
-                                  },
-                                );
-                              },
-                            ),
-                            ValueListenableBuilder<bool>(
-                              valueListenable: isLightModeNotifier,
-                              builder: (context, isLight, child) {
-                                return Text(
-                                  "Kembali",
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: isLight ? null : Colors.white,
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-
-                        Card(
-                          color:
-                              isDark
-                                  ? const Color.fromARGB(255, 36, 67, 42)
-                                  : const Color.fromARGB(240, 180, 216, 187),
-                          child: Theme(
-                            data: Theme.of(
-                              context,
-                            ).copyWith(dividerColor: Colors.transparent),
-                            child: Column(
-                              children: [
-                                /// =============================
-                                /// 1. DASHBOARD
-                                /// =============================
-                                ExpansionTile(
-                                  title: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      '1. Tampilan Dashboard 🏠',
-                                      textAlign: TextAlign.left,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color:
-                                            isDark
-                                                ? Colors.white
-                                                : Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  iconColor: isDark ? Colors.white : null,
-                                  collapsedIconColor:
-                                      isDark ? Colors.white : null,
-                                  childrenPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  children: [
-                                    bold('Menu Tombol Besar'),
-                                    normal(
-                                      '• Kelola Data Klaster Plot – Mengelola data Klaster, plot, dan pohon.\n'
-                                      '• Peta Lokasi Klaster Plot – Menampilkan visualisasi data di peta.\n'
-                                      '• Panduan Aplikasi – Membuka halaman panduan ini.',
-                                    ),
-
-                                    const SizedBox(height: 8),
-                                    bold('Menu Tombol Kecil'),
-                                    normal(
-                                      '• Settings – Pengaturan tema dan mode debug.\n'
-                                      '• About Aplikasi – Informasi aplikasi.\n'
-                                      '• Keluar – Menutup sesi aplikasi.',
-                                    ),
-
-                                    const SizedBox(height: 8),
-                                    normal(
-                                      'Sidebar dapat diakses dari pojok kiri atas. '
-                                      'Tombol ganti tema tersedia di pojok kanan atas. 🌗',
-                                    ),
-                                  ],
-                                ),
-
-                                /// =============================
-                                /// 2. KELOLA DATA
-                                /// =============================
-                                ExpansionTile(
-                                  title: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      '2. Kelola Data Klaster Plot 🌳',
-                                      textAlign: TextAlign.left,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color:
-                                            isDark
-                                                ? Colors.white
-                                                : Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  iconColor: isDark ? Colors.white : null,
-                                  collapsedIconColor:
-                                      isDark ? Colors.white : null,
-                                  childrenPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  children: [
-                                    bold('Akses Menu'),
-                                    normal(
-                                      'Gunakan Floating Action Button (FAB) untuk:\n'
-                                      '• Input manual\n• Impor data Excel\n• Ekspor data\n• Unduh template',
-                                    ),
-                                    const SizedBox(height: 8),
-
-                                    bold('Input Manual Klaster'),
-                                    normal(
-                                      '1. Masukkan Kode Klaster.\n'
-                                      '2. Masukkan Nama Pengukur.\n'
-                                      '3. Pilih Tanggal Pengukuran.\n'
-                                      '4. Tekan Simpan untuk menyimpan informasi klaster.',
-                                    ),
-
-                                    const SizedBox(height: 8),
-                                    bold('Input Manual Plot'),
-                                    normal(
-                                      '1. Pilih Klaster (dropdown).\n'
-                                      '2. Pilih Plot (maksimal 4 plot per klaster).\n'
-                                      '   • Jika semua plot dalam klaster sudah terisi, '
-                                      'opsi tidak dapat dipilih.\n'
-                                      '3. Masukkan Latitude.\n'
-                                      '4. Masukkan Longitude.\n'
-                                      '5. Masukkan Altitude (opsional).',
-                                    ),
-
-                                    const SizedBox(height: 8),
-                                    bold('Input Manual Pohon'),
-                                    normal(
-                                      '1. Pilih Klaster.\n'
-                                      '2. Pilih Plot.\n'
-                                      '3. Pilih metode input posisi:\n'
-                                      '   • Azimut & Jarak, atau\n'
-                                      '   • Koordinat Bebas (Latitude & Longitude).\n'
-                                      '   (Hanya bisa memilih salah satu).\n'
-                                      '4. Masukkan Altitude (opsional).\n'
-                                      '5. Masukkan Kode Pohon (gunakan angka).\n'
-                                      '6. Masukkan Nama Pohon.\n'
-                                      '7. Masukkan Nama Ilmiah.\n'
-                                      '8. Masukkan Keterangan (opsional).\n'
-                                      '9. Masukkan URL Foto.\n'
-                                      '   • Disarankan Google Drive.\n'
-                                      '   • Pastikan URL bersifat Public.\n'
-                                      '   • URL harus langsung menuju file gambar.',
-                                    ),
-
-                                    const SizedBox(height: 8),
-                                    bold('Edit & Hapus Data Pohon'),
-                                    normal(
-                                      '• Geser ke kiri → Edit data ✏️\n'
-                                      '• Geser ke kanan → Hapus data 🗑️\n'
-                                      '• Data yang dihapus akan hilang permanen dan '
-                                      'tidak dapat dikembalikan.',
-                                    ),
-                                    const SizedBox(height: 8),
-                                    bold('Impor Data Menggunakan Excel'),
-                                    normal(
-                                      'Azimutree menyediakan fitur impor data menggunakan file Excel untuk mempermudah input data dalam jumlah besar.\n'
-                                      'Langkah-langkah impor data:\n'
-                                      '1. Tekan Unduh Template untuk mendapatkan format Excel resmi.\n'
-                                      '2. Isi file Excel sesuai format template (format harus sama persis).\n'
-                                      '3. Tekan Impor Data.\n'
-                                      '4. Isi dialog impor:\n'
-                                      '   • Kode Klaster\n'
-                                      '   • Nama Pengukur\n'
-                                      '   • Tanggal Pengukuran\n'
-                                      '   • Pilih File Excel\n'
-                                      '   • Berikan izin akses penyimpanan jika diminta.\n'
-                                      '5. Tekan tombol Impor.',
-                                    ),
-                                    const SizedBox(height: 8),
-                                    normal(
-                                      'Catatan:\n'
-                                      '• Pastikan data pada file Excel sudah benar sebelum mengimpor.\n'
-                                      '• Jika terdapat kesalahan format atau data duplikat, proses impor akan gagal dan menampilkan pesan error.\n'
-                                      '• Data yang berhasil diimpor akan langsung muncul di daftar Kelola Data dan di peta.',
-                                    ),
-                                    const SizedBox(height: 8),
-                                    bold('Ekspor Data'),
-                                    normal(
-                                      'Menu Ekspor Data digunakan untuk membagikan data antar pengguna Azimutree.\n'
-                                      'Data akan diekspor dalam bentuk file Excel.\n'
-                                      'File hasil ekspor dapat langsung diimpor oleh pengguna Azimutree lainnya.',
-                                    ),
-                                  ],
-                                ),
-
-                                /// =============================
-                                /// 3. MAP
-                                /// =============================
-                                ExpansionTile(
-                                  title: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      '3. Peta Lokasi Klaster Plot 🗺️',
-                                      textAlign: TextAlign.left,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color:
-                                            isDark
-                                                ? Colors.white
-                                                : Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  iconColor: isDark ? Colors.white : null,
-                                  collapsedIconColor:
-                                      isDark ? Colors.white : null,
-                                  childrenPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  children: [
-                                    // 3.1 Marker dan Warna
-                                    bold('Marker dan Warna'),
-                                    normal(
-                                      'Pada peta lokasi klaster plot, marker dan warna memiliki arti sebagai berikut:\n'
-                                      '• Biru 🔵 : Marker Plot\n'
-                                      '• Ungu 🟣 : Sentroid otomatis (jika klaster tidak memiliki Plot 1)\n'
-                                      '• Oranye 🟠 : Marker Pohon\n'
-                                      '• Hijau 🟢 : Pohon yang sudah diinspeksi\n'
-                                      '• Merah 🔴 : Marker hasil pencarian lokasi\n',
-                                    ),
-
-                                    // Garis pada peta (inline examples)
-                                    bold('Garis pada peta'),
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: RichText(
-                                        text: TextSpan(
-                                          style: TextStyle(
-                                            color: bodyColor,
-                                            fontSize: 14,
-                                          ),
-                                          children: [
-                                            const TextSpan(
-                                              text: '• Garis Merah ',
-                                            ),
-                                            WidgetSpan(
-                                              alignment:
-                                                  PlaceholderAlignment.middle,
-                                              child: Container(
-                                                width: 24,
-                                                height: 6,
-                                                margin:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.redAccent,
-                                                  borderRadius:
-                                                      BorderRadius.circular(2),
-                                                ),
-                                              ),
-                                            ),
-                                            const TextSpan(
-                                              text:
-                                                  ': Relasi antara pohon ke plot.\n',
-                                            ),
-                                            const TextSpan(
-                                              text: '• Garis Biru ',
-                                            ),
-                                            WidgetSpan(
-                                              alignment:
-                                                  PlaceholderAlignment.middle,
-                                              child: Container(
-                                                width: 24,
-                                                height: 6,
-                                                margin:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 6,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.blueAccent,
-                                                  borderRadius:
-                                                      BorderRadius.circular(2),
-                                                ),
-                                              ),
-                                            ),
-                                            const TextSpan(
-                                              text:
-                                                  ': Relasi antara plot ke plot atau plot ke sentroid.\n\n',
-                                            ),
-                                            const TextSpan(
-                                              text:
-                                                  'Informasi warna marker dan garis dapat dilihat pada legenda di kanan bawah peta.',
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 12),
-
-                                    // 3.2 Bottom Sheet Peta
-                                    bold('Bottom Sheet Peta'),
-                                    normal(
-                                      'Di bagian bawah peta tersedia bottom sheet dengan fungsi:\n'
-                                      '• Pencarian lokasi (nama kota, tempat, dll).\n'
-                                      '• Mengganti tipe peta: Satelit / Medan.\n'
-                                      '• Tombol menyalakan lokasi pengguna.\n'
-                                      '• Tombol mengarahkan peta ke utara.\n\n'
-                                      'Catatan: Nama tempat pada peta bersifat non-interaktif karena keterbatasan layanan peta.',
-                                    ),
-
-                                    const SizedBox(height: 12),
-
-                                    // 3.3 Interaksi Marker
-                                    bold('Interaksi Marker'),
-                                    normal(
-                                      'Data klaster dari menu Kelola Data akan otomatis muncul di peta.\n'
-                                      '• Marker dapat ditekan untuk melihat relasi antar plot dan pohon.\n'
-                                      '• Saat marker ditekan, informasi muncul di pojok kiri atas dan juga tersedia di bottom sheet.\n'
-                                      '• Pengguna dapat melakukan centering kamera ke marker.',
-                                    ),
-
-                                    const SizedBox(height: 12),
-
-                                    // 3.4 Map Tools
-                                    bold('Map Tools'),
-                                    Align(
-                                      alignment: Alignment.centerLeft,
-                                      child: RichText(
-                                        text: TextSpan(
-                                          style: TextStyle(
-                                            color: bodyColor,
-                                            fontSize: 14,
-                                          ),
-                                          children: [
-                                            const TextSpan(
-                                              text:
-                                                  'Di pojok kanan atas terdapat Map Tools, yang membuka sidebar kanan dengan beberapa fitur:\n\n',
-                                            ),
-                                            TextSpan(
-                                              text: '• Klik Marker',
-                                              style: TextStyle(
-                                                fontStyle: FontStyle.italic,
-                                                color: bodyColor,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text:
-                                                  ' – mengaktifkan/menonaktifkan interaksi sentuhan marker.\n\n',
-                                              style: TextStyle(
-                                                color: bodyColor,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: '• Tampilkan Legenda',
-                                              style: TextStyle(
-                                                fontStyle: FontStyle.italic,
-                                                color: bodyColor,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text:
-                                                  ' – menampilkan atau menyembunyikan legenda peta.\n\n',
-                                              style: TextStyle(
-                                                color: bodyColor,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: '• Tampilkan Info Marker',
-                                              style: TextStyle(
-                                                fontStyle: FontStyle.italic,
-                                                color: bodyColor,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text:
-                                                  ' – menampilkan atau menyembunyikan info marker di layar.\n\n',
-                                              style: TextStyle(
-                                                color: bodyColor,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: '• Workflow Inspeksi',
-                                              style: TextStyle(
-                                                fontStyle: FontStyle.italic,
-                                                color: bodyColor,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text:
-                                                  ' – menampilkan tombol Tandai (Mark) pada marker; pohon yang ditandai akan berubah warna menjadi hijau.\n\n',
-                                              style: TextStyle(
-                                                color: bodyColor,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text: '• Tampilkan Garis Relasi',
-                                              style: TextStyle(
-                                                fontStyle: FontStyle.italic,
-                                                color: bodyColor,
-                                              ),
-                                            ),
-                                            TextSpan(
-                                              text:
-                                                  ' – menampilkan atau menyembunyikan garis relasi antar marker.\n',
-                                              style: TextStyle(
-                                                color: bodyColor,
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ),
-
-                                    const SizedBox(height: 12),
-
-                                    // 3.5 Navigasi Lapangan
-                                    bold('Navigasi Lapangan'),
-                                    normal(
-                                      'Jika fitur Workflow Inspeksi dan Lokasi Pengguna aktif, informasi jarak dan arah dari posisi pengguna ke marker yang dipilih akan ditampilkan pada Marker Info di pojok kiri atas.\n'
-                                      'Fitur ini sangat membantu peneliti dalam bergerak menuju pohon atau plot yang akan diamati secara langsung di lapangan.',
-                                    ),
-                                  ],
-                                ),
-
-                                /// =============================
-                                /// 4. SETTINGS
-                                /// =============================
-                                ExpansionTile(
-                                  title: Align(
-                                    alignment: Alignment.centerLeft,
-                                    child: Text(
-                                      '4. Settings ⚙️',
-                                      textAlign: TextAlign.left,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.w600,
-                                        color:
-                                            isDark
-                                                ? Colors.white
-                                                : Colors.black,
-                                      ),
-                                    ),
-                                  ),
-                                  iconColor: isDark ? Colors.white : null,
-                                  collapsedIconColor:
-                                      isDark ? Colors.white : null,
-                                  childrenPadding: const EdgeInsets.symmetric(
-                                    horizontal: 16,
-                                  ),
-                                  children: [
-                                    normal(
-                                      '• Ganti Tema Terang / Gelap.\n'
-                                      '• Mode Debug pada fitur kelola data:\n'
-                                      '  – Generate data acak.\n'
-                                      '  – Hapus seluruh data (khusus pengujian).',
-                                    ),
-                                    SizedBox(height: 24),
-                                  ],
-                                ),
-                              ],
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Card(
+                    color: cardColor,
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Panduan Azimutree 🌲🧭',
+                            style: TextStyle(
+                              color: foreground,
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
                             ),
                           ),
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
+                          const SizedBox(height: 8),
+                          Text(
+                            'Buka bagian sesuai fitur yang ingin digunakan. Data disimpan di perangkat, kecuali data yang sengaja diunggah ke Penyimpanan Awan.',
+                            style: TextStyle(color: foreground),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Card(
+                    clipBehavior: Clip.antiAlias,
+                    color: cardColor,
+                    child: Theme(
+                      data: Theme.of(
+                        context,
+                      ).copyWith(dividerColor: Colors.transparent),
+                      child: Column(
+                        children: [
+                          _GuideSection(
+                            number: 1,
+                            icon: Icons.home,
+                            title: 'Beranda dan Navigasi',
+                            foreground: foreground,
+                            children: const [
+                              _GuideParagraph(
+                                'Empat menu utama adalah Kelola Data Klaster Plot, Peta Lokasi Klaster Plot, Survey Lokasi, dan Panduan Aplikasi.',
+                              ),
+                              _GuideSubtitle('Sidebar'),
+                              _GuideBullets([
+                                'Tekan ikon menu di kiri atas untuk berpindah halaman.',
+                                'Kelola Data memiliki submenu Data Klaster dan Penyimpanan Awan.',
+                                'Versi Aplikasi memuat catatan perubahan yang dipublikasikan melalui Firebase.',
+                                'Tema dapat diganti melalui ikon kanan atas atau halaman Pengaturan.',
+                              ]),
+                            ],
+                          ),
+                          _GuideSection(
+                            number: 2,
+                            icon: Icons.storage,
+                            title: 'Kelola Data Lokal',
+                            foreground: foreground,
+                            children: const [
+                              _GuideSubtitle('Susunan data'),
+                              _GuideParagraph(
+                                'Satu klaster memiliki satu titik ikat, maksimal empat plot, dan setiap plot dapat memiliki banyak pohon.',
+                              ),
+                              _GuideSubtitle('Tambah Klaster dan titik ikat'),
+                              _GuideBullets([
+                                'Isi kode tanpa spasi. Huruf otomatis kapital, misalnya CL1.',
+                                'Nama pengukur, tanggal, lintang, dan bujur titik ikat wajib diisi.',
+                                'Nama titik ikat dibuat otomatis dari kode klaster.',
+                                'Ketinggian, keterangan, dan link gambar bersifat opsional.',
+                                'Gunakan Pilih dari Peta untuk mengambil koordinat secara visual.',
+                              ]),
+                              _GuideSubtitle('Tambah Plot'),
+                              _GuideBullets([
+                                'Pilih salah satu metode: Azimut & Jarak atau Lintang & Bujur.',
+                                'Plot pertama mengacu pada titik ikat. Plot tersimpan kemudian dapat dipilih sebagai referensi.',
+                                'Koordinat dari Azimut & Jarak dihitung berdasarkan referensi yang dipilih.',
+                                'Jika pusat plot diedit, lokasi pohon tetap, sedangkan azimut dan jaraknya dihitung ulang.',
+                              ]),
+                              _GuideSubtitle('Tambah Pohon'),
+                              _GuideBullets([
+                                'Pilih klaster dan plot tempat pohon berada.',
+                                'Gunakan salah satu metode posisi: Azimut & Jarak atau Lintang & Bujur.',
+                                'Kode pohon wajib berupa angka. Lengkapi nama, nama ilmiah, ketinggian, keterangan, dan link gambar sesuai kebutuhan.',
+                                'Pada pemilih koordinat, geser peta hingga pin tepat lalu tekan Gunakan Lokasi Ini.',
+                              ]),
+                              _GuideSubtitle('Kelola dan tracking'),
+                              _GuideBullets([
+                                'Pilih klaster dari dropdown untuk menampilkan seluruh data terkait.',
+                                'Gunakan tombol edit, hapus, atau Tracking Data pada kartu data.',
+                                'Menghapus klaster turut menghapus titik ikat, plot, dan pohon di dalamnya.',
+                                'Tracking Data membuka peta dan memilih marker tujuan.',
+                              ]),
+                            ],
+                          ),
+                          _GuideSection(
+                            number: 3,
+                            icon: Icons.table_view,
+                            title: 'Impor dan Ekspor Excel',
+                            foreground: foreground,
+                            children: const [
+                              _GuideSubtitle('Ekspor'),
+                              _GuideBullets([
+                                'Pilih satu atau beberapa klaster yang akan diekspor.',
+                                'Pilih folder tujuan terlebih dahulu, kemudian simpan file.',
+                                'File berisi sheet panduan, klaster, titik_ikat, plot, dan pohon.',
+                                'Nama file boleh diubah, tetapi nama sheet tidak boleh diubah.',
+                              ]),
+                              _GuideSubtitle('Impor'),
+                              _GuideBullets([
+                                'Gunakan template atau file hasil ekspor Azimutree.',
+                                'Kolom bertanda * wajib diisi dan tidak boleh memiliki baris kosong.',
+                                'Ikuti format tanggal pada sheet panduan.',
+                                'Lintang dan bujur memakai desimal; azimut memakai derajat; jarak dan ketinggian memakai meter.',
+                                'Periksa data setelah impor sebelum digunakan di lapangan.',
+                              ]),
+                            ],
+                          ),
+                          _GuideSection(
+                            number: 4,
+                            icon: Icons.map,
+                            title: 'Peta Lokasi',
+                            foreground: foreground,
+                            children: const [
+                              _GuideSubtitle('Marker dan area'),
+                              _GuideBullets([
+                                'Titik ikat memakai pin merah, plot berwarna biru, centroid ungu, dan pohon memakai ikon pohon.',
+                                'Pohon yang selesai pada Workflow Inspeksi berubah menjadi hijau.',
+                                'Area biru muda menunjukkan area plot berdasarkan pohon terjauh ditambah margin.',
+                                'Tekan dan tahan marker untuk memilih. Detail tersedia pada kartu layar dan bottom sheet.',
+                                'Tombol Sebelumnya/Berikutnya digunakan untuk berpindah marker.',
+                              ]),
+                              _GuideSubtitle('Pencarian dan kontrol'),
+                              _GuideBullets([
+                                'Pencarian mencakup lokasi Mapbox serta klaster, titik ikat, plot, dan pohon lokal.',
+                                'Hasil lokal tetap tersedia jika Mapbox atau internet bermasalah.',
+                                'Bottom sheet menyediakan tipe peta, lokasi pengguna, dan arah utara.',
+                              ]),
+                              _GuideSubtitle('Map Tools'),
+                              _GuideBullets([
+                                'Atur pemilihan marker, legenda, info marker, dan Workflow Inspeksi.',
+                                'Garis Pohon → Plot dan Plot → Plot dapat diatur terpisah.',
+                                'Ukuran marker titik ikat, plot, centroid, dan pohon dapat diubah satu per satu.',
+                                'Pengaturan Map Tools disimpan untuk penggunaan berikutnya.',
+                              ]),
+                            ],
+                          ),
+                          _GuideSection(
+                            number: 5,
+                            icon: Icons.explore,
+                            title: 'Survey Lokasi',
+                            foreground: foreground,
+                            children: const [
+                              _GuideSubtitle('Sebelum mulai'),
+                              _GuideBullets([
+                                'Pilih klaster dan pastikan GPS serta izin lokasi aktif.',
+                                'Gunakan tombol refresh jika GPS baru dinyalakan.',
+                                'Mulai survey setelah berada di sekitar lokasi penelitian.',
+                                'Sesi disimpan dan dapat dilanjutkan setelah kembali ke Beranda.',
+                              ]),
+                              _GuideSubtitle('Alur survey'),
+                              _GuideBullets([
+                                'Langkah 1: menuju titik ikat dengan jarak GPS dan peta kecil interaktif.',
+                                'Langkah 2: dari titik ikat menuju pusat Plot 1 berdasarkan arah dan jarak.',
+                                'Langkah 3: pilih plot tujuan lain atau cari pohon pada plot aktif menggunakan radar.',
+                                'Batal dan kembali ke titik ikat tidak mengakhiri sesi.',
+                                'Gunakan Akhiri Sesi Survey untuk menutup sesi sepenuhnya.',
+                              ]),
+                              _GuideSubtitle('Radar pohon'),
+                              _GuideBullets([
+                                'Pusat radar adalah pusat plot, bukan posisi ponsel. Sebaiknya berdiri dekat pusat plot.',
+                                'Huruf N menunjukkan utara.',
+                                'Saat kompas aktif, sektor mengikuti arah ponsel.',
+                                'Saat kompas mati, semua pohon tetap terlihat dengan orientasi utara dan tanpa animasi sektor.',
+                                'Tekan dan tahan pohon atau pusat plot untuk melihat info; tekan area kosong untuk menutupnya.',
+                              ]),
+                            ],
+                          ),
+                          _GuideSection(
+                            number: 6,
+                            icon: Icons.cloud,
+                            title: 'Penyimpanan Awan',
+                            foreground: foreground,
+                            children: const [
+                              _GuideParagraph(
+                                'Unggah dan unduh dilakukan manual. Data lokal tidak berubah otomatis ketika data awan diperbarui.',
+                              ),
+                              _GuideSubtitle('Data Penelitian Publik'),
+                              _GuideBullets([
+                                'Data publik dapat dicari dan diunduh tanpa login.',
+                                'Pencarian dilakukan berdasarkan nama folder lokasi penelitian.',
+                                'Sembunyikan Folder Kosong aktif secara default dan tersimpan persisten.',
+                                'Jika kode sudah ada di perangkat, masukkan kode salinan yang baru.',
+                              ]),
+                              _GuideSubtitle('Kelola Data Sendiri'),
+                              _GuideBullets([
+                                'Login Google hanya diperlukan untuk mengelola data sendiri.',
+                                'Buat folder lokasi dengan nama unik dan tanggal penelitian.',
+                                'Unggah satu atau beberapa klaster lokal ke folder yang dipilih.',
+                                'Folder dapat dijadikan publik atau privat; nilai awalnya publik.',
+                                'Klaster sendiri dapat diunduh atau dihapus. Folder harus kosong sebelum dihapus.',
+                              ]),
+                              _GuideParagraph(
+                                'Gambar disimpan sebagai link. Pastikan link dapat diakses oleh penerima data.',
+                              ),
+                            ],
+                          ),
+                          _GuideSection(
+                            number: 7,
+                            icon: Icons.settings,
+                            title: 'Pengaturan dan Catatan',
+                            foreground: foreground,
+                            children: const [
+                              _GuideBullets([
+                                'Pengaturan menyediakan tema terang/gelap dan Mode Debug.',
+                                'Mode Debug untuk data contoh dan penghapusan data pengujian; gunakan dengan hati-hati.',
+                                'Versi Aplikasi mengambil catatan perubahan dari Firebase dan membutuhkan internet.',
+                                'Akurasi dipengaruhi GPS, kompas perangkat, medan, dan kualitas data.',
+                                'Kalibrasikan kompas dan jauhkan ponsel dari magnet atau logam jika arah tidak stabil.',
+                                'Ekspor cadangan sebelum perubahan atau penghapusan data dalam jumlah besar.',
+                              ]),
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+class _GuideSection extends StatelessWidget {
+  const _GuideSection({
+    required this.number,
+    required this.icon,
+    required this.title,
+    required this.foreground,
+    required this.children,
+  });
+
+  final int number;
+  final IconData icon;
+  final String title;
+  final Color foreground;
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) => ExpansionTile(
+    shape: const Border(),
+    collapsedShape: const Border(),
+    leading: Icon(icon, color: foreground),
+    iconColor: foreground,
+    collapsedIconColor: foreground,
+    title: Text(
+      '$number. $title',
+      style: TextStyle(color: foreground, fontWeight: FontWeight.w600),
+    ),
+    childrenPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+    children: [
+      DefaultTextStyle(
+        style: TextStyle(color: foreground, height: 1.4),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: children,
         ),
       ),
-    );
-  }
+    ],
+  );
+}
+
+class _GuideSubtitle extends StatelessWidget {
+  const _GuideSubtitle(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 10, bottom: 5),
+    child: Align(
+      alignment: Alignment.centerLeft,
+      child: Text(text, style: const TextStyle(fontWeight: FontWeight.bold)),
+    ),
+  );
+}
+
+class _GuideParagraph extends StatelessWidget {
+  const _GuideParagraph(this.text);
+  final String text;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(bottom: 6),
+    child: Align(alignment: Alignment.centerLeft, child: Text(text)),
+  );
+}
+
+class _GuideBullets extends StatelessWidget {
+  const _GuideBullets(this.items);
+  final List<String> items;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    children: [
+      for (final item in items)
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [const Text('•  '), Expanded(child: Text(item))],
+          ),
+        ),
+    ],
+  );
 }

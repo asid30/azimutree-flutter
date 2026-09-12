@@ -27,7 +27,7 @@ class PlotModel {
     };
   }
 
-  // Factory constructor untuk membuat Plot dari Map
+  // Creates a plot from a database row.
   factory PlotModel.fromMap(Map<String, dynamic> map) {
     return PlotModel(
       id: map['id'],

@@ -1,7 +1,7 @@
 name: azimutree
-description: "Forest Health Monitoring Mapper"
+description: "Pemetaan lokasi dan pemantauan kesehatan hutan dengan metode FHM."
 publish_to: "none"
-version: 1.1.26+26
+version: 1.1.28+28
 
 environment:
   sdk: ^3.7.2
@@ -11,10 +11,9 @@ dependencies:
     sdk: flutter
   flutter_native_splash: ^2.4.4 # Generates native Android/iOS splash screens from assets/config
   http: ^1.4.0 # Lightweight HTTP client for REST calls and network requests
-  image_picker: ^1.1.2 # Capture images from camera or select from gallery
   intl: ^0.20.2 # Internationalization & date/number formatting utilities
   file_picker: ^10.1.9 # Cross-platform file selection (document import/export)
-  excel: ^2.0.0 # Read/write Excel (.xlsx/.xls) files for data import/export
+  excel: ^4.0.6 # Read/write Excel (.xlsx/.xls) files for data import/export
   path_provider: ^2.1.5 # Locate platform-specific directories (temp, documents, etc.)
   path: ^1.9.1 # Utilities for manipulating filesystem paths
   sqflite: ^2.4.2 # SQLite plugin for local relational storage and queries
@@ -26,10 +25,16 @@ dependencies:
   flutter_slidable: ^3.1.0 # Adds swipe-to-reveal action panes (list item actions)
   shared_preferences: ^2.2.3 # Simple persistent key-value storage for small data
   geolocator: ^11.0.0 # Device location APIs: permissions, current position, streams
+  flutter_compass: ^0.8.1 # Device heading sensor for survey navigation
+  firebase_core: ^4.14.0 # Initializes the Firebase services used by the app
+  cloud_firestore: ^6.9.0 # Cloud database for shared survey snapshots
+  firebase_auth: ^6.6.1 # Authentication and ownership of cloud data
+  google_sign_in: ^7.2.0 # Google account login for cloud data owners
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  sqflite_common_ffi: ^2.4.2+1
   flutter_lints: ^5.0.0
   flutter_launcher_icons: ^0.14.4
 

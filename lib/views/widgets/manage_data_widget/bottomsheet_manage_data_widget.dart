@@ -3,17 +3,19 @@ import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
+import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
 import 'package:azimutree/services/debug_data_service.dart';
 import 'package:azimutree/services/debug_mode_service.dart';
+import 'package:azimutree/services/cloud_connection_service.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/btm_button_manage_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_cluster_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_warning_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/alert_loading_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_tree_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_import_data_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_export_data_widget.dart';
-import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/services/excel_import_service.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -23,6 +25,7 @@ class BottomsheetManageDataWidget extends StatefulWidget {
   final ClusterNotifier clusterNotifier;
   final PlotNotifier plotNotifier;
   final TreeNotifier treeNotifier;
+  final TitikIkatNotifier titikIkatNotifier;
   final DraggableScrollableController? draggableController;
 
   const BottomsheetManageDataWidget({
@@ -30,6 +33,7 @@ class BottomsheetManageDataWidget extends StatefulWidget {
     required this.clusterNotifier,
     required this.plotNotifier,
     required this.treeNotifier,
+    required this.titikIkatNotifier,
     this.draggableController,
   });
 
@@ -45,6 +49,7 @@ class _BottomsheetManageDataWidgetState
   final double _maxChildSize = 0.9;
   final double _minChildSize = 0.03;
   late final DebugDataService _debugDataService;
+  late final CloudConnectionService _cloudConnectionService;
   @override
   void initState() {
     super.initState();
@@ -61,7 +66,35 @@ class _BottomsheetManageDataWidgetState
       clusterNotifier: widget.clusterNotifier,
       plotNotifier: widget.plotNotifier,
       treeNotifier: widget.treeNotifier,
+      titikIkatNotifier: widget.titikIkatNotifier,
     );
+    _cloudConnectionService = CloudConnectionService();
+  }
+
+  Future<void> _checkCloudConnection() async {
+    final navigator = Navigator.of(context, rootNavigator: true);
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder:
+          (_) => const AlertLoadingWidget(message: 'Memeriksa layanan awan...'),
+    );
+
+    final result = await _cloudConnectionService.checkConnection();
+    if (!mounted) return;
+    navigator.pop();
+
+    final isDark = !isLightModeNotifier.value;
+    await _showAlert(
+      title: result.isConnected ? 'Berhasil Terhubung' : 'Koneksi Gagal',
+      message: result.message,
+      backgroundColor:
+          result.isConnected ? Colors.lightGreen.shade200 : Colors.red.shade200,
+      textColor: isDark ? Colors.white : Colors.black,
+    );
+    if (result.isConnected && mounted) {
+      Navigator.of(context).pushNamed('cloud_storage_page');
+    }
   }
 
   void _expandBottomSheet() {
@@ -88,10 +121,13 @@ class _BottomsheetManageDataWidgetState
       context: context,
       builder:
           (_) => AlertConfirmationWidget(
-            title: 'Hapus semua data?',
-            message: 'Semua klaster, plot, dan pohon akan dihapus permanen.',
-            confirmText: 'Hapus',
+            title: 'Hapus Semua Data?',
+            message:
+                'Semua data klaster, titik ikat, plot, dan pohon akan dihapus permanen. Data yang dibuat manual, diimpor, diunduh, maupun dibuat melalui Generate Data Random juga ikut terhapus. Tindakan ini tidak dapat dibatalkan.',
+            confirmText: 'Hapus Permanen',
             cancelText: 'Batal',
+            backgroundColor: const Color.fromARGB(255, 255, 205, 210),
+            keepBackgroundColorInDarkMode: true,
           ),
     );
 
@@ -116,6 +152,20 @@ class _BottomsheetManageDataWidgetState
   }
 
   Future<void> _generateRandomData() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder:
+          (_) => const AlertConfirmationWidget(
+            title: 'Generate Data Random?',
+            message:
+                'Aplikasi akan membuat dan menambahkan data contoh berupa klaster, titik ikat, plot, dan pohon ke penyimpanan lokal. Data yang sudah ada tidak akan dihapus.',
+            confirmText: 'Generate',
+            cancelText: 'Batal',
+          ),
+    );
+
+    if (confirm != true || !mounted) return;
+
     try {
       await _debugDataService.seedRandomData();
       if (!mounted) return;
@@ -193,35 +243,40 @@ class _BottomsheetManageDataWidgetState
     );
   }
 
-  Future<void> _confirmAndOpenTemplate() async {
-    final templateEnv = dotenv.env['TEMPLATE_URL'];
-    if (templateEnv == null || templateEnv.trim().isEmpty) {
+  Future<void> _confirmAndOpenDownload({
+    required String environmentKey,
+    required String title,
+    required String itemName,
+  }) async {
+    final configuredUrl = dotenv.env[environmentKey];
+    if (configuredUrl == null || configuredUrl.trim().isEmpty) {
       await _showAlert(
         title: 'Gagal',
         message:
-            'Template belum dikonfigurasi. Silakan tambahkan TEMPLATE_URL di file .env.',
+            '$itemName belum dikonfigurasi. Silakan tambahkan $environmentKey di file .env.',
         backgroundColor: Colors.red.shade200,
       );
       return;
     }
-    final templateUrl = templateEnv.trim();
+    final downloadUrl = configuredUrl.trim();
 
     final confirm = await showDialog<bool>(
       context: context,
       builder:
           (_) => AlertConfirmationWidget(
-            title: 'Unduh Template',
+            title: title,
             message:
-                'Apakah Anda ingin membuka browser untuk mengunduh template?',
+                'Apakah Anda ingin membuka browser untuk mengunduh '
+                '${itemName.toLowerCase()}?',
             confirmText: 'Buka',
             cancelText: 'Batal',
-            copyableLink: templateUrl,
+            copyableLink: downloadUrl,
           ),
     );
 
     if (confirm != true) return;
 
-    final uri = Uri.parse(templateUrl);
+    final uri = Uri.parse(downloadUrl);
     try {
       if (!await canLaunchUrl(uri)) {
         if (!mounted) return;
@@ -266,6 +321,18 @@ class _BottomsheetManageDataWidgetState
       );
     }
   }
+
+  Future<void> _confirmAndOpenTemplate() => _confirmAndOpenDownload(
+    environmentKey: 'TEMPLATE_URL',
+    title: 'Unduh Template',
+    itemName: 'Template',
+  );
+
+  Future<void> _confirmAndOpenSampleData() => _confirmAndOpenDownload(
+    environmentKey: 'SAMPLE_DATA_URL',
+    title: 'Unduh Data Uji Coba',
+    itemName: 'Data uji coba',
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -358,17 +425,20 @@ class _BottomsheetManageDataWidgetState
                       builder: (context, isLightMode, _) {
                         final isDark = !isLightMode;
                         return Text(
-                          'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor data untuk menambahkan data dari file eksternal (sheet), ekspor data untuk menyimpan salinan data Anda, atau unduh template untuk format data (sheet) yang benar.',
+                          'Pilih salah satu opsi di bawah untuk mengelola data Anda. Impor dan ekspor data melalui file Excel, unduh template dengan format yang benar, atau simpan data ke penyimpanan awan.',
                           textAlign: TextAlign.justify,
                           style: TextStyle(color: isDark ? Colors.white : null),
                         );
                       },
                     ),
                     const SizedBox(height: 20),
-                    Wrap(
-                      spacing: 20,
-                      runSpacing: 20,
-                      alignment: WrapAlignment.spaceEvenly,
+                    GridView.count(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 20,
+                      mainAxisSpacing: 20,
+                      childAspectRatio: 2,
+                      shrinkWrap: true,
+                      physics: const NeverScrollableScrollPhysics(),
                       children: [
                         BtmButtonManageDataWidget(
                           label: "Ekspor Data",
@@ -399,50 +469,49 @@ class _BottomsheetManageDataWidgetState
                               barrierDismissible: false,
                               context: context,
                               builder:
-                                  (context) => DialogImportDataWidget(
-                                    clusterNotifier: widget.clusterNotifier,
-                                  ),
+                                  (context) => const DialogImportDataWidget(),
                             );
+                            if (!context.mounted) return;
 
                             if (result != null) {
+                              final rootNavigator = Navigator.of(
+                                context,
+                                rootNavigator: true,
+                              );
+                              final loadingDialog = showDialog<void>(
+                                context: context,
+                                barrierDismissible: false,
+                                builder:
+                                    (_) => const AlertLoadingWidget(
+                                      message: 'Mengimpor data...',
+                                    ),
+                              );
                               try {
-                                final cluster = ClusterModel(
-                                  kodeCluster: result['kodeCluster'] as String,
-                                  namaPengukur:
-                                      result['namaPengukur'] as String?,
-                                  tanggalPengukuran:
-                                      (result['tanggalPengukuran'] as String?)
-                                                  ?.isNotEmpty ==
-                                              true
-                                          ? DateTime.tryParse(
-                                            result['tanggalPengukuran']
-                                                as String,
-                                          )
-                                          : null,
-                                );
-
-                                // Use file uploaded by user (picked in dialog)
-                                final uploadedPath =
-                                    result['filePath'] as String;
                                 final importResult =
                                     await ExcelImportService.importFile(
-                                      filePath: uploadedPath,
-                                      cluster: cluster,
+                                      filePath: result as String,
                                     );
 
                                 // reload notifiers
                                 await widget.clusterNotifier.loadClusters();
+                                await widget.titikIkatNotifier.loadTitikIkat();
                                 await widget.plotNotifier.loadPlots();
                                 await widget.treeNotifier.loadTrees();
 
                                 if (!mounted) return;
+                                rootNavigator.pop();
+                                await loadingDialog;
+                                if (!mounted) return;
                                 await _showAlert(
                                   title: 'Sukses',
                                   message:
-                                      'Impor selesai. Plots: ${importResult['plots']}, Trees: ${importResult['trees']}',
+                                      'Impor selesai. Klaster: ${importResult['clusters']}, titik ikat: ${importResult['anchors']}, Plot: ${importResult['plots']}, Pohon: ${importResult['trees']}',
                                   backgroundColor: Colors.lightGreen.shade200,
                                 );
                               } catch (e) {
+                                if (!context.mounted) return;
+                                rootNavigator.pop();
+                                await loadingDialog;
                                 if (!context.mounted) return;
                                 await _showAlert(
                                   title: 'Gagal',
@@ -462,6 +531,17 @@ class _BottomsheetManageDataWidgetState
                                   : const Color.fromARGB(255, 32, 72, 43),
                           onPressed: () {
                             _confirmAndOpenTemplate();
+                          },
+                        ),
+                        BtmButtonManageDataWidget(
+                          label: "Penyimpanan Awan",
+                          icon: Icons.cloud,
+                          backgroundColor:
+                              isDark
+                                  ? const Color.fromARGB(255, 18, 43, 25)
+                                  : const Color.fromARGB(255, 32, 72, 43),
+                          onPressed: () {
+                            _checkCloudConnection();
                           },
                         ),
                       ],
@@ -543,6 +623,9 @@ class _BottomsheetManageDataWidgetState
                                                   DialogAddClusterWidget(
                                                     clusterNotifier:
                                                         widget.clusterNotifier,
+                                                    titikIkatNotifier:
+                                                        widget
+                                                            .titikIkatNotifier,
                                                   ),
                                         );
                                       },
@@ -552,7 +635,7 @@ class _BottomsheetManageDataWidgetState
                                       label: "Plot",
                                       minSize: const Size(100, 40),
                                       maxSize: const Size(150, 70),
-                                      // kalau kamu mau beda warna ketika belum ada klaster:
+                                      // Disable plot creation until a cluster exists.
                                       isEnabled: hasCluster,
                                       backgroundColor:
                                           isDark
@@ -583,7 +666,13 @@ class _BottomsheetManageDataWidgetState
                                               (context) => DialogAddPlotWidget(
                                                 plotNotifier:
                                                     widget.plotNotifier,
+                                                treeNotifier:
+                                                    widget.treeNotifier,
                                                 clusters: clusterState,
+                                                titikIkat:
+                                                    widget
+                                                        .titikIkatNotifier
+                                                        .value,
                                               ),
                                         );
                                       },
@@ -666,6 +755,18 @@ class _BottomsheetManageDataWidgetState
                                 foregroundColor: Colors.white,
                               ),
                               child: const Text("Generate Data Random"),
+                            ),
+                            const SizedBox(height: 8),
+                            ElevatedButton(
+                              onPressed: _confirmAndOpenSampleData,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    isDark
+                                        ? const Color.fromARGB(255, 18, 43, 25)
+                                        : const Color.fromARGB(255, 32, 72, 43),
+                                foregroundColor: Colors.white,
+                              ),
+                              child: const Text("Unduh Data Uji Coba"),
                             ),
                             const SizedBox(height: 8),
                             ElevatedButton(

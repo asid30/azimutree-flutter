@@ -5,9 +5,12 @@ import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/database/plot_dao.dart';
 import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:azimutree/data/database/tree_dao.dart';
+import 'package:azimutree/data/database/titik_ikat_dao.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'dart:math' as math;
 import 'dart:async';
 import 'package:geolocator/geolocator.dart' as geo;
@@ -96,6 +99,8 @@ class _BottomsheetLocationMapWidgetState
           // Clear any existing marker selection (previous marker)
           selectedTreeNotifier.value = null;
           selectedPlotNotifier.value = null;
+          selectedTitikIkatNotifier.value = null;
+          selectedTitikIkatClusterNotifier.value = null;
         } catch (_) {}
       });
     };
@@ -279,6 +284,11 @@ class _BottomsheetLocationMapWidgetState
 
   Future<void> _selectAndCenterTree(TreeModel t) async {
     if (t.latitude == null || t.longitude == null) return;
+    selectedPlotNotifier.value = null;
+    selectedPlotClusterNotifier.value = null;
+    selectedCentroidNotifier.value = null;
+    selectedTitikIkatNotifier.value = null;
+    selectedTitikIkatClusterNotifier.value = null;
     selectedTreeNotifier.value = t;
     selectedLocationNotifier.value = null;
     await Future.delayed(const Duration(milliseconds: 60));
@@ -323,6 +333,12 @@ class _BottomsheetLocationMapWidgetState
   }
 
   Future<void> _selectAndCenterPlot(PlotModel p) async {
+    selectedTreeNotifier.value = null;
+    selectedTreePlotNotifier.value = null;
+    selectedTreeClusterNotifier.value = null;
+    selectedCentroidNotifier.value = null;
+    selectedTitikIkatNotifier.value = null;
+    selectedTitikIkatClusterNotifier.value = null;
     selectedPlotNotifier.value = p;
     // center flow: clear then set selectedLocation so map centers
     selectedLocationNotifier.value = null;
@@ -331,6 +347,46 @@ class _BottomsheetLocationMapWidgetState
     preserveZoomOnNextCenterNotifier.value = true;
     selectedLocationFromSearchNotifier.value = false;
     selectedLocationNotifier.value = Position(p.longitude, p.latitude);
+  }
+
+  Future<void> _selectAndCenterTitikIkat(TitikIkatModel titikIkat) async {
+    if (titikIkat.latitude == null || titikIkat.longitude == null) return;
+    selectedTreeNotifier.value = null;
+    selectedTreePlotNotifier.value = null;
+    selectedTreeClusterNotifier.value = null;
+    selectedPlotNotifier.value = null;
+    selectedPlotClusterNotifier.value = null;
+    selectedCentroidNotifier.value = null;
+    selectedTitikIkatClusterNotifier.value = await ClusterDao.getClusterById(
+      titikIkat.idCluster,
+    );
+    selectedTitikIkatNotifier.value = titikIkat;
+    selectedLocationNotifier.value = null;
+    await Future.delayed(const Duration(milliseconds: 60));
+    isFollowingUserLocationNotifier.value = false;
+    preserveZoomOnNextCenterNotifier.value = true;
+    selectedLocationFromSearchNotifier.value = false;
+    selectedLocationNotifier.value = Position(
+      titikIkat.longitude!,
+      titikIkat.latitude!,
+    );
+  }
+
+  Future<TitikIkatModel?> _titikIkatForCluster(int clusterId) async {
+    final items = await TitikIkatDao.getTitikIkatByCluster(clusterId);
+    return items.isEmpty ? null : items.first;
+  }
+
+  Future<void> _goFromTitikIkat({required bool next}) async {
+    final titikIkat = selectedTitikIkatNotifier.value;
+    if (titikIkat == null) return;
+    final plots =
+        (await PlotDao.getAllPlots())
+            .where((plot) => plot.idCluster == titikIkat.idCluster)
+            .toList()
+          ..sort((a, b) => a.kodePlot.compareTo(b.kodePlot));
+    if (plots.isEmpty) return;
+    await _selectAndCenterPlot(next ? plots.first : plots.last);
   }
 
   Future<void> _centerToCentroid(ClusterModel cluster) async {
@@ -413,37 +469,19 @@ class _BottomsheetLocationMapWidgetState
           all.where((pl) => pl.idCluster == cur.idCluster).toList()..sort(
             (a, b) => a.kodePlot.toString().compareTo(b.kodePlot.toString()),
           );
-      if (sameCluster.isEmpty) return;
-      // Determine if this cluster has a generated centroid
-      final hasPlot1 = sameCluster.any((p) => p.kodePlot == 1);
-      final includeCentroid = !hasPlot1 && sameCluster.length > 1;
-
-      // Build navigation sequence: [plot1, plot2, ..., (centroid)]
-      final seq = <dynamic>[];
-      seq.addAll(sameCluster);
-      if (includeCentroid) {
-        seq.add({'centroid': true, 'clusterId': cur.idCluster});
-      }
-
-      // Find current index
-      int idx = seq.indexWhere((e) => e is PlotModel && e.id == cur.id);
+      final titikIkat = await _titikIkatForCluster(cur.idCluster);
+      final sequence = <dynamic>[
+        if (titikIkat != null) titikIkat,
+        ...sameCluster,
+      ];
+      if (sequence.isEmpty) return;
+      int idx = sequence.indexWhere(
+        (item) => item is PlotModel && item.id == cur.id,
+      );
       if (idx < 0) idx = 0;
-      final next = seq[(idx + 1) % seq.length];
-      if (next is PlotModel) {
-        // Clear centroid selection if any and move to plot
-        selectedCentroidNotifier.value = null;
-        await _selectAndCenterPlot(next);
-      } else {
-        // Centroid selected
-        try {
-          final cluster = await ClusterDao.getClusterById(cur.idCluster);
-          if (cluster != null) {
-            selectedPlotNotifier.value = null;
-            selectedCentroidNotifier.value = cluster;
-            await _centerToCentroid(cluster);
-          }
-        } catch (_) {}
-      }
+      final target = sequence[(idx + 1) % sequence.length];
+      if (target is PlotModel) await _selectAndCenterPlot(target);
+      if (target is TitikIkatModel) await _selectAndCenterTitikIkat(target);
     } catch (_) {}
   }
 
@@ -456,33 +494,19 @@ class _BottomsheetLocationMapWidgetState
           all.where((pl) => pl.idCluster == cur.idCluster).toList()..sort(
             (a, b) => a.kodePlot.toString().compareTo(b.kodePlot.toString()),
           );
-      if (sameCluster.isEmpty) return;
-      // Determine if this cluster has a generated centroid
-      final hasPlot1 = sameCluster.any((p) => p.kodePlot == 1);
-      final includeCentroid = !hasPlot1 && sameCluster.length > 1;
-
-      final seq = <dynamic>[];
-      seq.addAll(sameCluster);
-      if (includeCentroid) {
-        seq.add({'centroid': true, 'clusterId': cur.idCluster});
-      }
-
-      int idx = seq.indexWhere((e) => e is PlotModel && e.id == cur.id);
+      final titikIkat = await _titikIkatForCluster(cur.idCluster);
+      final sequence = <dynamic>[
+        if (titikIkat != null) titikIkat,
+        ...sameCluster,
+      ];
+      if (sequence.isEmpty) return;
+      int idx = sequence.indexWhere(
+        (item) => item is PlotModel && item.id == cur.id,
+      );
       if (idx < 0) idx = 0;
-      final prev = seq[(idx - 1) < 0 ? (seq.length - 1) : (idx - 1)];
-      if (prev is PlotModel) {
-        selectedCentroidNotifier.value = null;
-        await _selectAndCenterPlot(prev);
-      } else {
-        try {
-          final cluster = await ClusterDao.getClusterById(cur.idCluster);
-          if (cluster != null) {
-            selectedPlotNotifier.value = null;
-            selectedCentroidNotifier.value = cluster;
-            await _centerToCentroid(cluster);
-          }
-        } catch (_) {}
-      }
+      final target = sequence[(idx - 1 + sequence.length) % sequence.length];
+      if (target is PlotModel) await _selectAndCenterPlot(target);
+      if (target is TitikIkatModel) await _selectAndCenterTitikIkat(target);
     } catch (_) {}
   }
 
@@ -507,13 +531,10 @@ class _BottomsheetLocationMapWidgetState
     final enabled = await geo.Geolocator.isLocationServiceEnabled();
     if (!enabled) {
       if (!context.mounted) return false;
-      await showDialog(
-        context: context,
-        builder:
-            (_) => const AlertDialog(
-              title: Text('Lokasi tidak aktif'),
-              content: Text('Aktifkan layanan lokasi (GPS) untuk melanjutkan.'),
-            ),
+      await showAppWarning(
+        context,
+        'Aktifkan layanan lokasi (GPS) untuk melanjutkan.',
+        title: 'Lokasi tidak aktif',
       );
       return false;
     }
@@ -526,15 +547,10 @@ class _BottomsheetLocationMapWidgetState
 
     if (permission == geo.LocationPermission.deniedForever) {
       if (!context.mounted) return false;
-      await showDialog(
-        context: context,
-        builder:
-            (_) => const AlertDialog(
-              title: Text('Izin lokasi ditolak'),
-              content: Text(
-                'Perbolehkan akses lokasi pada pengaturan aplikasi.',
-              ),
-            ),
+      await showAppWarning(
+        context,
+        'Perbolehkan akses lokasi pada pengaturan aplikasi.',
+        title: 'Izin lokasi ditolak',
       );
       return false;
     }
@@ -859,6 +875,106 @@ class _BottomsheetLocationMapWidgetState
                           const SizedBox(height: 8),
                           const Divider(),
                           const SizedBox(height: 8),
+
+                          ValueListenableBuilder<TitikIkatModel?>(
+                            valueListenable: selectedTitikIkatNotifier,
+                            builder: (context, titikIkat, child) {
+                              if (titikIkat == null) {
+                                return const SizedBox.shrink();
+                              }
+                              return ValueListenableBuilder<bool>(
+                                valueListenable: isLightModeNotifier,
+                                builder: (context, isLightMode, _) {
+                                  final color =
+                                      isLightMode ? null : Colors.white;
+                                  return Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          const Text(
+                                            'Titik ikat',
+                                            style: TextStyle(
+                                              fontSize: 18,
+                                              fontWeight: FontWeight.bold,
+                                            ),
+                                          ),
+                                          Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              IconButton(
+                                                tooltip: 'Plot sebelumnya',
+                                                onPressed:
+                                                    () => _goFromTitikIkat(
+                                                      next: false,
+                                                    ),
+                                                icon: Icon(
+                                                  Icons.arrow_back,
+                                                  color: color,
+                                                ),
+                                              ),
+                                              IconButton(
+                                                tooltip:
+                                                    'Center pada titik ikat',
+                                                onPressed:
+                                                    () =>
+                                                        _selectAndCenterTitikIkat(
+                                                          titikIkat,
+                                                        ),
+                                                icon: Icon(
+                                                  Icons.my_location_outlined,
+                                                  color: color,
+                                                ),
+                                              ),
+                                              IconButton(
+                                                tooltip: 'Plot berikutnya',
+                                                onPressed:
+                                                    () => _goFromTitikIkat(
+                                                      next: true,
+                                                    ),
+                                                icon: Icon(
+                                                  Icons.arrow_forward,
+                                                  color: color,
+                                                ),
+                                              ),
+                                              IconButton(
+                                                onPressed: () {
+                                                  selectedTitikIkatNotifier
+                                                      .value = null;
+                                                  selectedTitikIkatClusterNotifier
+                                                      .value = null;
+                                                },
+                                                icon: Icon(
+                                                  Icons.close,
+                                                  color: color,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                      Text(
+                                        'Klaster: ${selectedTitikIkatClusterNotifier.value?.kodeCluster ?? '-'}',
+                                      ),
+                                      if (titikIkat.latitude != null &&
+                                          titikIkat.longitude != null)
+                                        Text(
+                                          'Lintang: ${titikIkat.latitude!.toStringAsFixed(6)}',
+                                        ),
+                                      if (titikIkat.latitude != null &&
+                                          titikIkat.longitude != null)
+                                        Text(
+                                          'Bujur: ${titikIkat.longitude!.toStringAsFixed(6)}',
+                                        ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                          ),
 
                           ValueListenableBuilder<TreeModel?>(
                             valueListenable: selectedTreeNotifier,
@@ -1306,7 +1422,7 @@ class _BottomsheetLocationMapWidgetState
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        tree.namaPohon ?? 'Pohon',
+                                        'Kode Pohon: ${tree.kodePohon}',
                                         style: const TextStyle(
                                           fontSize: 18,
                                           fontWeight: FontWeight.bold,
@@ -1486,7 +1602,11 @@ class _BottomsheetLocationMapWidgetState
                                     defaultVerticalAlignment:
                                         TableCellVerticalAlignment.top,
                                     children: [
-                                      _row('Ilmiah', tree.namaIlmiah ?? '-'),
+                                      _row('Nama Pohon', tree.namaPohon ?? '-'),
+                                      _row(
+                                        'Nama Ilmiah',
+                                        tree.namaIlmiah ?? '-',
+                                      ),
                                       _row(
                                         'Azimut',
                                         tree.azimut?.toStringAsFixed(1) ?? '-',
@@ -1497,12 +1617,12 @@ class _BottomsheetLocationMapWidgetState
                                             '-',
                                       ),
                                       _row(
-                                        'Latitude',
+                                        'Lintang',
                                         tree.latitude?.toStringAsFixed(6) ??
                                             '-',
                                       ),
                                       _row(
-                                        'Longitude',
+                                        'Bujur',
                                         tree.longitude?.toStringAsFixed(6) ??
                                             '-',
                                       ),

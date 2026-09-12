@@ -3,6 +3,7 @@ import "package:path/path.dart";
 import "package:azimutree/data/database/cluster_dao.dart";
 import 'package:azimutree/data/database/plot_dao.dart';
 import "package:azimutree/data/database/tree_dao.dart";
+import 'package:azimutree/data/database/titik_ikat_dao.dart';
 
 class AzimutreeDB {
   static final AzimutreeDB instance = AzimutreeDB._init();
@@ -24,7 +25,7 @@ class AzimutreeDB {
 
     return await openDatabase(
       path,
-      version: 2,
+      version: 6,
       onConfigure: (db) async {
         await db.execute('PRAGMA foreign_keys = ON');
       },
@@ -37,9 +38,18 @@ class AzimutreeDB {
     await ClusterDao.createTable(db);
     await PlotDao.createTable(db);
     await TreeDao.createTable(db);
+    await TitikIkatDao.createTable(db);
   }
 
   Future _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    await migrate(db, oldVersion, newVersion);
+  }
+
+  static Future<void> migrate(
+    Database db,
+    int oldVersion,
+    int newVersion,
+  ) async {
     // Add migration path to introduce optional 'inspected' column on trees
     if (oldVersion < 2 && newVersion >= 2) {
       try {
@@ -49,6 +59,85 @@ class AzimutreeDB {
       } catch (_) {
         // ignore if column already exists or other issues; safe to continue
       }
+    }
+    if (oldVersion < 3 && newVersion >= 3) {
+      await TitikIkatDao.createTable(db);
+    }
+    if (oldVersion < 4 && newVersion >= 4) {
+      final columns = await db.rawQuery(
+        'PRAGMA table_info(${TitikIkatDao.tableName})',
+      );
+      final hasLegacyDirectionColumns = columns.any(
+        (column) => column['name'] == 'azimutKePlot1',
+      );
+      if (hasLegacyDirectionColumns) {
+        await db.execute('''
+        CREATE TABLE titik_ikat_v4 (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          idCluster INTEGER NOT NULL,
+          nama TEXT NOT NULL,
+          jenis TEXT,
+          latitude REAL,
+          longitude REAL,
+          altitude REAL,
+          azimutKePlot1 REAL,
+          jarakKePlot1M REAL,
+          keterangan TEXT,
+          FOREIGN KEY (idCluster) REFERENCES clusters(id) ON DELETE CASCADE
+        )
+      ''');
+        await db.execute('''
+        INSERT INTO titik_ikat_v4 (
+          id, idCluster, nama, jenis, latitude, longitude, altitude,
+          azimutKePlot1, jarakKePlot1M, keterangan
+        )
+        SELECT
+          id, idCluster, nama, jenis, latitude, longitude, altitude,
+          azimutKePlot1, jarakKePlot1M, keterangan
+        FROM ${TitikIkatDao.tableName}
+      ''');
+        await db.execute('DROP TABLE ${TitikIkatDao.tableName}');
+        await db.execute(
+          'ALTER TABLE titik_ikat_v4 RENAME TO ${TitikIkatDao.tableName}',
+        );
+      }
+    }
+    if (oldVersion < 5 && newVersion >= 5) {
+      final columns = await db.rawQuery(
+        'PRAGMA table_info(${TitikIkatDao.tableName})',
+      );
+      if (!columns.any((column) => column['name'] == 'urlFoto')) {
+        await db.execute(
+          'ALTER TABLE ${TitikIkatDao.tableName} ADD COLUMN urlFoto TEXT',
+        );
+      }
+    }
+    if (oldVersion < 6 && newVersion >= 6) {
+      await db.execute('''
+        CREATE TABLE titik_ikat_v6 (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          idCluster INTEGER NOT NULL UNIQUE,
+          nama TEXT NOT NULL,
+          latitude REAL,
+          longitude REAL,
+          altitude REAL,
+          keterangan TEXT,
+          urlFoto TEXT,
+          FOREIGN KEY (idCluster) REFERENCES clusters(id) ON DELETE CASCADE
+        )
+      ''');
+      await db.execute('''
+        INSERT INTO titik_ikat_v6 (
+          id, idCluster, nama, latitude, longitude, altitude, keterangan, urlFoto
+        )
+        SELECT
+          id, idCluster, nama, latitude, longitude, altitude, keterangan, urlFoto
+        FROM ${TitikIkatDao.tableName}
+      ''');
+      await db.execute('DROP TABLE ${TitikIkatDao.tableName}');
+      await db.execute(
+        'ALTER TABLE titik_ikat_v6 RENAME TO ${TitikIkatDao.tableName}',
+      );
     }
   }
 

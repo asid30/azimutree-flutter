@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Header row used to group location-search suggestions.
 class SuggestionHeaderWidget extends StatelessWidget {
   final String query;
   const SuggestionHeaderWidget({super.key, required this.query});

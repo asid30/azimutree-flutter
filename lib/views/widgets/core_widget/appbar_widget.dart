@@ -1,6 +1,7 @@
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter/material.dart';
 
+/// Shared application bar with consistent navigation and theme behavior.
 class AppbarWidget extends StatelessWidget implements PreferredSizeWidget {
   final String title;
   final List<Widget>? extraActions;

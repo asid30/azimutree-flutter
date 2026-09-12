@@ -4,19 +4,24 @@ import 'package:azimutree/data/database/azimutree_db.dart';
 import 'package:azimutree/data/database/cluster_dao.dart';
 import 'package:azimutree/data/database/plot_dao.dart';
 import 'package:azimutree/data/database/tree_dao.dart';
+import 'package:azimutree/data/database/titik_ikat_dao.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
+import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
+import 'package:azimutree/services/azimuth_latlong_service.dart';
 
-/// Utility untuk kebutuhan pengembangan: seed data random dan menghapus semua
-/// data. Simpan semua logic di satu tempat supaya UI tetap ringkas.
+/// Creates deterministic-shaped sample datasets and clears local survey data
+/// for development and manual application testing.
 class DebugDataService {
   final ClusterNotifier clusterNotifier;
   final PlotNotifier plotNotifier;
   final TreeNotifier treeNotifier;
+  final TitikIkatNotifier titikIkatNotifier;
 
   final Random _rng = Random();
 
@@ -24,9 +29,10 @@ class DebugDataService {
     required this.clusterNotifier,
     required this.plotNotifier,
     required this.treeNotifier,
+    required this.titikIkatNotifier,
   });
 
-  /// Generate beberapa klaster, plot, dan pohon secara acak.
+  /// Generates random clusters, anchor points, plots, and trees with valid geometry.
   Future<void> seedRandomData({
     int clusterCount = 3,
     int minPlotPerCluster = 4,
@@ -37,36 +43,56 @@ class DebugDataService {
     final now = DateTime.now();
 
     for (int i = 0; i < clusterCount; i++) {
+      final clusterCode = _generateClusterCode(i);
       final cluster = ClusterModel(
-        kodeCluster: _generateClusterCode(i),
+        kodeCluster: clusterCode,
         namaPengukur: "Tester ${i + 1}",
         tanggalPengukuran: now.subtract(Duration(days: _rng.nextInt(60))),
       );
 
-      final clusterId = await ClusterDao.insertCluster(cluster);
-      final plotCount =
-          minPlotPerCluster +
-          _rng.nextInt((maxPlotPerCluster - minPlotPerCluster) + 1);
-
-      // Tentukan pusat klaster (plot 1) agar plot lain tidak terlalu jauh
+      // Keep all generated plots near the cluster's Plot 1 center.
       const latMin = -5.6;
       const latMax = -5.3;
       const lonMin = 105.1;
       const lonMax = 105.4;
       final centerLat = _randomCoordinate(latMin, latMax);
       final centerLon = _randomCoordinate(lonMin, lonMax);
+      final centerAltitude = 100 + _rng.nextInt(250).toDouble();
+
+      // Place the anchor point 25–100 meters from Plot 1. Navigation derives
+      // the direction and distance from these coordinates at survey time.
+      final anchorDistanceM = 25 + _rng.nextDouble() * 75;
+      final anchorBearingFromPlot1 = _rng.nextDouble() * 360;
+      final anchorCoordinate = AzimuthLatLongService.fromAzimuthDistance(
+        centerLatDeg: centerLat,
+        centerLonDeg: centerLon,
+        azimuthDeg: anchorBearingFromPlot1,
+        distanceM: anchorDistanceM,
+      );
+      final clusterId = await ClusterDao.insertClusterWithTitikIkat(
+        cluster,
+        TitikIkatModel(
+          idCluster: 0,
+          nama: 'Titik ikat $clusterCode',
+          latitude: anchorCoordinate.latitude,
+          longitude: anchorCoordinate.longitude,
+          altitude: centerAltitude,
+          keterangan: 'Auto generated',
+        ),
+      );
+      final plotCount =
+          minPlotPerCluster +
+          _rng.nextInt((maxPlotPerCluster - minPlotPerCluster) + 1);
 
       for (int j = 0; j < plotCount; j++) {
         final plot = PlotModel(
           idCluster: clusterId,
           kodePlot: j + 1,
-          latitude: j == 0
-              ? centerLat
-              : centerLat + (_rng.nextDouble() - 0.5) * 0.01,
-          longitude: j == 0
-              ? centerLon
-              : centerLon + (_rng.nextDouble() - 0.5) * 0.01,
-          altitude: 100 + _rng.nextInt(250).toDouble(),
+          latitude:
+              j == 0 ? centerLat : centerLat + (_rng.nextDouble() - 0.5) * 0.01,
+          longitude:
+              j == 0 ? centerLon : centerLon + (_rng.nextDouble() - 0.5) * 0.01,
+          altitude: centerAltitude,
         );
 
         final plotId = await PlotDao.insertPlot(plot);
@@ -75,15 +101,24 @@ class DebugDataService {
             _rng.nextInt((maxTreePerPlot - minTreePerPlot) + 1);
 
         for (int k = 0; k < treeCount; k++) {
+          final treeAzimuth = _rng.nextDouble() * 360;
+          final treeDistanceM =
+              ((1 + _rng.nextDouble() * 19) * 10).roundToDouble() / 10;
+          final treeCoordinate = AzimuthLatLongService.fromAzimuthDistance(
+            centerLatDeg: plot.latitude,
+            centerLonDeg: plot.longitude,
+            azimuthDeg: treeAzimuth,
+            distanceM: treeDistanceM,
+          );
           final tree = TreeModel(
             plotId: plotId,
             kodePohon: k + 1,
             namaPohon: "Pohon ${k + 1}",
             namaIlmiah: "Species ${_rng.nextInt(90) + 10}",
-            azimut: _rng.nextDouble() * 360,
-            jarakPusatM: (_rng.nextDouble() * 20).roundToDouble(),
-            latitude: plot.latitude + _rng.nextDouble() * 0.001,
-            longitude: plot.longitude + _rng.nextDouble() * 0.001,
+            azimut: treeAzimuth,
+            jarakPusatM: treeDistanceM,
+            latitude: treeCoordinate.latitude,
+            longitude: treeCoordinate.longitude,
             altitude: plot.altitude,
             keterangan: "Auto generated",
             urlFoto: _maybePhotoUrl(
@@ -100,18 +135,24 @@ class DebugDataService {
     await _refreshNotifiers();
   }
 
-  /// Bersihkan seluruh tabel supaya database kembali kosong.
+  /// Deletes every local survey row and resets the related SQLite sequences.
   Future<void> clearAllData() async {
     final db = await AzimutreeDB.instance.database;
 
     await db.transaction((txn) async {
+      await txn.delete(TitikIkatDao.tableName);
       await txn.delete(TreeDao.tableName);
       await txn.delete(PlotDao.tableName);
       await txn.delete(ClusterDao.tableName);
       await txn.delete(
         'sqlite_sequence',
-        where: "name IN (?, ?, ?)",
-        whereArgs: [ClusterDao.tableName, PlotDao.tableName, TreeDao.tableName],
+        where: "name IN (?, ?, ?, ?)",
+        whereArgs: [
+          ClusterDao.tableName,
+          PlotDao.tableName,
+          TreeDao.tableName,
+          TitikIkatDao.tableName,
+        ],
       );
     });
 
@@ -132,6 +173,7 @@ class DebugDataService {
       clusterNotifier.loadClusters(),
       plotNotifier.loadPlots(),
       treeNotifier.loadTrees(),
+      titikIkatNotifier.loadTitikIkat(),
     ]);
   }
 
@@ -140,7 +182,7 @@ class DebugDataService {
     required int plotIndex,
     required int treeIndex,
   }) {
-    // Tidak semua pohon dikasih foto supaya bisa lihat perbedaan loading.
+    // Attach photos selectively so image and placeholder states can be tested.
     final shouldAttachPhoto = _rng.nextBool();
     if (!shouldAttachPhoto) return null;
 

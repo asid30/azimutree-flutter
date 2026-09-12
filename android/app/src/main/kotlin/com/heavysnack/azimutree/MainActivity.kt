@@ -1,4 +1,4 @@
-package com.example.azimutree
+package com.heavysnack.azimutree
 
 import io.flutter.embedding.android.FlutterActivity
 

@@ -1,13 +1,16 @@
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
 import 'package:azimutree/data/models/cluster_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
-import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_plot_widget.dart';
+import 'package:azimutree/views/widgets/manage_data_widget/dialog_add_plot_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/tree_plot_manage_data_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
+import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 
 class PlotClusterManageDataWidget extends StatefulWidget {
   final List<PlotModel> plotData;
@@ -15,6 +18,7 @@ class PlotClusterManageDataWidget extends StatefulWidget {
   final List<ClusterModel> clustersData;
   final PlotNotifier plotNotifier;
   final TreeNotifier treeNotifier;
+  final List<TitikIkatModel> titikIkatData;
   final bool isEmpty; // true = klaster ini tidak punya plot
 
   const PlotClusterManageDataWidget({
@@ -24,6 +28,7 @@ class PlotClusterManageDataWidget extends StatefulWidget {
     required this.clustersData,
     required this.plotNotifier,
     required this.treeNotifier,
+    required this.titikIkatData,
     this.isEmpty = false,
   });
 
@@ -46,8 +51,8 @@ class _PlotClusterManageDataWidgetState
       valueListenable: isLightModeNotifier,
       builder: (context, isLightMode, child) {
         final isDark = !isLightMode;
-        // Kalau dari parent sudah dibilang klaster ini tidak punya plot,
-        // langsung tampilkan pesan dan jangan render list plot sama sekali.
+        // Avoid building the plot list when the parent already knows that this
+        // cluster has no plots.
         if (widget.isEmpty) {
           return Container(
             width: double.infinity,
@@ -80,7 +85,7 @@ class _PlotClusterManageDataWidgetState
           );
         }
 
-        // Fallback: kalau isEmpty == false tapi plotData kosong (just in case)
+        // Handle an inconsistent empty list defensively.
         if (widget.plotData.isEmpty) {
           return Container(
             width: double.infinity,
@@ -113,7 +118,7 @@ class _PlotClusterManageDataWidgetState
           );
         }
 
-        // Normal case: ada plot untuk klaster ini
+        // Sort populated plot data into its natural numeric order.
         final sortedPlotData = [...widget.plotData]
           ..sort((a, b) => a.kodePlot.compareTo(b.kodePlot));
 
@@ -251,19 +256,19 @@ class _PlotClusterManageDataWidgetState
                                       _row(
                                         context,
                                         isDark,
-                                        "Latitude",
+                                        "Lintang",
                                         plot.latitude.toStringAsFixed(6),
                                       ),
                                       _row(
                                         context,
                                         isDark,
-                                        "Longitude",
+                                        "Bujur",
                                         plot.longitude.toStringAsFixed(6),
                                       ),
                                       _row(
                                         context,
                                         isDark,
-                                        "Altitude",
+                                        "Ketinggian",
                                         plot.altitude != null
                                             ? "${plot.altitude} m"
                                             : "-",
@@ -366,6 +371,27 @@ class _PlotClusterManageDataWidgetState
                                             ),
                                   ),
                                 ),
+                                const Spacer(),
+                                OutlinedButton.icon(
+                                  onPressed: () => _trackPlot(context, plot),
+                                  icon: Icon(
+                                    Icons.my_location,
+                                    color: isDark ? Colors.white : Colors.black,
+                                  ),
+                                  label: Text(
+                                    'Tracking Data',
+                                    style: TextStyle(
+                                      color:
+                                          isDark ? Colors.white : Colors.black,
+                                    ),
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                      color:
+                                          isDark ? Colors.white54 : Colors.grey,
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ],
@@ -403,18 +429,44 @@ class _PlotClusterManageDataWidgetState
     final updated = await showDialog<PlotModel>(
       context: context,
       builder:
-          (_) => DialogEditPlotWidget(
+          (_) => DialogAddPlotWidget(
             plot: plot,
             clusters: widget.clustersData,
             plotNotifier: widget.plotNotifier,
+            treeNotifier: widget.treeNotifier,
+            titikIkat: widget.titikIkatData,
           ),
     );
 
     if (updated != null && context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Plot diperbarui")));
+      await showAppSuccess(context, 'Plot berhasil diperbarui.');
     }
+  }
+
+  void _trackPlot(BuildContext context, PlotModel plot) {
+    selectedPageNotifier.value = 'location_map_page';
+    selectedTreeNotifier.value = null;
+    selectedTreePlotNotifier.value = null;
+    selectedTreeClusterNotifier.value = null;
+    selectedCentroidNotifier.value = null;
+    selectedTitikIkatNotifier.value = null;
+    selectedTitikIkatClusterNotifier.value = null;
+    selectedMarkerScreenOffsetNotifier.value = null;
+    selectedLocationFromSearchNotifier.value = false;
+    isFollowingUserLocationNotifier.value = false;
+    // Tracking opens a new map; keeping its default zoom makes the movement
+    // appear to have failed.
+    preserveZoomOnNextCenterNotifier.value = false;
+    isMapTrackingRequestPendingNotifier.value = true;
+    selectedPlotNotifier.value = plot;
+    for (final cluster in widget.clustersData) {
+      if (cluster.id == plot.idCluster) {
+        selectedPlotClusterNotifier.value = cluster;
+        break;
+      }
+    }
+    selectedLocationNotifier.value = Position(plot.longitude, plot.latitude);
+    Navigator.pushNamed(context, 'location_map_page');
   }
 
   Future<void> _deletePlot(BuildContext context, PlotModel plot) async {
@@ -435,9 +487,7 @@ class _PlotClusterManageDataWidgetState
     await widget.treeNotifier.loadTrees();
 
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Plot dihapus")));
+      await showAppSuccess(context, 'Plot berhasil dihapus.');
     }
   }
 }

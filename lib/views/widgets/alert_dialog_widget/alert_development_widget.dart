@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 
+/// Informs users that a selected feature is still under development.
 class AlertDevelopmentWidget extends StatelessWidget {
   final String title;
   final String warningMessage;

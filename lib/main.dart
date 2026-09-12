@@ -1,8 +1,12 @@
 import 'package:azimutree/views/pages/about_page.dart';
+import 'package:azimutree/views/pages/app_version_page.dart';
+import 'package:azimutree/views/pages/cloud_storage_page.dart';
+import 'package:azimutree/views/pages/cloud_profile_page.dart';
 import 'package:azimutree/views/pages/home_page.dart';
 import 'package:azimutree/views/pages/location_map_page.dart';
 import 'package:azimutree/views/pages/manage_data_page.dart';
 import 'package:azimutree/views/pages/settings_page.dart';
+import 'package:azimutree/views/pages/survey_location_page.dart';
 import 'package:azimutree/views/pages/tutorial_page.dart';
 import 'package:azimutree/services/debug_mode_service.dart';
 import 'package:azimutree/services/theme_preference_service.dart';
@@ -12,10 +16,13 @@ import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:mapbox_maps_flutter/mapbox_maps_flutter.dart';
 import 'package:azimutree/data/database/tree_dao.dart';
+import 'package:azimutree/firebase_options.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   MapboxOptions.setAccessToken(dotenv.env['MAP_BOX_ACCESS']!);
   await DebugModeService.instance.init();
   await ThemePreferenceService.instance.init();
@@ -51,6 +58,14 @@ void main() async {
     if (plotPlotLines != null) {
       isPlotToPlotLineVisibleNotifier.value = plotPlotLines;
     }
+    titikIkatMarkerScaleNotifier.value =
+        prefs.getDouble('map_marker_scale_titik_ikat') ?? 1.0;
+    plotMarkerScaleNotifier.value =
+        prefs.getDouble('map_marker_scale_plot') ?? 1.0;
+    centroidMarkerScaleNotifier.value =
+        prefs.getDouble('map_marker_scale_centroid') ?? 1.0;
+    treeMarkerScaleNotifier.value =
+        prefs.getDouble('map_marker_scale_tree') ?? 1.0;
   } catch (_) {}
   // Load persisted inspected tree ids from DB so UI reflects saved state.
   try {
@@ -96,6 +111,11 @@ class _MainAppState extends State<MainApp> {
               const LocationMapPage(),
               settings,
             );
+          case 'survey_location_page':
+            return _buildFadeTransitionPageRoute(
+              const SurveyLocationPage(),
+              settings,
+            );
           case 'tutorial_page':
             return _buildFadeTransitionPageRoute(
               const TutorialPage(),
@@ -106,8 +126,23 @@ class _MainAppState extends State<MainApp> {
               const SettingsPage(),
               settings,
             );
+          case 'cloud_storage_page':
+            return _buildFadeTransitionPageRoute(
+              const CloudStoragePage(),
+              settings,
+            );
+          case 'cloud_profile_page':
+            return _buildFadeTransitionPageRoute(
+              const CloudProfilePage(),
+              settings,
+            );
           case 'about_page':
             return _buildFadeTransitionPageRoute(const AboutPage(), settings);
+          case 'app_version_page':
+            return _buildFadeTransitionPageRoute(
+              const AppVersionPage(),
+              settings,
+            );
           default:
             return _buildPageRoute(const HomePage(), settings);
         }

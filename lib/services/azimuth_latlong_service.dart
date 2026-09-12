@@ -1,6 +1,6 @@
 import 'dart:math';
 
-/// Titik koordinat sederhana (latitude, longitude) dalam derajat.
+/// Immutable latitude and longitude coordinates expressed in degrees.
 class LatLngPoint {
   final double latitude;
   final double longitude;
@@ -11,12 +11,12 @@ class LatLngPoint {
   String toString() => 'LatLngPoint(lat: $latitude, lon: $longitude)';
 }
 
-/// Representasi azimut (derajat) dan jarak (meter) dari titik pusat.
+/// Azimuth in degrees and distance in meters relative to an origin point.
 class AzimuthDistance {
-  /// Azimut dalam derajat, 0° = utara, 90° = timur, searah jarum jam.
+  /// Clockwise bearing where 0° is north and 90° is east.
   final double azimuthDeg;
 
-  /// Jarak dari pusat dalam meter.
+  /// Distance from the origin in meters.
   final double distanceM;
 
   const AzimuthDistance({required this.azimuthDeg, required this.distanceM});
@@ -26,108 +26,105 @@ class AzimuthDistance {
       'AzimuthDistance(azimuthDeg: $azimuthDeg, distanceM: $distanceM)';
 }
 
-/// Service helper untuk konversi azimut <-> koordinat.
-/// Catatan:
-/// - Menggunakan pendekatan lokal (equirectangular approximation).
-/// - Cukup akurat untuk jarak pendek (skala plot hutan).
+/// Converts between coordinates and azimuth-distance measurements.
+///
+/// Calculations use great-circle geodesics on a spherical Earth model, which
+/// remains stable for the short distances used by survey plots.
 class AzimuthLatLongService {
   static const double _earthRadiusMeters = 6371000.0;
   static const double _degToRadFactor = pi / 180.0;
   static const double _radToDegFactor = 180.0 / pi;
 
-  const AzimuthLatLongService._(); // private constructor, ga perlu di-instantiate
+  const AzimuthLatLongService._(); // Static utility; prevent instantiation.
 
   static double _degToRad(double deg) => deg * _degToRadFactor;
 
   static double _radToDeg(double rad) => rad * _radToDegFactor;
 
-  /// Hitung koordinat target berdasarkan titik pusat, azimut, dan jarak.
+  /// Calculates target coordinates from an origin, bearing, and distance.
   ///
-  /// [centerLatDeg], [centerLonDeg] dalam derajat.
-  /// [azimuthDeg] dalam derajat, 0° = utara, meningkat searah jarum jam.
-  /// [distanceM] dalam meter.
+  /// [centerLatDeg] and [centerLonDeg] are expressed in degrees.
+  /// [azimuthDeg] starts at north and increases clockwise.
+  /// [distanceM] is expressed in meters.
   ///
-  /// Return: koordinat pohon (LatLngPoint).
+  /// Returns the destination as a [LatLngPoint].
   static LatLngPoint fromAzimuthDistance({
     required double centerLatDeg,
     required double centerLonDeg,
     required double azimuthDeg,
     required double distanceM,
   }) {
-    final azRad = _degToRad(azimuthDeg);
-    final lat0Rad = _degToRad(centerLatDeg);
+    final bearing = _degToRad(azimuthDeg);
+    final latitude = _degToRad(centerLatDeg);
+    final longitude = _degToRad(centerLonDeg);
+    final angularDistance = distanceM / _earthRadiusMeters;
 
-    // Komponen jarak relatif terhadap utara & timur
-    final dNorth = distanceM * cos(azRad); // +Y
-    final dEast = distanceM * sin(azRad); // +X
+    final targetLatitude = asin(
+      sin(latitude) * cos(angularDistance) +
+          cos(latitude) * sin(angularDistance) * cos(bearing),
+    );
+    final targetLongitude =
+        longitude +
+        atan2(
+          sin(bearing) * sin(angularDistance) * cos(latitude),
+          cos(angularDistance) - sin(latitude) * sin(targetLatitude),
+        );
+    final normalizedLongitude = (targetLongitude + 3 * pi) % (2 * pi) - pi;
 
-    // Konversi ke derajat
-    final dLatDeg = (dNorth / _earthRadiusMeters) * _radToDegFactor;
-    final dLonDeg =
-        (dEast / (_earthRadiusMeters * cos(lat0Rad))) * _radToDegFactor;
-
-    final newLat = centerLatDeg + dLatDeg;
-    final newLon = centerLonDeg + dLonDeg;
-
-    return LatLngPoint(latitude: newLat, longitude: newLon);
+    return LatLngPoint(
+      latitude: _radToDeg(targetLatitude),
+      longitude: _radToDeg(normalizedLongitude),
+    );
   }
 
-  /// Hitung azimut (derajat) dan jarak (meter) dari titik pusat ke target.
+  /// Calculates bearing and distance from an origin to a target coordinate.
   ///
-  /// [centerLatDeg], [centerLonDeg], [targetLatDeg], [targetLonDeg] dalam derajat.
+  /// All coordinate parameters are expressed in degrees.
   ///
-  /// Return: [AzimuthDistance] dengan azimut 0–360° dan jarak meter.
+  /// Returns a normalized 0–360° bearing and a distance in meters.
   static AzimuthDistance toAzimuthDistance({
     required double centerLatDeg,
     required double centerLonDeg,
     required double targetLatDeg,
     required double targetLonDeg,
   }) {
-    final lat0Rad = _degToRad(centerLatDeg);
+    final latitude1 = _degToRad(centerLatDeg);
+    final latitude2 = _degToRad(targetLatDeg);
+    final deltaLatitude = latitude2 - latitude1;
+    final deltaLongitude = _degToRad(targetLonDeg - centerLonDeg);
 
-    // Selisih derajat
-    final dLatDeg = targetLatDeg - centerLatDeg;
-    final dLonDeg = targetLonDeg - centerLonDeg;
+    final haversine =
+        sin(deltaLatitude / 2) * sin(deltaLatitude / 2) +
+        cos(latitude1) *
+            cos(latitude2) *
+            sin(deltaLongitude / 2) *
+            sin(deltaLongitude / 2);
+    final boundedHaversine = haversine.clamp(0.0, 1.0);
+    final centralAngle =
+        2 * atan2(sqrt(boundedHaversine), sqrt(1 - boundedHaversine));
+    final distance = _earthRadiusMeters * centralAngle;
 
-    // Konversi selisih ke meter dengan pendekatan lokal
-    final dNorth =
-        dLatDeg * _degToRadFactor * _earthRadiusMeters; // delta Y (m)
-    final dEast =
-        dLonDeg *
-        _degToRadFactor *
-        _earthRadiusMeters *
-        cos(lat0Rad); // delta X (m)
+    final y = sin(deltaLongitude) * cos(latitude2);
+    final x =
+        cos(latitude1) * sin(latitude2) -
+        sin(latitude1) * cos(latitude2) * cos(deltaLongitude);
+    final azimuth = (_radToDeg(atan2(y, x)) + 360) % 360;
 
-    final distance = sqrt(dNorth * dNorth + dEast * dEast);
-
-    // Azimut: 0° = utara, searah jarum jam.
-    // atan2(X, Y) karena:
-    // - dEast (X) sepanjang timur (+X)
-    // - dNorth (Y) sepanjang utara (+Y)
-    var azRad = atan2(dEast, dNorth);
-    var azDeg = _radToDeg(azRad);
-
-    if (azDeg < 0) {
-      azDeg += 360.0;
-    }
-
-    return AzimuthDistance(azimuthDeg: azDeg, distanceM: distance);
+    return AzimuthDistance(azimuthDeg: azimuth, distanceM: distance);
   }
 
-  /// Hitung hanya jarak (meter) menggunakan pendekatan lokal yang sama.
+  /// Calculates only the geodesic distance in meters.
   static double distanceMeters({
     required double lat1Deg,
     required double lon1Deg,
     required double lat2Deg,
     required double lon2Deg,
   }) {
-    final latMidRad = _degToRad((lat1Deg + lat2Deg) / 2.0);
-    final dLat = (lat2Deg - lat1Deg) * _degToRadFactor;
-    final dLon = (lon2Deg - lon1Deg) * _degToRadFactor;
-
-    final dNorth = dLat * _earthRadiusMeters;
-    final dEast = dLon * _earthRadiusMeters * cos(latMidRad);
-
-    return sqrt(dNorth * dNorth + dEast * dEast);
+    return toAzimuthDistance(
+      centerLatDeg: lat1Deg,
+      centerLonDeg: lon1Deg,
+      targetLatDeg: lat2Deg,
+      targetLonDeg: lon2Deg,
+    ).distanceM;
   }
 }

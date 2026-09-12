@@ -1,13 +1,16 @@
 import 'package:azimutree/data/models/cluster_model.dart';
 import 'package:azimutree/data/models/plot_model.dart';
 import 'package:azimutree/data/models/tree_model.dart';
+import 'package:azimutree/data/models/titik_ikat_model.dart';
 import 'package:azimutree/data/notifiers/cluster_notifier.dart';
 import 'package:azimutree/data/notifiers/notifiers.dart';
 import 'package:azimutree/data/notifiers/plot_notifier.dart';
 import 'package:azimutree/data/notifiers/tree_notifier.dart';
+import 'package:azimutree/data/notifiers/titik_ikat_notifier.dart';
 import 'package:azimutree/views/widgets/manage_data_widget/dialog_edit_cluster_widget.dart';
 import 'package:azimutree/views/widgets/alert_dialog_widget/alert_confirmation_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:azimutree/views/widgets/alert_dialog_widget/app_alert_service.dart';
 
 class SelectedClusterManageDataWidget extends StatelessWidget {
   final List<ClusterModel> clustersData;
@@ -16,6 +19,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
   final ClusterNotifier clusterNotifier;
   final PlotNotifier plotNotifier;
   final TreeNotifier treeNotifier;
+  final TitikIkatNotifier titikIkatNotifier;
 
   const SelectedClusterManageDataWidget({
     super.key,
@@ -25,6 +29,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     required this.clusterNotifier,
     required this.plotNotifier,
     required this.treeNotifier,
+    required this.titikIkatNotifier,
   });
 
   @override
@@ -192,7 +197,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                                   _row(
                                     context,
                                     isDark,
-                                    "Latitude",
+                                    "Lintang",
                                     clusterLat != null
                                         ? clusterLat.toStringAsFixed(6)
                                         : '-',
@@ -200,7 +205,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
                                   _row(
                                     context,
                                     isDark,
-                                    "Longitude",
+                                    "Bujur",
                                     clusterLon != null
                                         ? clusterLon.toStringAsFixed(6)
                                         : '-',
@@ -278,7 +283,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     );
   }
 
-  /// Row helper biar kodenya ga berantakan
+  /// Builds a consistently styled label-and-value table row.
   TableRow _row(BuildContext context, bool isDark, String label, String value) {
     final theme = Theme.of(context);
     final color = isDark ? Colors.white : theme.textTheme.bodyMedium?.color;
@@ -298,7 +303,7 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     );
   }
 
-  /// Format tanggal jadi dd-mm-yyyy
+  /// Formats a date as `dd-mm-yyyy` for display.
   String _formatDate(DateTime date) {
     final d = date.day.toString().padLeft(2, '0');
     final m = date.month.toString().padLeft(2, '0');
@@ -307,16 +312,28 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
   }
 
   Future<void> _editCluster(BuildContext context, ClusterModel cluster) async {
+    TitikIkatModel? titikIkat;
+    for (final item in titikIkatNotifier.value) {
+      if (item.idCluster == cluster.id) {
+        titikIkat = item;
+        break;
+      }
+    }
+    if (titikIkat == null) return;
+    final titikIkatAktif = titikIkat;
     final result = await showDialog<ClusterModel>(
       context: context,
       builder:
           (_) => DialogEditClusterWidget(
             cluster: cluster,
             clusterNotifier: clusterNotifier,
+            titikIkat: titikIkatAktif,
+            titikIkatNotifier: titikIkatNotifier,
           ),
     );
 
     if (result != null && cluster.id == result.id) {
+      await titikIkatNotifier.loadTitikIkat();
       selectedDropdownClusterNotifier.value = result.kodeCluster;
     }
   }
@@ -331,7 +348,8 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
       builder:
           (_) => AlertConfirmationWidget(
             title: 'Hapus klaster?',
-            message: 'Semua plot dan pohon di klaster ini akan ikut terhapus.',
+            message:
+                'Semua titik ikat, plot, dan pohon di klaster ini akan ikut terhapus.',
             confirmText: 'Hapus',
             cancelText: 'Batal',
           ),
@@ -341,15 +359,14 @@ class SelectedClusterManageDataWidget extends StatelessWidget {
     await clusterNotifier.deleteCluster(cluster.id!);
     await plotNotifier.loadPlots();
     await treeNotifier.loadTrees();
+    await titikIkatNotifier.loadTitikIkat();
 
     final clusters = clusterNotifier.value;
     selectedDropdownClusterNotifier.value =
         clusters.isNotEmpty ? clusters.first.kodeCluster : null;
 
     if (context.mounted) {
-      ScaffoldMessenger.of(
-        context,
-      ).showSnackBar(const SnackBar(content: Text("Klaster dihapus")));
+      await showAppSuccess(context, 'Klaster berhasil dihapus.');
     }
   }
 }

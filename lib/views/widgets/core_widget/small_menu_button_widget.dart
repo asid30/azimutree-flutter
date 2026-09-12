@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+/// Compact home-page navigation button used for secondary features.
 class SmallMenuButtonWidget extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
